@@ -49,7 +49,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | Story | Title | Pts | Depends on | Status |
 |---|---|---|---|---|
 | PC-008 | Repo scaffolding & CI matrix | 5 | — | ⬜ |
-| PC-001 | Spike: hook payload & lifecycle | 5 | — | ⬜ |
+| PC-001 | Spike: hook payload & lifecycle | 5 | — | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-002 | Spike: Claude PID & process state | 3 | PC-001 | ⬜ |
 | PC-003 | Spike: control-pipe transport | 3 | — | ⬜ |
 | PC-004 | Spike: tier-1 audio sidecar | 5 | — | ⬜ |

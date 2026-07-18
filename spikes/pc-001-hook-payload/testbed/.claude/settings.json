@@ -1,0 +1,64 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js UserPromptSubmit",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js Stop",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js StopFailure",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js SessionStart",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js SessionEnd",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

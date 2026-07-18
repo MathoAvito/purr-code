@@ -13,13 +13,15 @@ All spikes (PC-001…PC-007) produce a decision record in `docs/decisions/` per 
 
 Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
-- [ ] `UserPromptSubmit`, `Stop`, `StopFailure`, `SessionEnd` fire when documented; capture actual stdin JSON payloads.
-- [ ] `session_id` is present on every event and stable within a session.
-- [ ] **Does Esc-interrupt fire `Stop`?** (§21 Q1 — record per-platform; the design must stay correct either way.)
-- [ ] `async: true` hooks confirmed non-blocking; deliberately slow hook does not delay the prompt.
-- [ ] Confirm stdout on `UserPromptSubmit` is injected into context, and non-zero exit / stderr surfaces a transcript notice (validates the fail-silent invariant's stakes).
-- [ ] Headless `-p` mode: which events fire, and what's the best suppression signal? (§21 Q3)
-- [ ] Exact hooks.json schema (`command`+`args` exec form, `timeout`, no `matcher`) re-validated against the shipped version (§15).
+- [x] `UserPromptSubmit`, `Stop`, `StopFailure`, `SessionEnd` fire when documented; capture actual stdin JSON payloads.
+- [x] `session_id` is present on every event and stable within a session.
+- [x] **Does Esc-interrupt fire `Stop`?** (§21 Q1 — record per-platform; the design must stay correct either way.) → **No** on Linux; neither does SIGKILL. Watchdog is essential.
+- [x] `async: true` hooks confirmed non-blocking; deliberately slow hook does not delay the prompt.
+- [x] Confirm stdout on `UserPromptSubmit` is injected into context, and non-zero exit / stderr surfaces a transcript notice (validates the fail-silent invariant's stakes). → True for *sync* hooks; async stdout/stderr is silently discarded on v2.1.197.
+- [x] Headless `-p` mode: which events fire, and what's the best suppression signal? (§21 Q3) → async `Stop` never fires in `-p`; suppress via `CLAUDE_CODE_ENTRYPOINT=sdk-cli`.
+- [x] Exact hooks.json schema (`command`+`args` exec form, `timeout`, no `matcher`) re-validated against the shipped version (§15).
+
+> Findings: [decision record 0001](../decisions/0001-hook-payload-lifecycle.md), evidence in `spikes/pc-001-hook-payload/`. Verified on Claude Code v2.1.197, **Linux only** — macOS/Windows runs outstanding, flagged for PC-009.
 
 ## PC-002 — Spike: Claude PID capture & process-state detection (3 pts, E1)
 
