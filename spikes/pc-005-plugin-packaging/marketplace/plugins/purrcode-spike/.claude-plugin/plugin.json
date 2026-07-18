@@ -1,0 +1,5 @@
+{
+  "name": "purrcode-spike",
+  "version": "0.0.2",
+  "description": "PC-005 throwaway plugin: logs hook events + plugin env"
+}

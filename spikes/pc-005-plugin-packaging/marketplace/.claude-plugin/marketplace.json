@@ -1,0 +1,13 @@
+{
+  "name": "purrcode-spike-marketplace",
+  "owner": {
+    "name": "PC-005 spike"
+  },
+  "plugins": [
+    {
+      "name": "purrcode-spike",
+      "source": "./plugins/purrcode-spike",
+      "description": "PC-005 throwaway plugin: verifies hooks fire via CLAUDE_PLUGIN_ROOT"
+    }
+  ]
+}

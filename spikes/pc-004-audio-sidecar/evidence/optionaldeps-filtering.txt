@@ -1,0 +1,22 @@
+optionalDependencies platform-filtering test (npm 10.8.2, Linux x64)
+
+Setup: app package with two optionalDependencies pointing at local packages
+that declare "os"/"cpu" (@purrcode/sidecar-linux-x64 and
+@purrcode/sidecar-win32-x64), no postinstall scripts anywhere.
+
+$ npm install --no-audit --no-fund
+added 1 package in 106ms
+
+$ ls node_modules/@purrcode/
+sidecar-linux-x64
+
+$ node -e "require.resolve('@purrcode/sidecar-linux-x64/marker.txt')"
+resolved: .../pkgs/sidecar-linux-x64/marker.txt
+
+$ node -e "require.resolve('@purrcode/sidecar-win32-x64/package.json')"
+MODULE_NOT_FOUND  (win32 package correctly skipped on linux)
+
+Conclusion: the esbuild-style shape works as assumed — npm installs only the
+os/cpu-matching sidecar package, runtime resolution via require.resolve on
+the expected package name, no postinstall required. The PC-008 placeholder
+packages already declare the right os/cpu fields.
