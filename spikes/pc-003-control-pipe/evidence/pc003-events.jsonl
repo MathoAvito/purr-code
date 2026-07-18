@@ -1,0 +1,11 @@
+{"t":0.002,"kind":"spawned_detached","daemonPid":68869,"spawnerPid":68858}
+{"t":0.028,"kind":"cold_start_connect","attempts":2,"waitedMs":26,"note":"client retried until daemon bound the socket; no readiness handshake needed"}
+{"t":0.029,"kind":"first_message_ok","reply":{"ok":true,"echo":{"op":"ping","seq":0},"pid":68869,"t":1784398949250}}
+{"t":0.031,"kind":"uds_echo_rtt_ms","n":50,"p50":"0.023","p95":"0.084","max":"0.299"}
+{"t":0.031,"kind":"permissions","runtimeDir":"/run/user/1000/purrcode-spike-1000","dirMode":"700","dirUid":1000,"sockMode":"600","sockUid":1000,"isSocket":true,"perUidNaming":true}
+{"t":0.051,"kind":"detached_session","daemonPid":68869,"daemonSid":68869,"spawnerSid":68851,"newSession":true,"note":"detached:true gives the daemon its own session (setsid)"}
+{"t":1.069,"kind":"survives_parent_exit","orphanDaemonPid":68889,"spawnerExited":true,"daemonAlive":true}
+{"t":1.092,"kind":"bind_mutex","secondDaemonExit":0,"output":"{\"event\":\"lost-race\",\"pid\":68901}","lostRaceCleanly":true}
+{"t":2.196,"kind":"stale_socket_recovery","killedOwnerPid":68869,"socketFileLeftBehind":true,"reclaimerEvents":["{\"event\":\"reclaimed-stale-socket\",\"pid\":68912}","{\"event\":\"listening\",\"pid\":68912,\"sock\":\"/run/user/1000/purrcode-spike-1000/control.sock\"}","{\"event\":\"listening\",\"pid\":68912,\"sock\":\"/run/user/1000/purrcode-spike-1000/control.sock\"}"],"newOwnerPid":68912,"served":true,"connectAttempts":1}
+{"t":8.129,"kind":"idle_exit_rule","idleMs":1500,"heldConnectionMs":4000,"aliveWhileConnectionOpen":true,"stillServing":true,"exitedMsAfterClose":1600,"rule":"open connection pins daemon; idle timer only runs at zero connections"}
+{"t":8.13,"kind":"done"}
