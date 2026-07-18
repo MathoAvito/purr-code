@@ -1,0 +1,42 @@
+---
+description: Security and invisibility invariants for PurrCode runtime TypeScript code
+globs: packages/**/*.ts
+alwaysApply: false
+---
+
+# Runtime code invariants (violations are P0)
+
+## Fail silent on hook paths
+
+Any code reachable from the hook adapter must exit 0 and write **zero bytes** to stdout/stderr, in all failure modes — a transcript error notice in Claude Code is a critical bug. Errors go to the opt-in debug log (`PURRCODE_LOG=debug`) only.
+
+```typescript
+// ❌ BAD — surfaces a hook-error notice in the Claude transcript
+if (!daemon) { console.error("daemon unreachable"); process.exit(1); }
+
+// ✅ GOOD — silent, logged, exit 0
+if (!daemon) { debugLog("daemon unreachable", err); process.exit(0); }
+```
+
+## Child processes: exec form only
+
+Argument arrays, never shell strings, never `eval`, never `npx`:
+
+```typescript
+// ❌ BAD
+exec(`node ${hookPath} start`);
+
+// ✅ GOOD
+spawn("node", [hookPath, "start"], { shell: false });
+```
+
+## Untrusted input
+
+Hook stdin and control-pipe messages are untrusted: schema-validate, size-cap, and never interpolate their fields into commands or file paths.
+
+## Other hard limits
+
+- No network code anywhere in runtime (no fetch, no telemetry, no update checks).
+- No new runtime dependencies without a linked approving issue.
+- Never read, store, or log prompt text, responses, tool inputs, or repo file contents.
+- Debug logs use **hashed** session IDs, never raw ones.

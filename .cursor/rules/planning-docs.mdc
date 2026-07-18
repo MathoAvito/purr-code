@@ -1,0 +1,13 @@
+---
+description: Conventions for editing PurrCode planning and backlog documents
+globs: docs/planning/**
+alwaysApply: false
+---
+
+# Planning docs conventions
+
+- `START-HERE.md`'s progress board is the single source of truth for story status. Legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 human gate. Update it in the same commit as the work it reflects.
+- Story acceptance checkboxes live in the `sprint-N-*.md` files; tick them (`- [x]`) only when the criterion is actually met and tested — never pre-emptively.
+- Don't renumber or reuse story IDs (`PC-<sprint><nn>`); new work gets new IDs appended to the relevant sprint file.
+- 🚧 human-gate rows are never flipped to ✅ by an agent; set them 🔵 with a note of what awaits human review.
+- Changes that contradict the PRD require amending `docs/PurrCode-PRD-v0.4.md` in the same PR (the PRD is the roadmap; amendments are PRs like everything else).

@@ -1,0 +1,11 @@
+---
+description: PurrCode project context and workflow entry points
+alwaysApply: true
+---
+
+# PurrCode — read this first
+
+- `AGENTS.md` at the repo root is the canonical agent context: architecture map, commands, and hard constraints. Read it before implementing anything.
+- Work comes from the backlog: `docs/planning/START-HERE.md` has the progress board and dependency order. Stories are `PC-<sprint><nn>` in `docs/planning/sprint-N-*.md`; their acceptance checkboxes are the definition of done.
+- Never start a story whose dependencies aren't ✅ on the board; never cross a 🚧 human-gate item autonomously.
+- The PRD (`docs/PurrCode-PRD-v0.4.md`) is the spec and roadmap. Scope drift into its §5 non-goals gets stopped, not built.

@@ -12,9 +12,15 @@ Yes — the work is "just" per sprint and per story, in order, but with three ru
 2. **A story is done when its checkboxes are done.** Every story in the sprint files is a checklist. The agent (or you) implements, writes the tests named in the story, ticks the boxes in the sprint file, and updates the board here. Spikes additionally produce a decision record in `docs/decisions/`.
 3. **Never cross a gate without the human review.** Sprint boundaries and 🚧 human-gate stories (go/no-go, licensing, audio QA, GitHub settings, release) are where *you* stop and review. Everything between gates can run agent-autonomously.
 
-### Per-story loop (what you paste into an agent, roughly)
+### Per-story loop
 
-> Read `docs/planning/sprint-N-*.md` story PC-XYZ and the PRD sections it references. Implement it to its acceptance checkboxes, including the tests it names. Follow the working agreements in `docs/planning/00-sprint-plan.md` (fail-silent invariant, no new runtime deps, CI stays green). When done: tick the story's checkboxes, update the board in `docs/planning/START-HERE.md`, and open a PR referencing PC-XYZ.
+The repo ships agent workflows as project skills (in `.cursor/skills/`, mirrored for Claude Code in `.claude/skills/`), so in Cursor or Claude Code you can just say:
+
+- **"Implement PC-XYZ"** (or "next story") → `implement-story` skill: qualifies dependencies, implements to the acceptance checkboxes, verifies, ticks boxes, updates this board.
+- **"Run spike PC-00X"** → `run-spike` skill: timeboxed investigation producing a decision record in `docs/decisions/`.
+- **"Close sprint N"** → `sprint-review` skill: assembles the review package for the human gate.
+
+Repo-wide agent context (architecture, commands, hard constraints) lives in `AGENTS.md`; `CLAUDE.md` points there. For agents without skill support, paste: *"Read `AGENTS.md`, then `docs/planning/sprint-N-*.md` story PC-XYZ and the PRD sections it references. Implement it to its acceptance checkboxes including the tests it names. When done: tick the checkboxes, update the board in `docs/planning/START-HERE.md`, and open a PR referencing PC-XYZ."*
 
 ### Per-sprint loop
 
