@@ -9,11 +9,11 @@ macOS and Windows were **not** available; those runs are still owed (see ADR).
 
 ## Harness
 
-- `hooks/log-hook.js` — logging hook registered for every event; appends one
+- `hooks/log-hook.cjs` — logging hook registered for every event; appends one
   JSONL record per invocation (raw stdin payload, pid/ppid/parent cmdline,
   `CLAUDE_*` env, timings). Env toggles: `PC001_SLEEP_MS`, `PC001_EXIT_CODE`,
   `PC001_STDOUT`, `PC001_STDERR`, `PC001_TARGET` (limit toggles to one event).
-- `hooks/mock-anthropic.js` — minimal SSE mock of the Messages API so turns
+- `hooks/mock-anthropic.cjs` — minimal SSE mock of the Messages API so turns
   complete without a real account (`ANTHROPIC_BASE_URL=http://127.0.0.1:41100
   ANTHROPIC_API_KEY=pc001-mock`). `MOCK_DELAY_MS` stretches the stream so an
   interactive Esc can land mid-turn. Logs request bodies (redacted post-run to
@@ -46,7 +46,7 @@ macOS and Windows were **not** available; those runs are still owed (see ADR).
 ## Rerunning
 
 ```bash
-node hooks/mock-anthropic.js &                      # or MOCK_DELAY_MS=20000 for interrupt tests
+node hooks/mock-anthropic.cjs &                      # or MOCK_DELAY_MS=20000 for interrupt tests
 export ANTHROPIC_BASE_URL=http://127.0.0.1:41100 ANTHROPIC_API_KEY=pc001-mock
 cd testbed && claude -p "Reply pong"                # headless
 python3 hooks/pty-drive.py normal-turn 45 'w:shortcuts:15' 's:1' 'k:Reply pong' 's:1' 'e' 'w:pong:15' 's:2' 'k:/exit' 's:1' 'e'

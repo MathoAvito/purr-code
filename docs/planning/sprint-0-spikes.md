@@ -27,10 +27,12 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 **As the** daemon designer, **I want** a proven liveness signal for the owning Claude Code process **so that** the watchdog (RR-04) is built on a real handle, not an assumption.
 
-- [ ] Hook's parent PID at spawn identifies the Claude Code process on all three OSes (§21 Q2); document an alternative if hooks are reparented (e.g. `CLAUDE_*` env vars, ancestor walk).
-- [ ] Suspended-state detection works at watchdog cadence: `/proc/[pid]/stat` state `T` (Linux), `ps -o state=` (macOS); Ctrl+Z → detect within one 2–5 s cycle → `fg` → detect running again.
-- [ ] Confirm Windows is existence-only (no common suspend equivalent) and pick the existence-check API.
-- [ ] PID-reuse risk assessed (PID recycled between checks): record whether start-time verification is needed.
+- [x] Hook's parent PID at spawn identifies the Claude Code process on all three OSes (§21 Q2); document an alternative if hooks are reparented (e.g. `CLAUDE_*` env vars, ancestor walk). → Verified on Linux (exec form: ppid **is** the `claude` PID; ancestor walk works as fallback).
+- [x] Suspended-state detection works at watchdog cadence: `/proc/[pid]/stat` state `T` (Linux), `ps -o state=` (macOS); Ctrl+Z → detect within one 2–5 s cycle → `fg` → detect running again. → Linux: `T` and resume both detected on the first 2 s poll. Nuance: Claude Code *handles* SIGTSTP/^Z (no suspend); `SIGSTOP` is the real suspend path. macOS untested.
+- [x] Confirm Windows is existence-only (no common suspend equivalent) and pick the existence-check API. → `process.kill(pid, 0)` (wraps `OpenProcess`); documented, unverified on Windows.
+- [x] PID-reuse risk assessed (PID recycled between checks): record whether start-time verification is needed. → Adopted: `(pid, starttime)` from `/proc/[pid]/stat` field 22; one-read cheap, closes the hole.
+
+> Findings: [decision record 0002](../decisions/0002-pid-capture-process-state.md), evidence in `spikes/pc-002-pid-process-state/`. **Linux only** — macOS/Windows flagged for PC-009.
 
 ## PC-003 — Spike: control-pipe transport on all platforms (3 pts, E1)
 

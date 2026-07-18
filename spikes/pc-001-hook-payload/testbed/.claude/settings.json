@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js UserPromptSubmit",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs UserPromptSubmit",
             "async": true,
             "timeout": 5
           }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js Stop",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs Stop",
             "async": true,
             "timeout": 5
           }
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js StopFailure",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs StopFailure",
             "async": true,
             "timeout": 5
           }
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js SessionStart",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs SessionStart",
             "async": true,
             "timeout": 5
           }
@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js SessionEnd",
+            "command": "node /home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs SessionEnd",
             "async": true,
             "timeout": 5
           }
