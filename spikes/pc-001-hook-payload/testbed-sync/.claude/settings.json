@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js", "UserPromptSubmit-sync"],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js", "Stop-sync"],
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
