@@ -6,7 +6,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js", "UserPromptSubmit-execform"],
+            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs", "UserPromptSubmit-execform"],
             "async": true,
             "timeout": 5
           }
@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js", "Stop-execform"],
+            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs", "Stop-execform"],
             "async": true,
             "timeout": 5
           }
@@ -32,7 +32,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js", "StopFailure-execform"],
+            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs", "StopFailure-execform"],
             "async": true,
             "timeout": 5
           }
@@ -45,7 +45,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.js", "SessionEnd-execform"],
+            "args": ["/home/matho/Documents/github/purr-code/spikes/pc-001-hook-payload/hooks/log-hook.cjs", "SessionEnd-execform"],
             "async": true,
             "timeout": 5
           }

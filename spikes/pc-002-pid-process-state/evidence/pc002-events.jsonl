@@ -1,0 +1,21 @@
+{"t": 0.0, "kind": "spawned", "claude_pid": 68104, "cmd": "?"}
+{"t": 0.001, "kind": "scenario_c_identity", "pid": 68104, "state": "R", "starttime": 56951301, "note": "(pid, starttime) is the identity token; starttime is clock ticks since boot"}
+{"t": 0.305, "kind": "tui_ready", "ready": true}
+{"t": 1.372, "kind": "scenario_a_parent_pid", "hook_pid": 68199, "hook_ppid": 68104, "claude_pid": 68104, "match": true}
+{"t": 1.372, "kind": "scenario_d_ancestor_walk_from_hook", "hook_pid": 68199, "found_claude_pid": 68104, "match": true, "chain": [{"pid": 68199, "cmd": "node"}, {"pid": 68104, "cmd": "claude"}]}
+{"t": 1.373, "kind": "scenario_d_control", "unrelated_process_found": null}
+{"t": 5.883, "kind": "scenario_b1_ctrl_z_keypress", "state_after": "S", "suspended": false, "note": "raw-mode TUI: tty driver does not deliver SIGTSTP for ^Z"}
+{"t": 5.883, "kind": "sent", "signal": "SIGTSTP", "pid": 68104}
+{"t": 5.883, "kind": "watchdog_poll", "label": "sigtstp", "cycle": 1, "state": "R", "starttime": 56951301}
+{"t": 7.886, "kind": "watchdog_poll", "label": "sigtstp", "cycle": 2, "state": "S", "starttime": 56951301}
+{"t": 9.888, "kind": "scenario_b2_sigtstp", "suspended": false, "note": "TUIs may catch SIGTSTP; a handled SIGTSTP never reaches state T"}
+{"t": 9.888, "kind": "sent", "signal": "SIGSTOP", "pid": 68104}
+{"t": 9.888, "kind": "watchdog_poll", "label": "detect-suspend", "cycle": 1, "state": "T", "starttime": 56951301}
+{"t": 9.888, "kind": "scenario_b3_sigstop_detect", "cycles": 1, "elapsed": 0.0, "detected": true}
+{"t": 9.888, "kind": "sent", "signal": "SIGCONT", "pid": 68104}
+{"t": 9.888, "kind": "watchdog_poll", "label": "detect-resume", "cycle": 1, "state": "R", "starttime": 56951301}
+{"t": 9.888, "kind": "scenario_b4_sigcont_detect", "cycles": 1, "elapsed": 0.0, "detected": true}
+{"t": 9.888, "kind": "scenario_c_identity_stable", "pid": 68104, "state": "R", "starttime": 56951301, "starttime_unchanged": true}
+{"t": 9.888, "kind": "pid_reuse_context", "pid_max": 4194304, "note": "reuse requires full pid-space wraparound between watchdog cycles"}
+{"t": 11.389, "kind": "scenario_c_postmortem", "stat_readable": false, "errno": 2}
+{"t": 11.389, "kind": "done", "claude_exit": 143}
