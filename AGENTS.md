@@ -45,6 +45,7 @@ Set `PURRCODE_FAKE_AUDIO=1` to use the fake audio backend (story PC-101): it imp
 
 ## Conventions
 
+- **One branch per story.** Every story gets its own branch off `main`, named `pc-XYZ-<short-slug>` (e.g. `pc-008-repo-scaffolding`, `pc-001-hook-payload-spike`). Never commit story work directly to `main`; merge via PR. One story per branch — don't bundle.
 - TypeScript strict, Node 20+, pnpm. Conventional-commit style messages referencing the story ID (e.g. `feat(daemon): session registry state machine (PC-105)`).
 - When a story is complete: tick its checkboxes in the sprint file and update the board in `START-HERE.md` in the same commit.
 - Scope discipline: PRD §5 non-goals are enforced. If a change drifts toward them, stop and say so instead of building it.

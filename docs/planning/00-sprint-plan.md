@@ -33,6 +33,7 @@ Phases 2 (v0.5.0 beta) and 3 (v1.0.0) are captured at **epic level only** in [01
 - **Spike output format:** every Sprint 0 spike produces a short decision record in `docs/decisions/` (finding, evidence, decision, impact on backlog). Spikes are timeboxed; a spike that can't conclude produces a "what we'd need to find out" record, not more spiking.
 - **Platform coverage:** every sprint from 1 onward keeps the CI matrix (macOS, Ubuntu, Windows) green. Platform-specific code lands with platform-specific tests or an explicit manual-QA note.
 - **Backlog IDs:** `PC-<sprint><nn>` (PC-101 = Sprint 1, story 01). Epics are `E<n>`.
+- **Branch per story:** every story (spikes included) is developed on its own branch off `main`, named `pc-XYZ-<short-slug>`, merged via PR titled `PC-XYZ: <story title>`. No story work lands directly on `main`.
 
 ## Human review gates (things agents can't sign off)
 
