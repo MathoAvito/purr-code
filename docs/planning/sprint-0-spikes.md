@@ -75,10 +75,10 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 **As a** contributor (human or agent), **I want** a working monorepo skeleton **so that** every subsequent story lands with tests in CI.
 
-- [ ] pnpm workspace, TypeScript strict, Node 20+, Vitest, ESLint + Prettier; committed lockfile.
-- [ ] Package layout: `packages/cli` (hook adapter + CLI + daemon), `packages/sidecar-*` placeholders for platform binaries.
-- [ ] GitHub Actions CI on macOS/Ubuntu/Windows: lint, typecheck, unit tests. **All actions SHA-pinned from the first commit; top-level `permissions: {contents: read}`** (§23.3 — cheaper to start right than retrofit).
-- [ ] `docs/decisions/` with the ADR template; PRD committed to the repo (§23.6: the PRD is the roadmap).
+- [x] pnpm workspace, TypeScript strict, Node 20+, Vitest, ESLint + Prettier; committed lockfile.
+- [x] Package layout: `packages/cli` (hook adapter + CLI + daemon), `packages/sidecar-*` placeholders for platform binaries.
+- [x] GitHub Actions CI on macOS/Ubuntu/Windows: lint, typecheck, unit tests. **All actions SHA-pinned from the first commit; top-level `permissions: {contents: read}`** (§23.3 — cheaper to start right than retrofit).
+- [x] `docs/decisions/` with the ADR template; PRD committed to the repo (§23.6: the PRD is the roadmap).
 
 ## PC-009 — Go/no-go review & backlog reconciliation (1 pt, E1) — human gate
 
