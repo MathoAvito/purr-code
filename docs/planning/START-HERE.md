@@ -31,12 +31,12 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 
 ## What to start right now
 
-Two stories are unblocked today and can run in parallel:
+**Sprint 0 agent work is complete.** Run the human gate:
 
-- **PC-008 — repo scaffolding & CI matrix** (pure setup, no unknowns; everything else lands on top of it)
-- **PC-001 — hook payload spike** (the single most load-bearing unknown; needs only a local Claude Code)
+- **PC-009 — go/no-go** — review package: [reviews/sprint-0-review.md](reviews/sprint-0-review.md)
+- **PC-010 — reserve package name** — after confirming `purrcode` (ADR 0007)
 
-Then follow the board top to bottom.
+Do **not** start Sprint 1 until PC-009 is signed off and backlog reconciliation is applied (or deferred).
 
 ---
 
@@ -55,7 +55,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-004 | Spike: tier-1 audio sidecar | 5 | — | ✅ (miniaudio; mac/Win builds owed at PC-009) |
 | PC-005 | Spike: plugin packaging | 3 | PC-001 | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ✅ (Linux; macOS/Win owed at PC-009) |
-| PC-007 | Spike: name & trademark check | 1 | — | ⬜ |
+| PC-007 | Spike: name & trademark check | 1 | — | ✅ (recommend purrcode; confirm at PC-010) |
 | PC-009 | Go/no-go & backlog reconciliation | 1 | all spikes | 🚧 |
 | PC-010 | Reserve package name & repo | 1 | PC-007 | 🚧 |
 

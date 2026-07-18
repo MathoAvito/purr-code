@@ -79,7 +79,9 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 ## PC-007 — Spike: name check & trademark hygiene (1 pt, E1)
 
-- [ ] npm, GitHub org/repo, and basic trademark search for `purrcode`; confirmed distinct from `claude-purr`; no "Claude" in package name (§21 Q5). Record the final name — human decision.
+- [x] npm, GitHub org/repo, and basic trademark search for `purrcode`; confirmed distinct from `claude-purr`; no "Claude" in package name (§21 Q5). Record the final name — human decision. → npm `purrcode` unclaimed; distinct from `claude-purr` (also unclaimed) and community pets; no "Claude" in name. Dormant GitHub user `@purrcode` (purrcode.pl) noted as non-conflict. **Recommended name: `purrcode` / PurrCode — confirm at PC-010.**
+
+> Findings: [decision record 0007](../decisions/0007-package-name.md), search log in `spikes/pc-007-name-trademark/`.
 
 ## PC-008 — Repo scaffolding & CI matrix (5 pts, E1)
 
