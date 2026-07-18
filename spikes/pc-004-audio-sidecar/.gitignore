@@ -1,0 +1,8 @@
+vendor/
+purr-sidecar
+purr-sidecar-min
+purr-sidecar-*.exe
+purr-sidecar-arm64
+purr-sidecar-x64
+seam-check
+test-purr.wav

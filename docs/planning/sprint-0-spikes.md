@@ -50,26 +50,32 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 **As the** audio engineer, **I want** a chosen and proven tier-1 player **so that** gapless loop + runtime fades + runtime volume are demonstrated, not hoped for.
 
-- [ ] Compare miniaudio (C) vs rodio (Rust) for: gapless OGG/WAV looping, runtime volume, fade-in/out ramps, binary size (target: few hundred KB), cross-compilation story.
-- [ ] Build proof-of-concept binaries for macOS arm64/x64, Linux x64, Windows x64; loop a test WAV gaplessly with an audible fade-out on command.
-- [ ] Define the sidecar control protocol (stdin line protocol vs socket) — must support: load, play-loop, set-volume (perceptual value), fade-out-and-exit.
-- [ ] Confirm `optionalDependencies` distribution shape (esbuild-style per-platform packages, **no postinstall scripts**).
+- [x] Compare miniaudio (C) vs rodio (Rust) for: gapless OGG/WAV looping, runtime volume, fade-in/out ramps, binary size (target: few hundred KB), cross-compilation story. → **miniaudio selected**: 347 KB stripped (WAV-only), zero build-time audio deps, native CI builds (no cross-compilation needed). rodio compared on docs only. OGG needs stb_vorbis (PC-301 decision).
+- [x] Build proof-of-concept binaries for macOS arm64/x64, Linux x64, Windows x64; loop a test WAV gaplessly with an audible fade-out on command. → Linux x64 built + verified (sample-exact seam check, ramped fade-out, real-device run OK). macOS/Windows builds owed at PC-009 — source is portable, CI runners are native.
+- [x] Define the sidecar control protocol (stdin line protocol vs socket) — must support: load, play-loop, set-volume (perceptual value), fade-out-and-exit. → **stdin line protocol**: `LOAD/PLAY/VOLUME 0-100/FADEOUT ms/QUIT`, JSON events on stdout, stdin EOF = orphan cleanup.
+- [x] Confirm `optionalDependencies` distribution shape (esbuild-style per-platform packages, **no postinstall scripts**). → Confirmed empirically with npm 10: only the os/cpu-matching package installs; PC-008 placeholders already match.
+
+> Findings: [decision record 0004](../decisions/0004-audio-sidecar-selection.md), PoC + evidence in `spikes/pc-004-audio-sidecar/`. **Linux x64 only** — macOS/Windows builds flagged for PC-009. Perceptual QA is PC-309 (human).
 
 ## PC-005 — Spike: plugin packaging validation (3 pts, E1)
 
 **As the** release engineer, **I want** the plugin path proven **so that** "plugin-first, never touch settings.json" (FR-01) is confirmed viable.
 
-- [ ] Minimal plugin with `hooks/hooks.json` installs and fires hooks via `${CLAUDE_PLUGIN_ROOT}` exec form on all three OSes.
-- [ ] `${CLAUDE_PLUGIN_DATA}` persistence verified across a plugin update.
-- [ ] Enable/disable mechanism mapped to `purrcode on|off` semantics (or documented divergence).
-- [ ] Local-install vs marketplace registration flow documented for the installer (E7).
+- [x] Minimal plugin with `hooks/hooks.json` installs and fires hooks via `${CLAUDE_PLUGIN_ROOT}` exec form on all three OSes. → Verified on Linux (local marketplace → install → hooks fire with `CLAUDE_PLUGIN_ROOT` + `CLAUDE_PLUGIN_DATA` set); macOS/Windows owed at PC-009.
+- [x] `${CLAUDE_PLUGIN_DATA}` persistence verified across a plugin update. → Marker survived 0.0.1→0.0.2 update. **Caveat: `uninstall` deletes it unless `--keep-data`** — user-precious state goes in PurrCode's own config dir.
+- [x] Enable/disable mechanism mapped to `purrcode on|off` semantics (or documented divergence). → `claude plugin disable` gates hooks to zero events; `enable` resumes. Direct mapping, no divergence.
+- [x] Local-install vs marketplace registration flow documented for the installer (E7). → Both flows documented in ADR 0005; `plugin update` needs full `name@marketplace` id; `claude plugin validate` available for CI.
+
+> Findings: [decision record 0005](../decisions/0005-plugin-packaging.md), harness + evidence in `spikes/pc-005-plugin-packaging/`. **Linux only** — macOS/Windows flagged for PC-009.
 
 ## PC-006 — Spike: multi-session prototype (2 pts, E1)
 
 **As the** architect, **I want** two simultaneous Claude Code sessions driven against the prototype daemon **so that** refcounting semantics are validated with real event streams.
 
-- [ ] Two terminals, interleaved prompts: purr continues until the *last* active session stops.
-- [ ] Terminal killed mid-turn: prototype watchdog fades out ≤ 5 s, no orphaned player (Phase 0 exit criterion).
+- [x] Two terminals, interleaved prompts: purr continues until the *last* active session stops. → Two overlapping turns produced exactly one player start/stop pair; stop fired at the *second* session's `Stop`.
+- [x] Terminal killed mid-turn: prototype watchdog fades out ≤ 5 s, no orphaned player (Phase 0 exit criterion). → Fade ~0.6 s after SIGKILL (worst case one 2 s poll); daemon idle-exited, no orphans. Required treating zombie state `Z` as dead (amends ADR 0002).
+
+> Findings: [decision record 0006](../decisions/0006-multi-session-refcounting.md), evidence in `spikes/pc-006-multi-session/`. Verified on Claude Code v2.1.214, **Linux only** — macOS/Windows owed at PC-009. Also hardened: exec-form hooks are *mandatory* for session tracking.
 
 ## PC-007 — Spike: name check & trademark hygiene (1 pt, E1)
 

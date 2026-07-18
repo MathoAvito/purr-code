@@ -31,7 +31,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 
 ## What to start right now
 
-**Sprint 0 agent work is complete.** Merge open PRs (#5–#7 if still open), then run the human gate:
+**Sprint 0 agent work is complete.** Run the human gate:
 
 - **PC-009 — go/no-go** — review package: [reviews/sprint-0-review.md](reviews/sprint-0-review.md)
 - **PC-010 — reserve package name** — after confirming `purrcode` (ADR 0007)
@@ -52,9 +52,9 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-001 | Spike: hook payload & lifecycle | 5 | — | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-002 | Spike: Claude PID & process state | 3 | PC-001 | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-003 | Spike: control-pipe transport | 3 | — | ✅ (Linux; macOS/Win owed at PC-009) |
-| PC-004 | Spike: tier-1 audio sidecar | 5 | — | ⬜ |
-| PC-005 | Spike: plugin packaging | 3 | PC-001 | ⬜ |
-| PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ⬜ |
+| PC-004 | Spike: tier-1 audio sidecar | 5 | — | ✅ (miniaudio; mac/Win builds owed at PC-009) |
+| PC-005 | Spike: plugin packaging | 3 | PC-001 | ✅ (Linux; macOS/Win owed at PC-009) |
+| PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-007 | Spike: name & trademark check | 1 | — | ✅ (recommend purrcode; confirm at PC-010) |
 | PC-009 | Go/no-go & backlog reconciliation | 1 | all spikes | 🚧 |
 | PC-010 | Reserve package name & repo | 1 | PC-007 | 🚧 |

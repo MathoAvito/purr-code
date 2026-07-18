@@ -1,0 +1,11 @@
+{"t":0.001,"event":"daemon-listening","pid":76315}
+{"t":0.086,"event":"turn-start","sessionId":"f63bdda8","pid":76112}
+{"t":0.086,"player":"start","reason":"start","activeTurns":1,"sessions":1}
+{"t":3.594,"event":"turn-start","sessionId":"e38846ca","pid":76113}
+{"t":8.018,"event":"turn-stop","sessionId":"f63bdda8"}
+{"t":11.622,"event":"turn-stop","sessionId":"e38846ca"}
+{"t":11.622,"player":"fade","ms":300,"reason":"stop"}
+{"t":11.622,"player":"stop","reason":"stop","sessions":2}
+{"t":17.416,"event":"session-end","sessionId":"f63bdda8"}
+{"t":18.915,"event":"session-end","sessionId":"e38846ca"}
+{"t":26.019,"event":"daemon-idle-exit","pid":76315}
