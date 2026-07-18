@@ -38,11 +38,13 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 **As the** daemon designer, **I want** the UDS/named-pipe transport validated **so that** the Windows-ACL risk (§20 row 3) is retired or has a designed fallback.
 
-- [ ] UDS echo round-trip on macOS/Linux from Node 20+, socket in runtime dir, per-UID naming.
-- [ ] Windows named pipe with per-SID naming; duplex request/response works.
-- [ ] **Elevated ↔ non-elevated interop** on Windows: document the failure mode and whether the last-resort fallback (loopback TCP + 0600 secret token, never unauthenticated UDP) is needed for MVP or deferrable.
-- [ ] Fully detached daemon spawn verified (new session, stdio ignored, survives parent exit) on all three OSes.
-- [ ] Cold-start sequencing prototyped: client connects before first message; daemon never idle-exits with an open connection (FR-05 lifecycle rule).
+- [x] UDS echo round-trip on macOS/Linux from Node 20+, socket in runtime dir, per-UID naming. → Linux: p50 0.023 ms; `0700` dir + `0600` socket, lstat-verified. macOS untested.
+- [x] Windows named pipe with per-SID naming; duplex request/response works. → Prototype written (`win32-named-pipe.mjs`), per-SID naming designed; **execution owed at PC-009** (no Windows machine).
+- [x] **Elevated ↔ non-elevated interop** on Windows: document the failure mode and whether the last-resort fallback (loopback TCP + 0600 secret token, never unauthenticated UDP) is needed for MVP or deferrable. → Documented (expected `ERROR_ACCESS_DENIED`); recommendation: fallback **deferrable** — failure degrades fail-silent.
+- [x] Fully detached daemon spawn verified (new session, stdio ignored, survives parent exit) on all three OSes. → Linux verified (own sid, survives spawner death); macOS/Windows owed at PC-009.
+- [x] Cold-start sequencing prototyped: client connects before first message; daemon never idle-exits with an open connection (FR-05 lifecycle rule). → Connect-with-retry hit on attempt 2 (26 ms); idle daemon survived a held connection 2.6× its timeout and exited 1.6 s after close.
+
+> Findings: [decision record 0003](../decisions/0003-control-pipe-transport.md), evidence in `spikes/pc-003-control-pipe/`. **Linux only** — macOS/Windows flagged for PC-009.
 
 ## PC-004 — Spike: tier-1 audio sidecar selection (5 pts, E1)
 
