@@ -1,0 +1,8 @@
+{"t":0.1,"event":"ready","backend":"Null","sampleRate":48000}
+{"t":0.2,"event":"loaded","path":"test-purr.wav","frames":48000}
+{"t":0.2,"event":"playing","fadeInMs":500,"targetGain":0.0080}
+{"t":3201.7,"event":"stats","framesRendered":153120,"loopWraps":3,"gain":0.0080}
+{"t":3201.7,"event":"volume","perceptual":50,"amplitude":0.1250,"rampMs":100}
+{"t":4204.5,"event":"stats","framesRendered":201120,"loopWraps":4,"gain":0.1250}
+{"t":4204.5,"event":"fadeout","ms":400}
+{"t":4599.5,"event":"exiting","framesRendered":220320,"loopWraps":4}
