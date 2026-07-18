@@ -54,7 +54,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-003 | Spike: control-pipe transport | 3 | — | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-004 | Spike: tier-1 audio sidecar | 5 | — | ⬜ |
 | PC-005 | Spike: plugin packaging | 3 | PC-001 | ⬜ |
-| PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ⬜ |
+| PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-007 | Spike: name & trademark check | 1 | — | ⬜ |
 | PC-009 | Go/no-go & backlog reconciliation | 1 | all spikes | 🚧 |
 | PC-010 | Reserve package name & repo | 1 | PC-007 | 🚧 |

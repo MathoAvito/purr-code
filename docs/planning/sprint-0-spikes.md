@@ -68,8 +68,10 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 **As the** architect, **I want** two simultaneous Claude Code sessions driven against the prototype daemon **so that** refcounting semantics are validated with real event streams.
 
-- [ ] Two terminals, interleaved prompts: purr continues until the *last* active session stops.
-- [ ] Terminal killed mid-turn: prototype watchdog fades out ≤ 5 s, no orphaned player (Phase 0 exit criterion).
+- [x] Two terminals, interleaved prompts: purr continues until the *last* active session stops. → Two overlapping turns produced exactly one player start/stop pair; stop fired at the *second* session's `Stop`.
+- [x] Terminal killed mid-turn: prototype watchdog fades out ≤ 5 s, no orphaned player (Phase 0 exit criterion). → Fade ~0.6 s after SIGKILL (worst case one 2 s poll); daemon idle-exited, no orphans. Required treating zombie state `Z` as dead (amends ADR 0002).
+
+> Findings: [decision record 0006](../decisions/0006-multi-session-refcounting.md), evidence in `spikes/pc-006-multi-session/`. Verified on Claude Code v2.1.214, **Linux only** — macOS/Windows owed at PC-009. Also hardened: exec-form hooks are *mandatory* for session tracking.
 
 ## PC-007 — Spike: name check & trademark hygiene (1 pt, E1)
 
