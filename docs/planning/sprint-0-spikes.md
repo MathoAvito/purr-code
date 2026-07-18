@@ -61,10 +61,12 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 **As the** release engineer, **I want** the plugin path proven **so that** "plugin-first, never touch settings.json" (FR-01) is confirmed viable.
 
-- [ ] Minimal plugin with `hooks/hooks.json` installs and fires hooks via `${CLAUDE_PLUGIN_ROOT}` exec form on all three OSes.
-- [ ] `${CLAUDE_PLUGIN_DATA}` persistence verified across a plugin update.
-- [ ] Enable/disable mechanism mapped to `purrcode on|off` semantics (or documented divergence).
-- [ ] Local-install vs marketplace registration flow documented for the installer (E7).
+- [x] Minimal plugin with `hooks/hooks.json` installs and fires hooks via `${CLAUDE_PLUGIN_ROOT}` exec form on all three OSes. → Verified on Linux (local marketplace → install → hooks fire with `CLAUDE_PLUGIN_ROOT` + `CLAUDE_PLUGIN_DATA` set); macOS/Windows owed at PC-009.
+- [x] `${CLAUDE_PLUGIN_DATA}` persistence verified across a plugin update. → Marker survived 0.0.1→0.0.2 update. **Caveat: `uninstall` deletes it unless `--keep-data`** — user-precious state goes in PurrCode's own config dir.
+- [x] Enable/disable mechanism mapped to `purrcode on|off` semantics (or documented divergence). → `claude plugin disable` gates hooks to zero events; `enable` resumes. Direct mapping, no divergence.
+- [x] Local-install vs marketplace registration flow documented for the installer (E7). → Both flows documented in ADR 0005; `plugin update` needs full `name@marketplace` id; `claude plugin validate` available for CI.
+
+> Findings: [decision record 0005](../decisions/0005-plugin-packaging.md), harness + evidence in `spikes/pc-005-plugin-packaging/`. **Linux only** — macOS/Windows flagged for PC-009.
 
 ## PC-006 — Spike: multi-session prototype (2 pts, E1)
 
