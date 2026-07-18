@@ -50,10 +50,12 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 **As the** audio engineer, **I want** a chosen and proven tier-1 player **so that** gapless loop + runtime fades + runtime volume are demonstrated, not hoped for.
 
-- [ ] Compare miniaudio (C) vs rodio (Rust) for: gapless OGG/WAV looping, runtime volume, fade-in/out ramps, binary size (target: few hundred KB), cross-compilation story.
-- [ ] Build proof-of-concept binaries for macOS arm64/x64, Linux x64, Windows x64; loop a test WAV gaplessly with an audible fade-out on command.
-- [ ] Define the sidecar control protocol (stdin line protocol vs socket) — must support: load, play-loop, set-volume (perceptual value), fade-out-and-exit.
-- [ ] Confirm `optionalDependencies` distribution shape (esbuild-style per-platform packages, **no postinstall scripts**).
+- [x] Compare miniaudio (C) vs rodio (Rust) for: gapless OGG/WAV looping, runtime volume, fade-in/out ramps, binary size (target: few hundred KB), cross-compilation story. → **miniaudio selected**: 347 KB stripped (WAV-only), zero build-time audio deps, native CI builds (no cross-compilation needed). rodio compared on docs only. OGG needs stb_vorbis (PC-301 decision).
+- [x] Build proof-of-concept binaries for macOS arm64/x64, Linux x64, Windows x64; loop a test WAV gaplessly with an audible fade-out on command. → Linux x64 built + verified (sample-exact seam check, ramped fade-out, real-device run OK). macOS/Windows builds owed at PC-009 — source is portable, CI runners are native.
+- [x] Define the sidecar control protocol (stdin line protocol vs socket) — must support: load, play-loop, set-volume (perceptual value), fade-out-and-exit. → **stdin line protocol**: `LOAD/PLAY/VOLUME 0-100/FADEOUT ms/QUIT`, JSON events on stdout, stdin EOF = orphan cleanup.
+- [x] Confirm `optionalDependencies` distribution shape (esbuild-style per-platform packages, **no postinstall scripts**). → Confirmed empirically with npm 10: only the os/cpu-matching package installs; PC-008 placeholders already match.
+
+> Findings: [decision record 0004](../decisions/0004-audio-sidecar-selection.md), PoC + evidence in `spikes/pc-004-audio-sidecar/`. **Linux x64 only** — macOS/Windows builds flagged for PC-009. Perceptual QA is PC-309 (human).
 
 ## PC-005 — Spike: plugin packaging validation (3 pts, E1)
 

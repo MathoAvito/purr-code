@@ -1,0 +1,6 @@
+{"t":10.0,"event":"ready","backend":"PulseAudio","sampleRate":48000}
+{"t":10.0,"event":"loaded","path":"test-purr.wav","frames":48000}
+{"t":10.0,"event":"playing","fadeInMs":500,"targetGain":0.0080}
+{"t":1500.0,"event":"stats","framesRendered":61200,"loopWraps":1,"gain":0.0080}
+{"t":1500.1,"event":"fadeout","ms":300}
+{"t":1822.5,"event":"exiting","framesRendered":76500,"loopWraps":1}
