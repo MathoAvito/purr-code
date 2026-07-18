@@ -1,0 +1,8 @@
+# Normalize to LF everywhere (Prettier enforces endOfLine: lf; Windows CI
+# runners default to autocrlf=true and would otherwise fail formatting checks).
+* text=auto eol=lf
+
+# Binary assets never get EOL translation.
+*.ogg binary
+*.wav binary
+*.png binary

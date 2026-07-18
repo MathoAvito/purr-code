@@ -1,0 +1,9 @@
+# Throwaway spike code and captured evidence — excluded from quality gates
+spikes/
+# Build output and dependencies
+dist/
+node_modules/
+pnpm-lock.yaml
+# Prose is not format-enforced (PRD, planning docs, ADRs)
+docs/
+*.md

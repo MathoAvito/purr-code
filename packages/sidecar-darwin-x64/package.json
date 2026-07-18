@@ -1,0 +1,13 @@
+{
+  "name": "@purrcode/sidecar-darwin-x64",
+  "version": "0.0.0",
+  "private": true,
+  "description": "PurrCode tier-1 audio sidecar binary for darwin/x64 (placeholder \u2014 lands with PC-301)",
+  "license": "MIT",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ]
+}
