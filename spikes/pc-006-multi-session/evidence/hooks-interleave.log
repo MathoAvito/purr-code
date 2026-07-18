@@ -1,0 +1,6 @@
+2026-07-18T19:51:09.967Z invoked label=UserPromptSubmit ppid=76112
+2026-07-18T19:51:13.578Z invoked label=UserPromptSubmit ppid=76113
+2026-07-18T19:51:18.003Z invoked label=Stop ppid=76112
+2026-07-18T19:51:21.606Z invoked label=Stop ppid=76113
+2026-07-18T19:51:27.400Z invoked label=SessionEnd ppid=76112
+2026-07-18T19:51:28.900Z invoked label=SessionEnd ppid=76113
