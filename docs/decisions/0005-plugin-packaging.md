@@ -1,8 +1,9 @@
-# 0005 — Plugin packaging: plugin-first path validated (Linux)
+# 0005 — Plugin packaging: plugin-first path validated (Linux + macOS)
 
-- **Status:** Accepted — Linux findings; macOS + Windows verification outstanding (flagged for PC-009)
-- **Date:** 2026-07-18
+- **Status:** Accepted — Linux + macOS arm64 verified (2026-07-19); Windows outstanding
+- **Date:** 2026-07-18 (macOS rerun 2026-07-19)
 - **Story:** PC-005
+- **macOS evidence:** [macos-rerun-20260719.md](../planning/reviews/macos-rerun-20260719.md) · `spikes/pc-005-plugin-packaging/evidence/macos-20260719/`
 - **PRD refs:** FR-01 (plugin-first, never touch settings.json) / §14 (installer) / §15
 
 ## Question
@@ -18,7 +19,8 @@ Claude Code v2.1.197, Linux. A real plugin + local marketplace, installed,
 updated, disabled, enabled, and uninstalled through the `claude plugin` CLI;
 harness and captured events in
 [`spikes/pc-005-plugin-packaging/`](../../spikes/pc-005-plugin-packaging/README.md).
-**macOS and Windows were not tested.**
+**macOS arm64 verified 2026-07-19:** install/update/disable/enable; data dir
+persists across update (`firstWrittenAt` stable). **Windows still unpaid.**
 
 1. **Install + hooks fire.** `claude plugin marketplace add <local path>` then
    `claude plugin install purrcode-spike@purrcode-spike-marketplace` (default
@@ -79,5 +81,4 @@ harness and captured events in
     keep-data behavior explicitly.
   - PC-306 (`purrcode on|off`): plugin enable/disable is the mechanism.
 - PRD impact: none — FR-01 assumptions confirmed.
-- Follow-ups: rerun this harness on macOS/Windows at PC-009 (pure CLI, no
-  display needed).
+- Follow-ups: Windows plugin path still unpaid.

@@ -1,8 +1,9 @@
-# 0002 — Claude PID capture & process-state detection (Linux)
+# 0002 — Claude PID capture & process-state detection (Linux + macOS)
 
-- **Status:** Accepted — Linux findings; macOS + Windows verification outstanding (flagged for PC-009)
-- **Date:** 2026-07-18
+- **Status:** Accepted — Linux + macOS arm64 verified (2026-07-19); Windows outstanding
+- **Date:** 2026-07-18 (macOS rerun 2026-07-19)
 - **Story:** PC-002
+- **macOS evidence:** [macos-rerun-20260719.md](../planning/reviews/macos-rerun-20260719.md) · `spikes/pc-002-pid-process-state/evidence/macos-20260719/`
 - **PRD refs:** §21 Q2 / §20 row 2 / RR-04 (watchdog)
 
 ## Question
@@ -18,7 +19,9 @@ Claude Code v2.1.197 on Linux (Ubuntu, kernel 6.17.0-40), Node v20.20.2. A
 real `claude` TUI spawned in a PTY with the PC-001 exec-form hook settings and
 mock API; probe and raw JSONL in
 [`spikes/pc-002-pid-process-state/`](../../spikes/pc-002-pid-process-state/README.md).
-**macOS and Windows were not tested — nothing below is verified there.**
+**macOS arm64 verified 2026-07-19** via `ps -o state=,lstart=`: SIGSTOP → `T`
+within ≤1 s, CONT → `S`, TSTP ignored (same as Linux), `lstart` identity OK.
+**Windows still unpaid.**
 
 1. **Parent PID identifies Claude Code (Linux).** With exec-form hooks
    (`command` + `args`, no shell), the hook's `process.ppid` equaled the
@@ -61,11 +64,13 @@ mock API; probe and raw JSONL in
 - **Liveness/state read (Linux):** one read of `/proc/<pid>/stat`; state `T`
   = suspended (pause purr), ENOENT/mismatched starttime = dead. Detection
   within one watchdog cycle is proven.
-- **macOS (documented, unverified):** `ps -o state=,lstart= -p <pid>` (state
-  `T` = suspended) or `proc_pidinfo`; verify at PC-009 rerun.
-- **Windows (documented, unverified):** existence-only per PRD — no common
-  suspend equivalent. Use Node's `process.kill(pid, 0)` (ESRCH ⇒ gone), which
-  wraps `OpenProcess`; if start-time verification proves necessary there,
+- **macOS (verified 2026-07-19):** `ps -o state=,lstart= -p <pid>`; state
+  letter `T` = suspended; identity token = `lstart` string. Extra letters
+  `N` (nice) / `s` (session leader) observed — PC-201 should match on the
+  primary letter.
+- **Windows (unverified):** existence-only per PRD — no common suspend
+  equivalent. Use Node's `process.kill(pid, 0)` (ESRCH ⇒ gone), which wraps
+  `OpenProcess`; if start-time verification proves necessary there,
   `PROCESS_QUERY_LIMITED_INFORMATION` + `GetProcessTimes` is the API, but the
   10-min TTL (RR-05) is the primary backstop.
 - Rejected alternative: identifying Claude by scanning the process table for
@@ -86,5 +91,4 @@ mock API; probe and raw JSONL in
 - PRD impact: §21 Q2 answered (yes, with exec form, on Linux). §20 row 2
   nuance recorded (TUI swallows SIGTSTP); no amendment needed — the watchdog
   design already covers it.
-- Follow-ups: macOS `ps` state mapping and Windows existence check must be
-  verified in the PC-009 platform rerun alongside the PC-001 matrix.
+- Follow-ups: Windows existence check still unpaid.

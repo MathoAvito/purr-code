@@ -33,8 +33,8 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 
 **Sprint 0 closed: go with platform-debt accepted** ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).
 
-- **Next:** Sprint 1 walking skeleton — start with **PC-101** (fake audio backend).
-- **Still open (human):** PC-010 reserve `purrcode` + LICENSE; macOS/Windows spike reruns (async debt, [macos-platform-rerun.md](reviews/macos-platform-rerun.md)).
+- **Next:** Sprint 1 walking skeleton — **PC-102** (runtime directory) after PC-101 ✅.
+- **Still open (human):** PC-010 reserve `purrcode` + LICENSE; **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---
 
@@ -47,12 +47,12 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | Story | Title | Pts | Depends on | Status |
 |---|---|---|---|---|
 | PC-008 | Repo scaffolding & CI matrix | 5 | — | ✅ |
-| PC-001 | Spike: hook payload & lifecycle | 5 | — | ✅ (Linux; macOS/Win owed at PC-009) |
-| PC-002 | Spike: Claude PID & process state | 3 | PC-001 | ✅ (Linux; macOS/Win owed at PC-009) |
-| PC-003 | Spike: control-pipe transport | 3 | — | ✅ (Linux; macOS/Win owed at PC-009) |
-| PC-004 | Spike: tier-1 audio sidecar | 5 | — | ✅ (miniaudio; mac/Win builds owed at PC-009) |
-| PC-005 | Spike: plugin packaging | 3 | PC-001 | ✅ (Linux; macOS/Win owed at PC-009) |
-| PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ✅ (Linux; macOS/Win owed at PC-009) |
+| PC-001 | Spike: hook payload & lifecycle | 5 | — | ✅ Linux + macOS (Win owed) |
+| PC-002 | Spike: Claude PID & process state | 3 | PC-001 | ✅ Linux + macOS (Win owed) |
+| PC-003 | Spike: control-pipe transport | 3 | — | ✅ Linux + macOS UDS (Win owed) |
+| PC-004 | Spike: tier-1 audio sidecar | 5 | — | ✅ miniaudio Linux + macOS arm64 (Win owed) |
+| PC-005 | Spike: plugin packaging | 3 | PC-001 | ✅ Linux + macOS (Win owed) |
+| PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ✅ Linux + macOS (Win owed) |
 | PC-007 | Spike: name & trademark check | 1 | — | ✅ (recommend purrcode; confirm at PC-010) |
 | PC-009 | Go/no-go & backlog reconciliation | 1 | all spikes | ✅ go + platform debt |
 | PC-010 | Reserve package name & repo | 1 | PC-007 | 🚧 |

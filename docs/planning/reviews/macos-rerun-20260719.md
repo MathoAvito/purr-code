@@ -1,5 +1,11 @@
 # macOS Sprint 0 platform rerun
 
+Evidence from Idan’s Mac (2026-07-19). Harness fixes landed in the same PR
+(`sess=` on darwin in PC-003; Esc-to-dismiss tips in PC-006). Binary sidecar
+artifact and duplicate zip were dropped — keep logs/JSONL only.
+
+Per-spike evidence lives under `spikes/pc-00X-*/evidence/macos-20260719/`.
+
 ## Machine
 
 - hostname: Idans-MacBook-Pro-2.local
@@ -44,7 +50,7 @@ No changes under `packages/`, `docs/decisions/`, or product runtime.
 | Headless `-p`: async `Stop`? + `CLAUDE_CODE_ENTRYPOINT` | **PASS (matches Linux)** | Async Stop **does not** fire; `CLAUDE_CODE_ENTRYPOINT=sdk-cli`. Interactive uses `cli`. |
 | Optional: slow async hook (10 s) does not delay reply | **PASS** | `pong` found ~0.2 s after Enter; `PC001_SLEEP_MS=10000` observed on UPS |
 
-Evidence: `pc-001/`
+Evidence: `spikes/pc-001-hook-payload/evidence/macos-20260719/`
 
 ### PC-002 — PID + suspend (P0)
 
@@ -68,7 +74,7 @@ Evidence: `pc-001/`
 | `N` | nice (low priority) |
 | `s` | session leader |
 
-Evidence: `pc-002/`
+Evidence: `spikes/pc-002-pid-process-state/evidence/macos-20260719/`
 
 ### PC-003 — Control pipe / UDS (P0)
 
@@ -82,7 +88,7 @@ Evidence: `pc-002/`
 | Stale socket reclaim after SIGKILL | **PASS** | |
 | Idle-exit: alive while held, exits after close | **PASS** | exited ~1500 ms after close |
 
-Evidence: `pc-003/macos-pc003-events.jsonl`
+Evidence: `spikes/pc-003-control-pipe/evidence/macos-20260719/`
 
 ### PC-004 — miniaudio sidecar (P1)
 
@@ -94,7 +100,7 @@ Evidence: `pc-003/macos-pc003-events.jsonl`
 | Real-device: CoreAudio + clean exit | **PASS** | `"backend":"Core Audio"` |
 | Record stripped size + `uname -m` | **PASS** | **325632 bytes** (~318 KiB), **arm64** (Linux was ~347 KiB) |
 
-Evidence: `pc-004/`
+Evidence: `spikes/pc-004-audio-sidecar/evidence/macos-20260719/` (logs/JSONL only; no Mach-O binary)
 
 ### PC-005 — Plugin packaging (P1)
 
@@ -104,7 +110,7 @@ Evidence: `pc-004/`
 | Data persists across update | **PASS** | `firstWrittenAt` unchanged `2026-07-19T18:14:55.409Z`; writes 1 → 4+ |
 | Disable → no hooks; enable → hooks again | **PASS** | disabled: zero events; re-enabled: UPS+SessionEnd |
 
-Cleanup: plugin uninstalled + marketplace removed. Evidence: `pc-005/`
+Cleanup: plugin uninstalled + marketplace removed. Evidence: `spikes/pc-005-plugin-packaging/evidence/macos-20260719/`
 
 ### PC-006 — Multi-session + kill (P0)
 
@@ -114,7 +120,7 @@ Cleanup: plugin uninstalled + marketplace removed. Evidence: `pc-005/`
 | Kill mid-turn: fade/stop ≤ 5 s, no orphan | **PASS** | `watchdog-evict` on state `Z` ~0.7 s after SIGKILL; `daemon-idle-exit`; no lingering `proto-daemon` |
 | Save player + hook / TUI logs | **PASS** | `pc-006/player-*.jsonl`, traces, TUI logs |
 
-Evidence: `pc-006/`
+Evidence: `spikes/pc-006-multi-session/evidence/macos-20260719/`
 
 ---
 

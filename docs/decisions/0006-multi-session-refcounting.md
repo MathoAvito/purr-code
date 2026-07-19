@@ -1,8 +1,9 @@
-# 0006 — Multi-session refcounting & watchdog prototype (Linux)
+# 0006 — Multi-session refcounting & watchdog prototype (Linux + macOS)
 
-- **Status:** Accepted — Linux findings; macOS + Windows verification outstanding (flagged for PC-009)
-- **Date:** 2026-07-18
+- **Status:** Accepted — Linux + macOS arm64 verified (2026-07-19); Windows outstanding
+- **Date:** 2026-07-18 (macOS rerun 2026-07-19)
 - **Story:** PC-006
+- **macOS evidence:** [macos-rerun-20260719.md](../planning/reviews/macos-rerun-20260719.md) · `spikes/pc-006-multi-session/evidence/macos-20260719/`
 - **PRD refs:** FR-04 (multi-session), FR-05 (daemon lifecycle), RR-04 (watchdog), §19 Phase 0 exit criterion
 
 ## Question
@@ -22,7 +23,10 @@ exec-form async hooks (`UserPromptSubmit`/`Stop`/`StopFailure`/`SessionEnd`)
 feeding a prototype daemon (`proto-daemon.mjs`) over UDS. The "player" is
 fake — state transitions are logged, not rendered to a sound card. Raw logs
 in [`spikes/pc-006-multi-session/`](../../spikes/pc-006-multi-session/).
-**macOS and Windows were not tested — nothing below is verified there.**
+**macOS arm64 verified 2026-07-19** with `process-liveness.cjs` (`ps` +
+`lstart`): interleave refcount correct; kill → `watchdog-evict` on `Z` →
+fade ≤5 s; daemon idle-exit. Harness: Esc once after ready to dismiss tips.
+**Windows still unpaid.**
 
 1. **Interleaved turns refcount correctly** (`player-interleave.jsonl`).
    Session A turn-start `t=0.09` → player **start** (0→1). Session B
@@ -83,7 +87,6 @@ in [`spikes/pc-006-multi-session/`](../../spikes/pc-006-multi-session/).
   - PC-202/203 (watchdog + TTL): 2 s cadence confirmed; TTL remains the
     backstop for pathological cases (e.g. zombie *with* reused starttime).
 - PRD impact: §19 Phase 0 exit criterion (kill mid-turn → fade ≤ 5 s, no
-  orphan) **demonstrated on Linux**. FR-04 refcount semantics validated with
-  real event streams.
-- Follow-ups: rerun both scenarios on macOS/Windows at PC-009 (zombie
-  semantics are Linux-specific; Windows existence-check path untested).
+  orphan) **demonstrated on Linux and macOS**. FR-04 refcount semantics
+  validated with real event streams.
+- Follow-ups: Windows existence-check path still unpaid.
