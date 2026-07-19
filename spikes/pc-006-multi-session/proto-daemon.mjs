@@ -15,8 +15,8 @@
  *   {player:"fade", ms:300} then {player:"stop"} when they go >=1 -> 0
  *
  * Watchdog (2 s cadence): every registered session's owning pid is checked
- * via (pid, starttime) from /proc/<pid>/stat (ADR 0002). Gone/mismatched ->
- * the session is evicted as if it sent stop+session-end.
+ * via (pid, starttime) — Linux /proc or macOS `ps` (ADR 0002). Gone/mismatched
+ * -> the session is evicted as if it sent stop+session-end.
  *
  * Usage: node proto-daemon.mjs <socket> <player-log>
  */
@@ -24,6 +24,10 @@ import net from "node:net";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { statOf, isDead } = require("./process-liveness.cjs");
 
 const SOCK = process.argv[2];
 const PLAYER_LOG = process.argv[3];
@@ -41,16 +45,6 @@ function plog(rec) {
 /* sessionId -> {pid, starttime, turnActive} */
 const sessions = new Map();
 let playing = false;
-
-function statOf(pid) {
-  try {
-    const raw = fs.readFileSync(`/proc/${pid}/stat`, "utf8");
-    const fields = raw.slice(raw.lastIndexOf(")") + 2).split(" ");
-    return { state: fields[0], starttime: Number(fields[19]) };
-  } catch {
-    return null;
-  }
-}
 
 function activeTurns() {
   return [...sessions.values()].filter((s) => s.turnActive).length;
@@ -92,10 +86,8 @@ let emptySince = Date.now();
 setInterval(() => {
   for (const [sid, s] of sessions) {
     const st = statOf(s.pid);
-    // dead = ENOENT, recycled pid (starttime mismatch), or unreaped zombie:
-    // a Z process still has a readable stat with its original starttime, so
-    // starttime checks alone would keep a killed-but-unreaped claude "alive"
-    if (st === null || st.starttime !== s.starttime || st.state === "Z" || st.state === "X") {
+    // dead = gone, recycled pid (starttime mismatch), or unreaped zombie
+    if (isDead(st, s.starttime)) {
       sessions.delete(sid);
       plog({ event: "watchdog-evict", sessionId: sid.slice(0, 8), pid: s.pid, stat: st });
       reconcile("watchdog");

@@ -11,6 +11,7 @@ const net = require("net");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
+const { starttimeOf } = require("./process-liveness.cjs");
 
 const LABEL = process.argv[2] || "unknown";
 const SOCK = process.env.PC006_SOCK;
@@ -21,15 +22,6 @@ const OPS = {
   StopFailure: "stop",
   SessionEnd: "session-end",
 };
-
-function starttimeOf(pid) {
-  try {
-    const raw = fs.readFileSync(`/proc/${pid}/stat`, "utf8");
-    return Number(raw.slice(raw.lastIndexOf(")") + 2).split(" ")[19]);
-  } catch {
-    return null;
-  }
-}
 
 function dbg(line) {
   if (!process.env.PC006_DEBUG_LOG) return;

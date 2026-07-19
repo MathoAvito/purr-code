@@ -6,6 +6,39 @@
 **Architecture:** Apple Silicon (arm64) preferred; Intel (x64) also useful if available.  
 **Claude Code version:** record exact `claude --version` (Linux was 2.1.197 / 2.1.214).
 
+Sprint 1 product work may already be underway on `main` — that is fine. This rerun is **async platform debt**; do not change product code unless a spike harness itself is broken on macOS (then fix only under `spikes/`).
+
+---
+
+## Copy-paste prompt for your coding agent
+
+Clone the repo, open it in Cursor (or Claude Code), then paste this entire block:
+
+```text
+You are running the PurrCode macOS Sprint 0 platform rerun on this machine.
+
+Read and follow: docs/planning/reviews/macos-platform-rerun.md
+
+Your job:
+1. Install prerequisites if missing (Node 20+, Claude Code CLI, Xcode CLT, pnpm).
+2. From the repo root run: node spikes/rewrite-testbed-paths.cjs
+3. Run every P0 scenario (PC-001, PC-002, PC-003, PC-006), then P1 if time (PC-004, PC-005).
+4. Use the local mock API only — never a real Anthropic key:
+     export ANTHROPIC_BASE_URL=http://127.0.0.1:41100
+     export ANTHROPIC_API_KEY=pc001-mock
+5. Save evidence under a folder like:
+     macos-rerun-<hostname>-<YYYYMMDD>/NOTES.md
+     macos-rerun-<hostname>-<YYYYMMDD>/pc-001/ …
+6. In NOTES.md record: macOS version, chip (arm64/x64), `uname -m`, `claude --version`,
+   `node -v`, and pass/fail for every checkbox in the doc.
+7. Do not modify packages/, docs/decisions/, or product code unless a spike harness
+   cannot run on macOS — then fix only under spikes/ and note it in NOTES.md.
+8. When done, tell me the zip/folder path and a one-line summary per spike.
+
+Stop and ask me only if: Claude Code interactive onboarding blocks you and you
+cannot seed ~/.claude.json, or a P0 harness is fundamentally broken on this Mac.
+```
+
 ---
 
 ## Prerequisites (once)
@@ -21,29 +54,34 @@ claude --version
 # Xcode CLT (for the audio sidecar C build)
 xcode-select -p || xcode-select --install
 
-# Clone + toolchain
-git clone <repo-url> purr-code && cd purr-code
+# Clone + toolchain (collaborator with repo access)
+git clone git@github.com:MathoAvito/purr-code.git
+cd purr-code
 git checkout main
-pnpm install     # or: corepack enable && corepack prepare pnpm@10.34.5 --activate
+corepack enable && corepack prepare pnpm@10.34.5 --activate
+pnpm install
+
+# REQUIRED: rewrite absolute Linux paths in spike settings to this clone
+node spikes/rewrite-testbed-paths.cjs
 ```
 
-**No Anthropic account needed** for these spikes — we use a local mock API:
+**No Anthropic account needed** — local mock API only:
 
 ```bash
 export ANTHROPIC_BASE_URL=http://127.0.0.1:41100
 export ANTHROPIC_API_KEY=pc001-mock
 ```
 
-First interactive Claude run may show theme / “use this API key?” dialogs. Accept Dark + Yes for the mock key once (or seed `~/.claude.json` as in the PC-001 README).
+First interactive Claude run may show theme / “use this API key?” dialogs. Accept Dark + Yes for the mock key once (or seed `~/.claude.json` as in `spikes/pc-001-hook-payload/README.md`).
 
-**Send back for every scenario:** the generated evidence files + a short notes file with: macOS version, chip (arm64/x64), `claude --version`, `node -v`, pass/fail per checkbox below.
+**Send back:** evidence files + `NOTES.md` (macOS version, chip, tool versions, pass/fail).
 
 Suggested zip layout:
 
 ```text
 macos-rerun-<hostname>-<date>/
   NOTES.md
-  pc-001/   (copied evidence)
+  pc-001/
   pc-002/
   pc-003/
   pc-004/
@@ -76,9 +114,6 @@ macos-rerun-<hostname>-<date>/
 cd spikes/pc-001-hook-payload
 node hooks/mock-anthropic.cjs &          # keep running; MOCK_DELAY_MS=20000 for Esc tests
 export ANTHROPIC_BASE_URL=http://127.0.0.1:41100 ANTHROPIC_API_KEY=pc001-mock
-
-# Fix absolute paths in testbed/.claude/settings.json if clone path differs
-# (search-replace the Linux path with your local absolute path)
 
 # 1) Headless success (async Stop?)
 rm -f evidence/hook-events.jsonl
@@ -119,7 +154,7 @@ python3 hooks/pty-drive.py macos-kill 40 \
 - [ ] Headless `-p`: record whether async `Stop` fires; note `CLAUDE_CODE_ENTRYPOINT` (`sdk-cli` vs `cli`)  
 - [ ] Optional: slow async hook (10 s sleep) does not delay the reply  
 
-**Known Linux gotcha:** after PC-008, scripts are `.cjs` (not `.js`). Settings must point at `log-hook.cjs`.
+**Known gotcha:** after PC-008, scripts are `.cjs` (not `.js`). Settings must point at `log-hook.cjs`. Paths must be rewritten via `node spikes/rewrite-testbed-paths.cjs`.
 
 ---
 
@@ -129,7 +164,7 @@ The Linux `probe.py` reads `/proc` and **will not work as-is**. On macOS, verify
 
 ### A — Parent PID identity
 
-1. Install/use PC-001 `testbed-execform` hooks.  
+1. Use PC-001 `testbed-execform` hooks (after path rewrite).  
 2. Start mock API + interactive Claude in that directory.  
 3. On `UserPromptSubmit`, the hook log records `ppid`.  
 4. Compare to the Claude process: `pgrep -lf claude` or Activity Monitor.
@@ -209,12 +244,12 @@ node run-scenarios.mjs
 cd spikes/pc-004-audio-sidecar
 ./fetch-vendor.sh
 cc -Os -DMA_NO_MP3 -DMA_NO_FLAC -DMA_NO_GENERATION \
-  -o purr-sidecar-min purr-sidecar.c -lm -lpthread
-# macOS may not need -ldl; if link fails, drop -ldl
+  -o purr-sidecar-min purr-sidecar.c -lm
+# If link fails, try adding -lpthread; do not require -ldl on macOS
 strip purr-sidecar-min
 ls -la purr-sidecar-min          # record size (Linux was ~347KB)
 
-cc -O2 -o seam-check seam-check.c -lm -lpthread
+cc -O2 -o seam-check seam-check.c -lm
 ./run-protocol.sh ./purr-sidecar-min   # null backend — no speakers needed
 ./seam-check test-purr.wav 6           # expect "gapless":true
 
@@ -279,16 +314,18 @@ claude plugin marketplace remove purrcode-spike-marketplace
 
 ## PC-006 — Multi-session + kill (P0)
 
+Watchdog uses `process-liveness.cjs` (Linux `/proc` or macOS `ps`). Paths must be rewritten first.
+
 ```bash
 cd spikes/pc-006-multi-session
-# Ensure testbed/.claude/settings.json paths point at THIS clone
-# (absolute paths from Linux will be wrong — fix to local absolute paths)
+# confirm testbed/.claude/settings.json points at THIS clone (rewrite script)
 
-# Read README for the exact driver (two-sessions.py / proto-daemon)
-# Typical flow: start mock with MOCK_DELAY_MS=8000, then:
+MOCK_PORT=41166 MOCK_DELAY_MS=8000 node ../pc-001-hook-payload/hooks/mock-anthropic.cjs &
+export ANTHROPIC_BASE_URL=http://127.0.0.1:41166 ANTHROPIC_API_KEY=pc001-mock
+export PC006_SOCK=/tmp/pc006/purr.sock PC006_PLAYER_LOG=/tmp/pc006/player.jsonl
 
-python3 two-sessions.py interleave   # or as documented in README
-python3 two-sessions.py kill
+python3 two-sessions.py interleave 2 "1.k:purr one" "1.e" "s:3" "2.k:purr two" "2.e" "s:13" "1.q" "2.q" "s:11"
+python3 two-sessions.py kill 1 "1.k:purr kill me" "1.e" "s:3" "1.sigkill" "s:15"
 ```
 
 **PASS:**
@@ -297,20 +334,18 @@ python3 two-sessions.py kill
 - [ ] Kill mid-turn: fade/stop within **≤ 5 s**, no orphaned player/daemon  
 - [ ] Save `evidence/player-*.jsonl` and hook logs  
 
-If the driver hard-codes Linux `/proc` for the watchdog, note the failure and fall back to: manually SIGKILL one of two Claudes while both are mid-turn and confirm the prototype daemon (if running) fades within 5 s — or ping us and we’ll ship a macOS-patched driver.
-
 ---
 
 ## What we will do with your results
 
 1. Attach evidence under each `spikes/pc-00X-*/evidence/macos-*/`.  
 2. Amend ADRs 0001–0006 status from “Linux only” → “Linux + macOS” (or document divergences).  
-3. Update Sprint 0 review / PC-009: macOS Phase 0 debt closed (Windows still separate).  
-4. Any divergence (e.g. Esc *does* fire Stop on macOS) goes into backlog reconciliation before Sprint 1 stories assume Linux behavior.
+3. Update Sprint 0 review: macOS Phase 0 debt closed (Windows still separate).  
+4. Any divergence (e.g. Esc *does* fire Stop on macOS) becomes a backlog amendment PR.
 
 ---
 
-## Quick “done” definition for your friend
+## Quick “done” definition
 
 You’re done when you can send a zip that lets us tick:
 
