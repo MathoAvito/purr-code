@@ -1,0 +1,13 @@
+=== BASELINE 21:10:56 ===
+22691 RNs  Sun Jul 19 21:10:55 2026    
+=== STOP 21:10:58 ===
+22691 TNs  Sun Jul 19 21:10:55 2026    
+=== CONT 21:11:01 ===
+22691 SNs  Sun Jul 19 21:10:55 2026    
+=== TSTP 21:11:04 ===
+state before TSTP: SNs 
+state after TSTP:  SNs 
+22691 SNs  Sun Jul 19 21:10:55 2026    
+=== BEFORE KILL 21:11:06 ===
+=== AFTER KILL 21:11:07 ===
+ps after kill: '22691 Sun Jul 19 21:10:55 2026    '

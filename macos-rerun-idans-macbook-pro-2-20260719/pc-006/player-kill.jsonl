@@ -1,0 +1,7 @@
+{"t":0.002,"event":"daemon-listening","pid":24390}
+{"t":0.019,"event":"turn-start","sessionId":"8f526e96","pid":24326}
+{"t":0.019,"player":"start","reason":"start","activeTurns":1,"sessions":1}
+{"t":4.009,"event":"watchdog-evict","sessionId":"8f526e96","pid":24326,"stat":{"state":"Z","starttime":"Sun Jul 19 21:13:32 2026"}}
+{"t":4.01,"player":"fade","ms":300,"reason":"watchdog"}
+{"t":4.01,"player":"stop","reason":"watchdog","sessions":0}
+{"t":12.013,"event":"daemon-idle-exit","pid":24390}

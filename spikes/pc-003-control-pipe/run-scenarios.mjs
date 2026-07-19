@@ -79,7 +79,9 @@ function pidAlive(pid) {
 }
 
 function sid(pid) {
-  return Number(execFileSync("ps", ["-o", "sid=", "-p", String(pid)], { encoding: "utf8" }).trim());
+  // Linux: sid= ; macOS BSD ps: sess= (no sid keyword)
+  const col = process.platform === "darwin" ? "sess=" : "sid=";
+  return Number(execFileSync("ps", ["-o", col, "-p", String(pid)], { encoding: "utf8" }).trim());
 }
 
 async function main() {

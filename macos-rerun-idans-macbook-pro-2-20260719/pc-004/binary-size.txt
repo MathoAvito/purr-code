@@ -1,0 +1,3 @@
+-rwxr-xr-x@ 1 idanron  staff  325632 Jul 19 21:12 purr-sidecar-min
+purr-sidecar-min: Mach-O 64-bit executable arm64
+arm64

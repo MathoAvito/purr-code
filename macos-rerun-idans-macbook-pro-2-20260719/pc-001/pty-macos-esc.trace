@@ -1,0 +1,18 @@
+[   0.00s] wait for /shortcuts/ (25s)
+[   1.31s] wait result: FOUND
+[   1.31s] sleep 1
+[   2.35s] ESC
+[   2.66s] sleep 1
+[   3.69s] keys 'Reply pong'
+[   4.01s] sleep 1
+[   5.05s] ENTER
+[   5.37s] wait for /purr/ (25s)
+[   5.57s] wait result: FOUND
+[   5.57s] sleep 2
+[   7.59s] ESC
+[   7.99s] sleep 4
+[  12.08s] keys '/exit'
+[  12.44s] sleep 1
+[  13.48s] ENTER
+[  14.03s] terminating child
+[  16.04s] child exit code: 0

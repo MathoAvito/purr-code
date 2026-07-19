@@ -86,6 +86,9 @@ def wait_ready(s, timeout=30):
 for s in sessions:
     ok = wait_ready(s)
     trace(f"session {s.idx} ready: {ok} (pid {s.proc.pid})")
+    # Dismiss Claude Code welcome / tips panel if present (macOS fresh installs).
+    s.write(b"\x1b")
+    pump(0.5)
 
 for step in steps:
     if step.startswith("s:"):
