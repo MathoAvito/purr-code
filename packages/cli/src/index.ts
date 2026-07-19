@@ -14,3 +14,30 @@ export type HookEvent = (typeof HOOK_EVENTS)[number];
 export function isHookEvent(value: string): value is HookEvent {
   return (HOOK_EVENTS as readonly string[]).includes(value);
 }
+
+export type {
+  AudioBackend,
+  BackendCapabilities,
+  BackendTier,
+  PlaybackOptions,
+  PlayerHandle,
+} from "./audio/types.js";
+
+export {
+  FAKE_AUDIO_EVENT_TYPES,
+  FakeAudioBackend,
+  PURRCODE_FAKE_AUDIO_ENV,
+  PURRCODE_FAKE_AUDIO_LOG_ENV,
+  assertContainsSequence,
+  assertExactSequence,
+  findEventSequence,
+  isFakeAudioEnabled,
+  readFakeAudioLog,
+  resolveFakeAudioLogPath,
+} from "./audio/fake/index.js";
+export type {
+  FakeAudioBackendOptions,
+  FakeAudioEvent,
+  FakeAudioEventType,
+  SidecarEventName,
+} from "./audio/fake/index.js";

@@ -61,7 +61,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 
 | Story | Title | Pts | Depends on | Status |
 |---|---|---|---|---|
-| PC-101 | Fake audio backend | 3 | PC-008 | ⬜ |
+| PC-101 | Fake audio backend | 3 | PC-008 | ✅ |
 | PC-102 | Runtime directory (hardened) | 2 | PC-008 | ⬜ |
 | PC-103 | Control pipe & message protocol | 5 | PC-003, PC-102 | ⬜ |
 | PC-104 | Daemon core: lifecycle, races | 5 | PC-103 | ⬜ |
