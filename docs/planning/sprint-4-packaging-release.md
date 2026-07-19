@@ -10,7 +10,7 @@
 
 **As a** user, **I want** PurrCode as a Claude Code plugin **so that** my `settings.json` is never touched (FR-01, §15).
 
-- [ ] Plugin layout with `hooks/hooks.json` exactly per §15: exec form (`command: "node"`, `args` with `${CLAUDE_PLUGIN_ROOT}/dist/hook.js`), `async: true`, `timeout: 5`, no `matcher` fields, all four events.
+- [ ] Plugin layout with `hooks/hooks.json` exactly per §15: **exec form mandatory** (`command: "node"`, `args` with `${CLAUDE_PLUGIN_ROOT}/dist/hook.js`) — string-form is forbidden (ADR 0002/0006: breaks ppid = Claude and refcounting). `async: true`, `timeout: 5`, no `matcher` fields, all four events.
 - [ ] Hook adapter, daemon, CLI bundled into the plugin's `dist/`; persistent state (config, sounds, WAV cache) in `${CLAUDE_PLUGIN_DATA}` so it survives plugin updates (per PC-005 findings).
 - [ ] `sleepy` + license metadata bundled; WAV cache generated at install.
 - [ ] Validated end-to-end against a real Claude Code on all three OSes: prompt → purr → stop → silence, zero transcript artifacts.
@@ -30,9 +30,9 @@
 **As a** user, **I want** clean removal **so that** nothing unrelated changes (§8 uninstall story).
 
 - [ ] Disables/removes the plugin; stops the daemon (fade first), removes runtime state, socket, pidfile.
-- [ ] User-imported audio retained unless `--purge` (mechanism ships now even though import UI is Phase 2).
+- [ ] **Plugin data** (`${CLAUDE_PLUGIN_DATA}`) is deleted by default; retain with **`--keep-data`** (ADR 0005). User-imported audio retained unless `--purge` (mechanism ships now even though import UI is Phase 2) — clarify interaction: `--keep-data` keeps plugin data; `--purge` removes imported audio when that surface exists.
 - [ ] Idempotent; reports exactly what was removed.
-- [ ] Test: install → use → uninstall leaves no PurrCode process, hook, or runtime residue (config/data only with `--purge`).
+- [ ] Test: install → use → uninstall leaves no PurrCode process, hook, or runtime residue (config/data only with `--keep-data` / without `--purge` as specified).
 
 ## PC-404 — Community health files (3 pts, E8)
 

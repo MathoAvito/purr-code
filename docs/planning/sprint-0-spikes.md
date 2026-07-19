@@ -94,9 +94,11 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 ## PC-009 — Go/no-go review & backlog reconciliation (1 pt, E1) — human gate
 
-- [ ] All decision records reviewed; Phase 0 exit criteria (§19) checked off.
-- [ ] Sprint 1–4 backlog amended where findings contradict PRD assumptions (e.g., if Esc *does* fire `Stop`, watchdog stays but test emphasis shifts; if parent PID is unreliable, E4 stories change).
-- [ ] Any PRD amendments filed as PRs against the in-repo PRD.
+- [x] All decision records reviewed; Phase 0 exit criteria (§19) checked off. → **Go with platform-debt accepted** (2026-07-19): Linux criteria met; macOS/Windows prototype unpaid (see review package).
+- [x] Sprint 1–4 backlog amended where findings contradict PRD assumptions (e.g., if Esc *does* fire `Stop`, watchdog stays but test emphasis shifts; if parent PID is unreliable, E4 stories change). → Applied in the same change set as this decision.
+- [x] Any PRD amendments filed as PRs against the in-repo PRD. → None required for go (design assumed pessimistic answers).
+
+> Decision: [reviews/sprint-0-review.md](reviews/sprint-0-review.md).
 
 ## PC-010 — Reserve package name & repo (1 pt, E1) — human gate
 
