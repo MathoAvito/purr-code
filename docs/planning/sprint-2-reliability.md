@@ -2,7 +2,7 @@
 
 **Goal:** the abandoned-turn gap (§7) is closed. Esc, Ctrl+Z, terminal kill, machine crash, daemon restarts — none of them leave a purring orphan. All RR-01…RR-05 behaviors pass the integration suite on the CI matrix.
 
-**Demo at sprint review:** kill a terminal mid-turn → fake-audio fade event ≤ 5 s. Ctrl+Z a session → pause event; `fg` → resume event.
+**Demo at sprint review:** kill a terminal mid-turn → fake-audio fade event ≤ 5 s. Suspend via **SIGSTOP** (not Ctrl+Z/SIGTSTP — Claude swallows SIGTSTP; ADR 0002) → pause event; SIGCONT → resume event.
 
 ---
 
@@ -10,11 +10,11 @@
 
 **As the** watchdog, **I want** a per-platform module classifying a PID as running / suspended / dead **so that** state-aware decisions (RR-04.1) rest on tested primitives.
 
-- [ ] Linux: parse `/proc/[pid]/stat` state field (handles comm names containing spaces/parens); `T` = suspended.
+- [ ] Linux: parse `/proc/[pid]/stat` state field (handles comm names containing spaces/parens); `T` = suspended; **`Z`/`X` = dead** (zombie/dead — do not treat as alive; ADR 0006 amends ADR 0002).
 - [ ] macOS: `ps -o state= -p <pid>`; `T` = suspended.
 - [ ] Windows: existence-only per PC-002 findings.
-- [ ] PID-reuse guard per PC-002's decision (e.g. process start-time comparison) if the spike found it necessary.
-- [ ] Unit tests with real child processes: spawn, SIGSTOP, SIGCONT, kill — assert classification at each step (Unix); existence checks on Windows.
+- [ ] PID-reuse guard: identity is **`(pid, starttime)`** per ADR 0002 — required, not optional.
+- [ ] Unit tests with real child processes: spawn, SIGSTOP, SIGCONT, kill — assert classification at each step (Unix); existence checks on Windows. Include a zombie-state fixture on Linux (`Z` → dead).
 
 ## PC-202 — Watchdog loop (5 pts, E4)
 
@@ -25,6 +25,7 @@
 - [ ] **Suspended** → mark session *paused* (not removed); when no non-paused sessions remain, fade out. On return to running with the turn still open, fade back in.
 - [ ] Watchdog ticks are cheap (no subprocess spawn per tick where avoidable) and never block the control pipe.
 - [ ] Integration tests (fake backend, real child processes standing in for Claude): owner-kill ≤ 5 s fade; SIGSTOP → pause within one cycle → SIGCONT → resume; one-suspended-one-running keeps purring.
+- [ ] **PC-009:** Esc/kill fire **no** Stop (ADR 0001) — this loop is the **primary** abandoned-turn cleanup path, not a backup. Tests must cover owner death with zero stop/failure events.
 
 ## PC-203 — Stale-session TTL & event-driven reconciliation (3 pts, E4)
 
@@ -69,3 +70,4 @@
 - [ ] Paused sessions keep their registry entry and turn state; resume re-checks whether a stop/session-end arrived while suspended.
 - [ ] TTL continues counting during suspension (a session suspended > `staleSessionMinutes` is GC'd — decision recorded if spike evidence suggests otherwise).
 - [ ] Integration tests: suspend → stop event arrives → resume → **no** playback; suspend → resume with turn open → playback resumes.
+- [ ] **PC-009:** drive suspend/resume tests with **SIGSTOP/SIGCONT**, not SIGTSTP (Claude Code handles SIGTSTP itself; ADR 0002).

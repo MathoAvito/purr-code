@@ -27,16 +27,14 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 1. Sprint start: skim the sprint file's goal + demo line so you know what "done" looks like.
 2. Run stories per the board.
 3. Sprint end: run the demo described at the top of the sprint file, review the human-gate items, then move to the next sprint file.
-4. After Sprint 0 only: run the PC-009 go/no-go and **amend the later sprint files** where spike findings contradict PRD assumptions, before anything from Sprint 1 starts.
+4. After Sprint 0 only: run the PC-009 go/no-go and **amend the later sprint files** where spike findings contradict PRD assumptions, before anything from Sprint 1 starts. *(Done 2026-07-19 — go + platform debt.)*
 
 ## What to start right now
 
-**Sprint 0 agent work is complete.** Run the human gate:
+**Sprint 0 closed: go with platform-debt accepted** ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).
 
-- **PC-009 — go/no-go** — review package: [reviews/sprint-0-review.md](reviews/sprint-0-review.md)
-- **PC-010 — reserve package name** — after confirming `purrcode` (ADR 0007)
-
-Do **not** start Sprint 1 until PC-009 is signed off and backlog reconciliation is applied (or deferred).
+- **Next:** Sprint 1 walking skeleton — start with **PC-101** (fake audio backend).
+- **Still open (human):** PC-010 reserve `purrcode` + LICENSE; macOS/Windows spike reruns (async debt, [macos-platform-rerun.md](reviews/macos-platform-rerun.md)).
 
 ---
 
@@ -56,14 +54,14 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-005 | Spike: plugin packaging | 3 | PC-001 | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ✅ (Linux; macOS/Win owed at PC-009) |
 | PC-007 | Spike: name & trademark check | 1 | — | ✅ (recommend purrcode; confirm at PC-010) |
-| PC-009 | Go/no-go & backlog reconciliation | 1 | all spikes | 🚧 |
+| PC-009 | Go/no-go & backlog reconciliation | 1 | all spikes | ✅ go + platform debt |
 | PC-010 | Reserve package name & repo | 1 | PC-007 | 🚧 |
 
 ### Sprint 1 — Walking skeleton ([sprint-1-walking-skeleton.md](sprint-1-walking-skeleton.md))
 
 | Story | Title | Pts | Depends on | Status |
 |---|---|---|---|---|
-| PC-101 | Fake audio backend | 3 | PC-008 | ⬜ |
+| PC-101 | Fake audio backend | 3 | PC-008 | ✅ |
 | PC-102 | Runtime directory (hardened) | 2 | PC-008 | ⬜ |
 | PC-103 | Control pipe & message protocol | 5 | PC-003, PC-102 | ⬜ |
 | PC-104 | Daemon core: lifecycle, races | 5 | PC-103 | ⬜ |
