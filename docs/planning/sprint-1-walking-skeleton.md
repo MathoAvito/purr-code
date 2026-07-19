@@ -10,11 +10,11 @@
 
 **As an** agent contributor / CI job, **I want** an `AudioBackend` implementation that writes timestamped playback events to a log instead of a sound card **so that** loop/fade/refcount logic is verifiable without audio hardware (§23.5).
 
-- [ ] Implements the full `AudioBackend` interface (§11.3): `detect`, `play`, `setVolume`, `stop(fadeOutMs)`.
-- [ ] Activated by `PURRCODE_FAKE_AUDIO=1`; wins tier detection when set.
-- [ ] Emits structured JSONL events: start, volume-change, fade-start, fade-cancel, stop — with timestamps and the **perceptual** volume value received (amplitude mapping lives in real adapters; ADR 0004 / PC-205).
-- [ ] Event vocabulary mirrors the sidecar protocol shapes where useful (`ready`/`playing`/`fadeout`/`exiting` may map onto the names above) so PC-109 and PC-301 exercise the same lifecycle (ADR 0004).
-- [ ] Test helper reads the log and asserts on event sequences (used by every integration test hereafter).
+- [x] Implements the full `AudioBackend` interface (§11.3): `detect`, `play`, `setVolume`, `stop(fadeOutMs)`.
+- [x] Activated by `PURRCODE_FAKE_AUDIO=1`; wins tier detection when set.
+- [x] Emits structured JSONL events: start, volume-change, fade-start, fade-cancel, stop — with timestamps and the **perceptual** volume value received (amplitude mapping lives in real adapters; ADR 0004 / PC-205).
+- [x] Event vocabulary mirrors the sidecar protocol shapes where useful (`ready`/`playing`/`fadeout`/`exiting` may map onto the names above) so PC-109 and PC-301 exercise the same lifecycle (ADR 0004).
+- [x] Test helper reads the log and asserts on event sequences (used by every integration test hereafter).
 
 ## PC-102 — Runtime directory (hardened) (2 pts, E3)
 
