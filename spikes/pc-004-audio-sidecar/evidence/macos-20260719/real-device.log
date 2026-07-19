@@ -1,0 +1,6 @@
+{"t":194.9,"event":"ready","backend":"Core Audio","sampleRate":48000}
+{"t":195.1,"event":"loaded","path":"test-purr.wav","frames":48000}
+{"t":195.1,"event":"volume","perceptual":15,"amplitude":0.0034,"rampMs":100}
+{"t":195.1,"event":"playing","fadeInMs":500,"targetGain":0.0034}
+{"t":2001.9,"event":"fadeout","ms":400}
+{"t":2401.1,"event":"exiting","framesRendered":105120,"loopWraps":2}

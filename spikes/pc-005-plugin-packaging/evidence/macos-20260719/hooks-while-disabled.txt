@@ -1,0 +1,1 @@
+DISABLED: zero hook events (PASS)

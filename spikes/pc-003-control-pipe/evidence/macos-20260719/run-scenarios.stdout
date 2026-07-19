@@ -1,0 +1,11 @@
+[0.00s] spawned_detached: {"daemonPid":21455,"spawnerPid":21452}
+[0.08s] cold_start_connect: {"attempts":4,"waitedMs":79,"note":"client retried until daemon bound the socket; no readiness handshake needed"}
+[0.09s] first_message_ok: {"reply":{"ok":true,"echo":{"op":"ping","seq":0},"pid":21455,"t":1784484498664}}
+[0.09s] uds_echo_rtt_ms: {"n":50,"p50":"0.028","p95":"0.214","max":"0.278"}
+[0.09s] permissions: {"runtimeDir":"/var/folders/kf/m7r6fcrn35j7dpxfj7scj36w0000gn/T/purrcode-spike-501","dirMode":"700","dirUid":501,"sockMode":"600","sockUid":501,"isSocket":true,"perUidNaming":true}
+[0.10s] detached_session: {"daemonPid":21455,"daemonSid":0,"spawnerSid":0,"newSession":false,"note":"detached:true gives the daemon its own session (setsid)"}
+[1.18s] survives_parent_exit: {"orphanDaemonPid":21493,"spawnerExited":true,"daemonAlive":true}
+[1.26s] bind_mutex: {"secondDaemonExit":0,"output":"{\"event\":\"lost-race\",\"pid\":21496}","lostRaceCleanly":true}
+[2.36s] stale_socket_recovery: {"killedOwnerPid":21455,"socketFileLeftBehind":true,"reclaimerEvents":["{\"event\":\"reclaimed-stale-socket\",\"pid\":21503}","{\"event\":\"listening\",\"pid\":21503,\"sock\":\"/var/folders/kf/m7r6fcrn35j7dpxfj7scj36w0000gn/T/purrcode-spike-501/control.sock\"}","{\"event\":\"listening\",\"pid\":21503,\"sock\":\"/var/folders/kf/m7r6fcrn35j7dpxfj7scj36w0000gn/T/purrcode-spike-501/control.sock\"}"],"newOwnerPid":21503,"served":true,"connectAttempts":1}
+[8.29s] idle_exit_rule: {"idleMs":1500,"heldConnectionMs":4000,"aliveWhileConnectionOpen":true,"stillServing":true,"exitedMsAfterClose":1500,"rule":"open connection pins daemon; idle timer only runs at zero connections"}
+[8.29s] done: {}

@@ -1,0 +1,14 @@
+[   0.00s] wait for /shortcuts/ (25s)
+[   0.70s] wait result: FOUND
+[   0.70s] sleep 1
+[   1.73s] ESC
+[   2.04s] sleep 1
+[   3.07s] keys 'Reply pong'
+[   3.40s] sleep 1
+[   4.44s] ENTER
+[   4.77s] wait for /purr/ (25s)
+[   5.00s] wait result: FOUND
+[   5.00s] sleep 2
+[   7.02s] SIGKILL pid 22021
+[   7.02s] terminating child
+[   9.03s] child exit code: -9

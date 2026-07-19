@@ -1,0 +1,13 @@
+[   1.61s] session 1 ready: True (pid 23249)
+[   2.55s] session 2 ready: True (pid 23250)
+[   3.09s] s1 keys 'purr one'
+[   3.42s] s1 ENTER
+[   3.74s] sleep 3
+[   6.79s] s2 keys 'purr two'
+[   7.10s] s2 ENTER
+[   7.41s] sleep 13
+[  20.47s] s1 /exit
+[  22.00s] s2 /exit
+[  23.54s] sleep 11
+[  36.59s] s1 exit code: 0
+[  36.59s] s2 exit code: 0

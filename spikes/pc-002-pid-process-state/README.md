@@ -3,9 +3,11 @@
 Throwaway probe and evidence for PC-002. Findings and decisions live in
 [docs/decisions/0002-pid-capture-process-state.md](../../docs/decisions/0002-pid-capture-process-state.md).
 
-Tested: Claude Code v2.1.197, Linux (Ubuntu, kernel 6.17), Node v20.20.2.
-macOS and Windows were **not** available — see the ADR for the documented
-(unverified) approach there.
+Tested: Claude Code v2.1.197, Linux (Ubuntu, kernel 6.17), Node v20.20.2;
+v2.1.215, macOS arm64 (2026-07-19). Windows still unpaid (see ADR).
+
+Linux: `evidence/pc002-events.jsonl`. macOS: `evidence/macos-20260719/`
+(`ps -o state=,lstart=` instead of `/proc/<pid>/stat`).
 
 ## Harness
 

@@ -1,0 +1,7 @@
+[   1.28s] session 1 ready: True (pid 24326)
+[   1.81s] s1 keys 'purr kill me'
+[   2.12s] s1 ENTER
+[   2.44s] sleep 3
+[   5.45s] s1 SIGKILL pid 24326
+[   5.45s] sleep 15
+[  22.51s] s1 exit code: -9

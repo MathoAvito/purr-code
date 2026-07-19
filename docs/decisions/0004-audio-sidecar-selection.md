@@ -1,8 +1,9 @@
 # 0004 — Tier-1 audio sidecar: miniaudio (C) selected
 
-- **Status:** Accepted — Linux x64 PoC built and measured; macOS/Windows builds owed at PC-009/PC-301
-- **Date:** 2026-07-18
+- **Status:** Accepted — Linux x64 + macOS arm64 PoCs built; Windows build unpaid (PC-301)
+- **Date:** 2026-07-18 (macOS rerun 2026-07-19)
 - **Story:** PC-004
+- **macOS evidence:** [macos-rerun-20260719.md](../planning/reviews/macos-rerun-20260719.md) · `spikes/pc-004-audio-sidecar/evidence/macos-20260719/`
 - **PRD refs:** §11.3 (tier-1 backend) / §20 rows 5, 10 / §12 (distribution)
 
 ## Question
@@ -83,6 +84,7 @@ in [`spikes/pc-004-audio-sidecar/`](../../spikes/pc-004-audio-sidecar/README.md)
   - PC-205 (perceptual volume): replace the PoC's cubic curve with the real
     model; the ramp mechanism stays.
 - PRD impact: none — §11.3 tier-1 assumptions confirmed.
-- Follow-ups: build + run the PoC on macOS (arm64/x64) and Windows runners at
-  PC-009 (`purr-sidecar.c` is portable; `--null` makes it CI-runnable), and
-  human audio QA of loop/fade quality at PC-309.
+- macOS arm64 (2026-07-19): stripped **325 632 B**, Null + **Core Audio**,
+  `gapless: true`, fadeout→exiting clean. No `-ldl` on the link line.
+- Follow-ups: Windows (and macOS x64 if needed) CI builds at PC-301; human
+  audio QA of loop/fade quality at PC-309.

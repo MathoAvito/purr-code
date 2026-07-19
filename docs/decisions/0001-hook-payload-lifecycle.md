@@ -1,8 +1,9 @@
-# 0001 — Hook payload & lifecycle verification (Linux)
+# 0001 — Hook payload & lifecycle verification (Linux + macOS)
 
-- **Status:** Accepted — Linux findings; macOS + Windows verification outstanding (flagged for PC-009)
-- **Date:** 2026-07-18
+- **Status:** Accepted — Linux + macOS arm64 verified (2026-07-19); Windows outstanding
+- **Date:** 2026-07-18 (macOS rerun 2026-07-19)
 - **Story:** PC-001
+- **macOS evidence:** [macos-rerun-20260719.md](../planning/reviews/macos-rerun-20260719.md) · `spikes/pc-001-hook-payload/evidence/macos-20260719/`
 - **PRD refs:** §15 / §21 Q1, Q3 / §20 rows 1, 4 / RR-02
 
 ## Question
@@ -21,10 +22,12 @@ Turns were completed against a local SSE mock of the Messages API
 (`ANTHROPIC_BASE_URL`), so no real account was involved; interactive scenarios
 were driven through a PTY with scripted keystrokes. Raw captures, harness, and
 a scenario index live in [`spikes/pc-001-hook-payload/`](../../spikes/pc-001-hook-payload/README.md).
-**macOS and Windows were not available on the spike machine — nothing below is
-verified there.**
 
-1. **Events fire as documented (Linux).** Interactive normal turn fires
+**macOS arm64 verified 2026-07-19** (Claude Code 2.1.215): same lifecycle as
+Linux — Esc/kill → no Stop; headless `-p` drops async Stop (`sdk-cli`);
+exec-form parent is `claude`. **Windows still unpaid.**
+
+1. **Events fire as documented (Linux + macOS).** Interactive normal turn fires
    `SessionStart` → `UserPromptSubmit` → `Stop` → `SessionEnd`. A failing turn
    (auth error) fires `StopFailure` (with `error` and `last_assistant_message`
    fields) instead of `Stop`. `StopFailure` is present in the shipped binary
@@ -89,19 +92,14 @@ verified there.**
 
 ## Consequences
 
-- **Backlog impact (flag for PC-009):**
-  - PC-002 can start: exec-form hooks give a direct `claude` parent PID on
-    Linux — verify the same on macOS/Windows there.
+- **Backlog impact:**
   - PC-107 (hook adapter): add `-p`-mode suppression via
     `CLAUDE_CODE_ENTRYPOINT`; treat missing `Stop` as normal in headless runs.
   - PC-201/202 (watchdog): Esc-interrupt and kill produce **no** hook events on
-    Linux — watchdog test emphasis stays as planned (PRD §20 row 1 confirmed).
+    Linux **and macOS** — watchdog test emphasis stays as planned (PRD §20 row 1).
   - PC-109/PC-206: add a headless-mode integration case (async `Stop` dropped).
-- **PRD impact:** §21 Q1 answered ("no" on Linux); Q3 answered
+- **PRD impact:** §21 Q1 answered ("no" on Linux + macOS); Q3 answered
   (`CLAUDE_CODE_ENTRYPOINT`). No amendment needed — the design already assumed
   the pessimistic answer.
-- **Open follow-up:** repeat the matrix on macOS and Windows before PC-009
-  go/no-go; the harness in `spikes/pc-001-hook-payload/` reruns it in minutes.
-  Also re-check the async error-notice behavior on future Claude Code versions
-  (currently silent; a regression to visible notices would surface any
-  PurrCode crash).
+- **Open follow-up:** Windows matrix still unpaid. Re-check async error-notice
+  behavior on future Claude Code versions (currently silent).

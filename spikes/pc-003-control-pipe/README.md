@@ -3,9 +3,9 @@
 Throwaway prototypes and evidence for PC-003. Findings and decisions live in
 [docs/decisions/0003-control-pipe-transport.md](../../docs/decisions/0003-control-pipe-transport.md).
 
-Tested: Linux (Ubuntu, kernel 6.17), Node v20.20.2. macOS and Windows were
-**not** available — the Windows prototype is written and ready to execute at
-the PC-009 platform rerun.
+Tested: Linux (Ubuntu, kernel 6.17), Node v20.20.2; macOS arm64 (2026-07-19).
+Windows still unpaid — the Windows prototype is written and ready to execute
+(`win32-named-pipe.mjs`).
 
 ## Files
 
@@ -34,3 +34,17 @@ Run: `node run-scenarios.mjs` (no external services needed).
 Known prototype quirk: the reclaim path logs `listening` twice (both the
 original and retried `listen()` resolve after the unlink); harmless here,
 worth avoiding in the real daemon (PC-104).
+
+## Results (macOS arm64)
+
+Evidence: `evidence/macos-20260719/run-scenarios.stdout` (from `run-scenarios.mjs`).
+
+| Scenario | Result |
+|---|---|
+| UDS echo round-trip | p50 0.028 ms, p95 0.214 ms over 50 pings |
+| Per-UID naming + permissions | dir `0700`, socket `0600`, under `$TMPDIR` |
+| Detached spawn | `survives_parent_exit: true`; BSD `ps sess=` often reports `0`/`0` so `newSession` may be false even when detach works |
+| Cold-start sequencing | 4 attempts, 79 ms |
+| Bind-as-mutex / stale socket / idle-exit | same as Linux |
+
+`run-scenarios.mjs` uses `ps -o sess=` on darwin (Linux `sid=` is invalid on BSD).

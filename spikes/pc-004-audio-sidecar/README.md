@@ -3,11 +3,9 @@
 Proof-of-concept and evidence for PC-004. Findings and decisions live in
 [docs/decisions/0004-audio-sidecar-selection.md](../../docs/decisions/0004-audio-sidecar-selection.md).
 
-Tested: Linux x64 (Ubuntu, kernel 6.17), gcc 15.2, miniaudio **v0.11.25**.
-macOS/Windows PoC binaries were **not** built (no toolchain/hardware here) —
-the C source is portable and the PC-008 CI matrix provides native runners;
-owed at PC-009/PC-301. rodio was compared on documentation only (no Rust
-toolchain on this machine).
+Tested: Linux x64 (Ubuntu, kernel 6.17), gcc 15.2, miniaudio **v0.11.25**;
+macOS arm64 built locally (2026-07-19). Windows build still unpaid (PC-301).
+rodio was compared on documentation only (no Rust toolchain on this machine).
 
 ## Files
 
@@ -41,3 +39,14 @@ runtime).
 Perceptual claims (seam audibility, pop-free fades) are **not** made here —
 that is PC-309 human QA. What is proven is sample-exact loop wrap and ramped
 (never stepped) gain changes.
+
+## Results (macOS arm64)
+
+Evidence: `evidence/macos-20260719/` (logs/JSONL only — no Mach-O binary committed).
+
+| Measure | Result |
+|---|---|
+| Binary size, stripped, WAV-only | **325 632 B** (~318 KiB); no `-ldl` on link line |
+| Gaplessness (`seam-check`) | `gapless: true` |
+| Null-backend protocol | loop wraps + fadeout → exiting |
+| Real-device run | Core Audio backend, clean exit |

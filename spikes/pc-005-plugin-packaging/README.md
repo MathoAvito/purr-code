@@ -4,8 +4,10 @@ Throwaway plugin + local marketplace and evidence for PC-005. Findings and
 decisions live in
 [docs/decisions/0005-plugin-packaging.md](../../docs/decisions/0005-plugin-packaging.md).
 
-Tested: Claude Code v2.1.197, Linux. macOS/Windows were **not** available —
-flagged for PC-009 (this harness reruns anywhere Claude Code installs).
+Tested: Claude Code v2.1.197, Linux; v2.1.215, macOS arm64 (2026-07-19).
+Windows still unpaid. This harness reruns anywhere Claude Code installs.
+
+macOS captures: `evidence/macos-20260719/` (install → update → disable → enable → uninstall).
 
 ## Layout
 

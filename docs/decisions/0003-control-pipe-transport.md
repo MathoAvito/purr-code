@@ -1,8 +1,9 @@
-# 0003 — Control-pipe transport (UDS verified on Linux; Windows designed, unverified)
+# 0003 — Control-pipe transport (UDS verified on Linux + macOS; Windows designed, unverified)
 
-- **Status:** Accepted — Linux findings; macOS + Windows verification outstanding (flagged for PC-009)
-- **Date:** 2026-07-18
+- **Status:** Accepted — Linux + macOS UDS verified (2026-07-19); Windows named-pipe unpaid
+- **Date:** 2026-07-18 (macOS rerun 2026-07-19)
 - **Story:** PC-003
+- **macOS evidence:** [macos-rerun-20260719.md](../planning/reviews/macos-rerun-20260719.md) · `spikes/pc-003-control-pipe/evidence/macos-20260719/`
 - **PRD refs:** FR-05 / §20 row 3 / §13 (runtime dir hardening)
 
 ## Question
@@ -18,7 +19,10 @@ first message, daemon never idle-exits with an open connection) hold?
 Linux (Ubuntu, kernel 6.17.0-40), Node v20.20.2. Prototype daemon + scenario
 driver and raw JSONL in
 [`spikes/pc-003-control-pipe/`](../../spikes/pc-003-control-pipe/README.md).
-**macOS and Windows were not tested.** All numbers below are from
+**macOS arm64 verified 2026-07-19** under `$TMPDIR` (`/var/folders/...`): all
+UDS scenarios green. Harness note: BSD `ps` uses `sess=` (not Linux `sid=`);
+`sess` may report `0`/`0` so `newSession` is unreliable — rely on
+`survives_parent_exit`. **Windows still unpaid.** Linux numbers below are from
 `evidence/pc003-events.jsonl`.
 
 1. **UDS request/response works and is fast**: newline-delimited JSON echo
@@ -79,5 +83,4 @@ driver and raw JSONL in
 - PRD impact: none — §20 row 3 stays open pending the Windows rerun; the
   fallback remains documented-but-deferred.
 - Follow-ups: run `win32-named-pipe.mjs` on Windows (normal↔normal,
-  elevated↔non-elevated both directions) and the UDS scenarios on macOS at the
-  PC-009 platform rerun.
+  elevated↔non-elevated both directions).

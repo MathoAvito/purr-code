@@ -343,6 +343,8 @@ python3 two-sessions.py kill 1 "1.k:purr kill me" "1.e" "s:3" "1.sigkill" "s:15"
 3. Update Sprint 0 review: macOS Phase 0 debt closed (Windows still separate).  
 4. Any divergence (e.g. Esc *does* fire Stop on macOS) becomes a backlog amendment PR.
 
+**Status (2026-07-19):** completed — see [macos-rerun-20260719.md](macos-rerun-20260719.md) and PR #11.
+
 ---
 
 ## Quick “done” definition
