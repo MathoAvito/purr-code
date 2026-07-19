@@ -4,8 +4,10 @@ Throwaway harness and captured evidence for the PC-001 spike. **Never import
 anything here from product code.** Findings and decisions live in
 [docs/decisions/0001-hook-payload-lifecycle.md](../../docs/decisions/0001-hook-payload-lifecycle.md).
 
-Tested: Claude Code **v2.1.197**, Linux (Ubuntu, kernel 6.17), Node v20.20.2.
-macOS and Windows were **not** available; those runs are still owed (see ADR).
+Tested: Claude Code **v2.1.197**, Linux (Ubuntu, kernel 6.17), Node v20.20.2;
+**v2.1.215**, macOS arm64 (2026-07-19). Windows still unpaid (see ADR).
+
+macOS captures: `evidence/macos-20260719/` (same scenario matrix as Linux).
 
 ## Harness
 

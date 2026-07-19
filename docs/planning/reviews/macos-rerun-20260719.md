@@ -1,10 +1,14 @@
 # macOS Sprint 0 platform rerun
 
 Evidence from Idan’s Mac (2026-07-19). Harness fixes landed in the same PR
-(`sess=` on darwin in PC-003; Esc-to-dismiss tips in PC-006). Binary sidecar
+(`sess=` on darwin in PC-003; Esc-to-dismiss tips on darwin in PC-006). Binary sidecar
 artifact and duplicate zip were dropped — keep logs/JSONL only.
 
 Per-spike evidence lives under `spikes/pc-00X-*/evidence/macos-20260719/`.
+
+Linux spikes used Claude Code **v2.1.197**; this rerun used **v2.1.215**.
+Lifecycle conclusions assume semantics are stable across these patch versions —
+re-check on major Claude Code upgrades.
 
 ## Machine
 
@@ -31,7 +35,7 @@ Per-spike evidence lives under `spikes/pc-00X-*/evidence/macos-20260719/`.
 ## Harness fixes under `spikes/` (macOS-only)
 
 1. **`spikes/pc-003-control-pipe/run-scenarios.mjs`** — Linux `ps -o sid=` is invalid on BSD/macOS; use `sess=` on darwin. Functional detach still proven via `survives_parent_exit: true`. Note: macOS often reports `sess=0` for both processes, so `newSession` boolean may be false even when detach works.
-2. **`spikes/pc-006-multi-session/two-sessions.py`** — after `wait_ready`, send Esc once to dismiss Claude Code welcome/tips panel so scripted keystrokes reach the prompt.
+2. **`spikes/pc-006-multi-session/two-sessions.py`** — on darwin only, after `wait_ready`, send Esc once to dismiss Claude Code welcome/tips panel so scripted keystrokes reach the prompt.
 
 No changes under `packages/`, `docs/decisions/`, or product runtime.
 

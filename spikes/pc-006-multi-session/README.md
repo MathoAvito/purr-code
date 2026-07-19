@@ -23,6 +23,11 @@ python3 two-sessions.py interleave 2 "1.k:purr one" "1.e" "s:3" "2.k:purr two" "
 python3 two-sessions.py kill 1 "1.k:purr kill me" "1.e" "s:3" "1.sigkill" "s:15"
 ```
 
-Linux verified; macOS supported via `process-liveness.cjs` (`ps` instead of
-`/proc`). Windows still unpaid. Before running on a new clone, rewrite testbed
-paths: `node spikes/rewrite-testbed-paths.cjs`.
+Linux + macOS arm64 verified (2026-07-19). macOS uses `process-liveness.cjs`
+(`ps` + `lstart` instead of `/proc`). Windows still unpaid.
+
+macOS captures: `evidence/macos-20260719/`. On darwin, `two-sessions.py` sends
+Esc once after ready to dismiss the welcome/tips panel (Linux unchanged).
+
+Before running on a new clone, rewrite testbed paths:
+`node spikes/rewrite-testbed-paths.cjs`.

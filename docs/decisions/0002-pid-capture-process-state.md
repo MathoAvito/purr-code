@@ -23,7 +23,7 @@ mock API; probe and raw JSONL in
 within ≤1 s, CONT → `S`, TSTP ignored (same as Linux), `lstart` identity OK.
 **Windows still unpaid.**
 
-1. **Parent PID identifies Claude Code (Linux).** With exec-form hooks
+1. **Parent PID identifies Claude Code (Linux + macOS).** With exec-form hooks
    (`command` + `args`, no shell), the hook's `process.ppid` equaled the
    spawned `claude` PID exactly (`scenario_a_parent_pid: match=true`). Hooks
    are direct children — no intermediate shell, no reparenting observed.
@@ -88,7 +88,7 @@ within ≤1 s, CONT → `S`, TSTP ignored (same as Linux), `lstart` identity OK.
     vacuously without exercising the suspend path.
   - PC-107 (hook adapter): include `ppid` + a fresh `starttime` read in the
     registration message.
-- PRD impact: §21 Q2 answered (yes, with exec form, on Linux). §20 row 2
+- PRD impact: §21 Q2 answered (yes, with exec form, on Linux + macOS). §20 row 2
   nuance recorded (TUI swallows SIGTSTP); no amendment needed — the watchdog
   design already covers it.
 - Follow-ups: Windows existence check still unpaid.

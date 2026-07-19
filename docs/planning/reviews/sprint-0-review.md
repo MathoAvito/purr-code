@@ -66,7 +66,7 @@ Do **not** claim full multi-OS MVP until the Windows rerun lands (target: before
 | miniaudio + stdin protocol; OGG TBD | PC-301, PC-101 |
 | Uninstall deletes plugin data unless `--keep-data` | PC-403 |
 
-**macOS-only harness notes (folded into spikes, 2026-07-19):** BSD `ps` uses `sess=` not `sid=`; PC-006 PTY driver sends Esc after ready to dismiss tips.
+**macOS-only harness notes (folded into spikes, 2026-07-19):** BSD `ps` uses `sess=` not `sid=`; PC-006 PTY driver sends Esc after ready on darwin only to dismiss tips.
 
 **PRD amendments:** none filed for go. Optional later: footnote §21 Q1/Q3/Q5 resolved-on-Linux+macOS.
 
