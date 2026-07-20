@@ -20,9 +20,9 @@
 
 **As the** daemon, **I want** a safe per-user runtime directory **so that** predictable `/tmp` paths can't be exploited on shared hosts (FR-05, §13).
 
-- [ ] Platform resolution per the FR-05 table (`$XDG_RUNTIME_DIR` → `/tmp/purrcode-$UID` fallback; `$TMPDIR`; `%LOCALAPPDATA%`).
-- [ ] `mkdir` mode `0700`, then `lstat` verification: is a directory, not a symlink, owned by current user — refuse otherwise.
-- [ ] Unit tests: pre-created symlink rejected; wrong-owner rejected (where testable); fallback chain exercised.
+- [x] Platform resolution per the FR-05 table (`$XDG_RUNTIME_DIR` → `/tmp/purrcode-$UID` fallback; `$TMPDIR`; `%LOCALAPPDATA%`).
+- [x] `mkdir` mode `0700`, then `lstat` verification: is a directory, not a symlink, owned by current user — refuse otherwise.
+- [x] Unit tests: pre-created symlink rejected; wrong-owner rejected (where testable); fallback chain exercised.
 
 ## PC-103 — Control-pipe transport & message protocol (5 pts, E3)
 

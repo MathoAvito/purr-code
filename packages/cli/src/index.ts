@@ -41,3 +41,11 @@ export type {
   FakeAudioEventType,
   SidecarEventName,
 } from "./audio/fake/index.js";
+
+export { RuntimeDirError, ensureRuntimeDir, resolveRuntimeDirPath } from "./runtime/index.js";
+export type {
+  EnsureRuntimeDirOptions,
+  ResolveRuntimeDirOptions,
+  RuntimeDirErrorCode,
+  RuntimeDirFs,
+} from "./runtime/index.js";
