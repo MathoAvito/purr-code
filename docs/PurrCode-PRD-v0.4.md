@@ -7,7 +7,7 @@
 **Working title:** PurrCode
 **Tagline:** *Claude works. Claude purrs.*
 
-> Naming note: avoid publishing under `claude-purr` (an unrelated Claude Code voice-control project). Additionally, keep "Claude" out of the npm package name and primary branding to avoid trademark issues; verify npm, GitHub, and trademark availability before release.
+> Naming note: npm package is **`purr-code`** (unscoped `purrcode` is blocked by npm as too similar to `punycode`). Product display name **PurrCode**; CLI binary **`purrcode`**. Avoid `claude-purr` and keep "Claude" out of the package name / primary branding.
 
 **Changes in v0.4 (open-source operations):**
 
@@ -541,7 +541,7 @@ Supply-chain controls: committed lockfile; Renovate/Dependabot; npm provenance o
 
 ```bash
 npx purr-code install          # plugin path (default)
-npm i -g purrcode && purrcode install
+npm i -g purr-code && purrcode install
 purrcode install --hooks      # direct-hook fallback
 ```
 

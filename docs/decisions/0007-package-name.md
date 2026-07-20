@@ -51,9 +51,12 @@ name **`purrcode`** (via `package.json` `bin`). Rationale:
 
 - **PC-010 closed:** npm placeholder `purr-code@0.0.0` live; MIT `LICENSE` in
   repo; GitHub remains `MathoAvito/purr-code`.
-- Install front door becomes `npx purr-code …` (package name); after install,
-  CLI commands stay `purrcode …` (binary name).
-- PRD / backlog install strings updated to `npx purr-code` where they meant the
-  registry package.
+- Install front door becomes `npx purr-code …` / `npm i -g purr-code` (package
+  name); after install, CLI commands stay `purrcode …` (binary name).
+- Workspace package `packages/cli` publishes as `purr-code`; optionalDependencies
+  sidecars may keep scoped `@purrcode/sidecar-*` (scoped names are separate from
+  the blocked unscoped `purrcode`).
+- LICENSE copyright line: `Copyright (c) 2026-present Matho Avito and contributors`
+  (Vue/Prettier-style; DCO contributors covered without rewriting LICENSE yearly).
 - Not legal advice: a formal clearance search (USPTO TESS + EUIPO + counsel)
   remains optional pre-v1.0 if the project grows commercially.
