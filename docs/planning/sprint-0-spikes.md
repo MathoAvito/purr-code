@@ -79,9 +79,9 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 ## PC-007 — Spike: name check & trademark hygiene (1 pt, E1)
 
-- [x] npm, GitHub org/repo, and basic trademark search for `purrcode`; confirmed distinct from `claude-purr`; no "Claude" in package name (§21 Q5). Record the final name — human decision. → npm `purrcode` unclaimed; distinct from `claude-purr` (also unclaimed) and community pets; no "Claude" in name. Dormant GitHub user `@purrcode` (purrcode.pl) noted as non-conflict. **Recommended name: `purrcode` / PurrCode — confirm at PC-010.**
+- [x] npm, GitHub org/repo, and basic trademark search for `purrcode`; confirmed distinct from `claude-purr`; no "Claude" in package name (§21 Q5). Record the final name — human decision. → Hygiene OK; dormant GitHub `@purrcode` noted as non-conflict. **Confirmed at PC-010: npm `purr-code`** (unscoped `purrcode` blocked vs `punycode`); product **PurrCode**; CLI bin **`purrcode`**.
 
-> Findings: [decision record 0007](../decisions/0007-package-name.md), search log in `spikes/pc-007-name-trademark/`.
+> Findings: [decision record 0007](../decisions/0007-package-name.md), search log in `spikes/pc-007-name-trademark/`. Confirmed at PC-010: npm package **`purr-code`** (unscoped `purrcode` blocked by npm vs `punycode`).
 
 ## PC-008 — Repo scaffolding & CI matrix (5 pts, E1)
 
@@ -102,4 +102,4 @@ Verify on macOS + Linux + Windows, with a throwaway logging hook:
 
 ## PC-010 — Reserve package name & repo (1 pt, E1) — human gate
 
-- [ ] npm name published as placeholder (or reserved), GitHub repo created, MIT license file. Depends on PC-007.
+- [x] npm name published as placeholder (or reserved), GitHub repo created, MIT license file. Depends on PC-007. → Unscoped `purrcode` blocked by npm (too similar to `punycode`). Reserved **`purr-code@0.0.0`** (account `mathoavito`, 2026-07-20). Repo `MathoAvito/purr-code` already existed. MIT `LICENSE` added. CLI binary remains `purrcode`; install via `npx purr-code`. See [ADR 0007](../decisions/0007-package-name.md).

@@ -72,7 +72,7 @@ PurrCode differentiates itself through:
 Make Claude Code feel like a tiny digital cat happily working inside the terminal.
 
 ```text
-$ npx purrcode install
+$ npx purr-code install
 
 ✓ PurrCode plugin installed
 ✓ Default purr activated
@@ -251,7 +251,7 @@ PurrCode ships as a Claude Code plugin:
 - Hooks are declared in the plugin's `hooks/hooks.json`; the user's `settings.json` is never modified.
 - Scripts are referenced via `${CLAUDE_PLUGIN_ROOT}` in exec form, which resolves absolute paths across plugin updates.
 - Persistent state (selected sound, volume, imported audio) lives in `${CLAUDE_PLUGIN_DATA}`, which survives plugin updates.
-- `npx purrcode install` remains the front door: it registers the plugin (marketplace or local install) and verifies audio playback.
+- `npx purr-code install` remains the front door: it registers the plugin (marketplace or local install) and verifies audio playback.
 - Enable/disable maps to the plugin enable/disable mechanism where practical.
 
 ### FR-02: Direct hook installation (fallback)
@@ -540,7 +540,7 @@ Supply-chain controls: committed lockfile; Renovate/Dependabot; npm provenance o
 ## 14. Installation Design
 
 ```bash
-npx purrcode install          # plugin path (default)
+npx purr-code install          # plugin path (default)
 npm i -g purrcode && purrcode install
 purrcode install --hooks      # direct-hook fallback
 ```

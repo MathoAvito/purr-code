@@ -15,7 +15,7 @@
 - [ ] `sleepy` + license metadata bundled; WAV cache generated at install.
 - [ ] Validated end-to-end against a real Claude Code on all three OSes: prompt → purr → stop → silence, zero transcript artifacts.
 
-## PC-402 — `npx purrcode install` (5 pts, E7)
+## PC-402 — `npx purr-code install` (5 pts, E7)
 
 **As a** new user, **I want** one idempotent command **so that** installation matches the §14 experience.
 
@@ -79,5 +79,5 @@
 ## PC-409 — v0.1.0 release (1 pt, E8) — human gate
 
 - [ ] Version tagged, published to npm with provenance under the PC-010 name; GitHub release with checksums and notes; README badges live.
-- [ ] Post-release smoke test: `npx purrcode install` from the public registry on one machine per OS.
+- [ ] Post-release smoke test: `npx purr-code install` from the public registry on one machine per OS.
 - [ ] MVP retro + Phase 2 story breakdown scheduled (E9–E11).

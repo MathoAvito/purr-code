@@ -24,4 +24,6 @@ $ npm view claude-purr
 
 ## Recommendation
 
-Ship as npm `purrcode` / display **PurrCode**. Final confirmation: human (PC-010).
+Originally: npm `purrcode` / display **PurrCode**.  
+**PC-010 (2026-07-20):** unscoped `purrcode` blocked by npm (too similar to
+`punycode`). Reserved **`purr-code@0.0.0`**; CLI bin remains `purrcode`.
