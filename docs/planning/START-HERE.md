@@ -34,7 +34,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 **Sprint 0 closed: go with platform-debt accepted** ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).
 
 - **Next:** Sprint 1 walking skeleton — **PC-102** (runtime directory) after PC-101 ✅.
-- **Still open (human):** PC-010 reserve `purrcode` + LICENSE; **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
+- **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---
 
@@ -53,9 +53,9 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-004 | Spike: tier-1 audio sidecar | 5 | — | ✅ miniaudio Linux + macOS arm64 (Win owed) |
 | PC-005 | Spike: plugin packaging | 3 | PC-001 | ✅ Linux + macOS (Win owed) |
 | PC-006 | Spike: multi-session prototype | 2 | PC-001, PC-003 | ✅ Linux + macOS (Win owed) |
-| PC-007 | Spike: name & trademark check | 1 | — | ✅ (recommend purrcode; confirm at PC-010) |
+| PC-007 | Spike: name & trademark check | 1 | — | ✅ |
 | PC-009 | Go/no-go & backlog reconciliation | 1 | all spikes | ✅ go + platform debt |
-| PC-010 | Reserve package name & repo | 1 | PC-007 | 🚧 |
+| PC-010 | Reserve package name & repo | 1 | PC-007 | ✅ npm `purr-code` + MIT LICENSE |
 
 ### Sprint 1 — Walking skeleton ([sprint-1-walking-skeleton.md](sprint-1-walking-skeleton.md))
 
@@ -102,7 +102,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | Story | Title | Pts | Depends on | Status |
 |---|---|---|---|---|
 | PC-401 | Plugin package | 5 | PC-005, PC-301–307 | ⬜ |
-| PC-402 | `npx purrcode install` | 5 | PC-401 | ⬜ |
+| PC-402 | `npx purr-code install` | 5 | PC-401 | ⬜ |
 | PC-403 | `purrcode uninstall` | 3 | PC-402 | ⬜ |
 | PC-404 | Community health files | 3 | — | ⬜ |
 | PC-405 | AGENTS.md + CLAUDE.md | 2 | PC-404 | ⬜ |

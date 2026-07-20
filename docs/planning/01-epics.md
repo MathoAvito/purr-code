@@ -54,7 +54,7 @@ User-facing command surface for MVP: `on|off`, `status`, `volume`, `preview`, `d
 
 ## E7 — Plugin Packaging, Install & Uninstall (Sprint 4)
 
-Claude Code plugin as the sole MVP distribution: `hooks/hooks.json` in exec form with `${CLAUDE_PLUGIN_ROOT}`, state in `${CLAUDE_PLUGIN_DATA}`, `npx purrcode install` as the front door (registers plugin, installs default purr + WAV cache, verifies playback), clean idempotent uninstall.
+Claude Code plugin as the sole MVP distribution: `hooks/hooks.json` in exec form with `${CLAUDE_PLUGIN_ROOT}`, state in `${CLAUDE_PLUGIN_DATA}`, `npx purr-code install` as the front door (registers plugin, installs default purr + WAV cache, verifies playback), clean idempotent uninstall.
 
 **Done when:** install is one command and idempotent; `settings.json` is untouched; uninstall removes plugin, daemon, and runtime state (imported audio retained absent `--purge`); install output matches §14's UX.
 

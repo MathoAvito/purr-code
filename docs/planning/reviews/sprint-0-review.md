@@ -9,7 +9,7 @@
   - macOS: ✅ closed — [macos-rerun-20260719.md](macos-rerun-20260719.md) / [PR #11](https://github.com/MathoAvito/purr-code/pull/11)
   - Windows: still unpaid (named-pipe elevated interop especially)
 - Backlog reconciliation **approved and applied** to Sprint 1–4 story files with the original go decision.
-- PC-010 (reserve `purrcode` + LICENSE) remains a separate human gate — does not block Sprint 1.
+- PC-010 ✅ — npm package **`purr-code`** reserved; MIT `LICENSE` in repo (CLI binary name stays `purrcode`).
 
 Do **not** claim full multi-OS MVP until the Windows rerun lands (target: before v0.1 / Sprint 3 audio QA).
 
@@ -28,7 +28,7 @@ Do **not** claim full multi-OS MVP until the Windows rerun lands (target: before
 | PC-006 | Multi-session prototype | 2 | ✅ Linux + macOS | [#6](https://github.com/MathoAvito/purr-code/pull/6) · macOS [#11](https://github.com/MathoAvito/purr-code/pull/11) |
 | PC-007 | Name & trademark | 1 | ✅ recommend | [#7](https://github.com/MathoAvito/purr-code/pull/7) (merged) |
 | PC-009 | Go/no-go & backlog reconciliation | 1 | ✅ go + Windows debt | *this document* |
-| PC-010 | Reserve package name & repo | 1 | 🚧 | human — confirm `purrcode` |
+| PC-010 | Reserve package name & repo | 1 | ✅ npm `purr-code` | LICENSE + ADR 0007 |
 
 ## Decision records
 
@@ -40,7 +40,7 @@ Do **not** claim full multi-OS MVP until the Windows rerun lands (target: before
 | [0004](../../decisions/0004-audio-sidecar-selection.md) | Audio sidecar | **miniaudio**; Linux ~347 KB / macOS arm64 ~326 KB; Core Audio OK |
 | [0005](../../decisions/0005-plugin-packaging.md) | Plugin packaging | FR-01 viable Linux + macOS; uninstall deletes data by default |
 | [0006](../../decisions/0006-multi-session-refcounting.md) | Multi-session | Refcount correct; kill → fade ≤5 s; zombie `Z` = dead (Linux + macOS) |
-| [0007](../../decisions/0007-package-name.md) | Name | Recommend **`purrcode` / PurrCode**; confirm at PC-010 |
+| [0007](../../decisions/0007-package-name.md) | Name | npm **`purr-code`**; product **PurrCode**; CLI bin **`purrcode`** |
 
 ## Phase 0 exit criteria (§19)
 

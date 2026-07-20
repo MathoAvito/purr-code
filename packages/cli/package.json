@@ -1,5 +1,5 @@
 {
-  "name": "purrcode",
+  "name": "purr-code",
   "version": "0.0.0",
   "private": true,
   "description": "Claude Code purrs while working — hook adapter, CLI, and player daemon",
