@@ -65,6 +65,7 @@ export {
   parseControlMessage,
   resolveControlPipePath,
   resolveWindowsPipeSuffix,
+  writeFully,
 } from "./control/index.js";
 export type {
   ConnectWithRetryOptions,
@@ -89,3 +90,31 @@ export {
   writePidfile,
 } from "./daemon/index.js";
 export type { DaemonOptions, EnsureDaemonOptions, EnsureDaemonResult } from "./daemon/index.js";
+
+export { PlaybackController, SessionRegistry } from "./session/index.js";
+export type {
+  PlaybackControllerOptions,
+  PlaybackPhase,
+  SessionRecord,
+  SessionStartInput,
+} from "./session/index.js";
+export {
+  SNAPSHOT_VERSION,
+  filterLiveSessions,
+  loadRegistrySnapshot,
+  snapshotPath,
+  writeRegistrySnapshot,
+} from "./session/index.js";
+export type { LoadSnapshotResult, RegistrySnapshot } from "./session/index.js";
+
+export { parseHookStdin, readStarttimeToken, runHook, shouldSuppressHooks } from "./hook/index.js";
+export type { HookEventName, HookPayload, ParseHookResult, RunHookOptions } from "./hook/index.js";
+
+export {
+  PURRCODE_LOG_ENV,
+  debugLog,
+  defaultDebugLogPath,
+  hashSessionId,
+  isDebugLogEnabled,
+} from "./log/index.js";
+export type { DebugLogFields } from "./log/index.js";

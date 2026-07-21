@@ -234,10 +234,13 @@ export class FakeAudioBackend implements AudioBackend {
     };
 
     // Serialize writes so concurrent lifecycle calls don't interleave JSON lines.
-    this.#writeChain = this.#writeChain.then(async () => {
-      await mkdir(dirname(this.logPath), { recursive: true });
-      await appendFile(this.logPath, `${JSON.stringify(event)}\n`, "utf8");
-    });
+    // Catch resets the chain so a single disk error cannot poison later events.
+    this.#writeChain = this.#writeChain
+      .then(async () => {
+        await mkdir(dirname(this.logPath), { recursive: true });
+        await appendFile(this.logPath, `${JSON.stringify(event)}\n`, "utf8");
+      })
+      .catch(() => undefined);
     await this.#writeChain;
   }
 }

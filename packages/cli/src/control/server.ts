@@ -48,6 +48,8 @@ export class ControlPipeServer {
   private readonly reclaimStaleSocket: boolean;
   private server: net.Server | null = null;
   private readonly sockets = new Set<net.Socket>();
+  /** Serialize message handlers — daemon is the single serialization point (FR-05). */
+  private handlerChain: Promise<void> = Promise.resolve();
 
   constructor(options: ControlPipeServerOptions) {
     this.path = options.path;
@@ -158,7 +160,7 @@ export class ControlPipeServer {
       while ((nl = buffer.indexOf("\n")) !== -1) {
         const line = buffer.slice(0, nl);
         buffer = buffer.slice(nl + 1);
-        void this.handleLine(socket, line);
+        this.enqueueLine(socket, line);
       }
     });
 
@@ -171,6 +173,12 @@ export class ControlPipeServer {
 
   private emitConnections(): void {
     this.onConnectionCount?.(this.sockets.size);
+  }
+
+  private enqueueLine(socket: net.Socket, line: string): void {
+    this.handlerChain = this.handlerChain
+      .then(() => this.handleLine(socket, line))
+      .catch(() => undefined);
   }
 
   private async handleLine(socket: net.Socket, line: string): Promise<void> {
