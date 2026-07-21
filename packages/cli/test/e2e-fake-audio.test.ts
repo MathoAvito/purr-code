@@ -21,6 +21,7 @@ import { ensureDaemonRunning } from "../src/daemon/spawn.js";
 import { runHook } from "../src/hook/runHook.js";
 import { shouldSuppressHooks } from "../src/hook/parse.js";
 import { PlaybackController } from "../src/session/PlaybackController.js";
+import { daemonIsolationOptions } from "./helpers/controlEndpoint.js";
 
 process.env.PURRCODE_FAKE_AUDIO = "1";
 
@@ -51,8 +52,9 @@ describe("e2e fake-audio (PC-109)", () => {
       fadeOutMs,
       fadeInMs: 0,
     });
+    const iso = daemonIsolationOptions(runtimeDir);
     const daemon = new Daemon({
-      runtimeDir,
+      ...iso,
       idleMs: 60_000,
       audioBackend: audio,
       playback,
@@ -151,12 +153,13 @@ describe("e2e fake-audio (PC-109)", () => {
   it("daemon-spawn race: bind mutex; live socket skips spawn", async () => {
     const runtimeDir = await mkdtemp(join(tmpdir(), "purrcode-e2e-race-"));
     cleanups.push(async () => rm(runtimeDir, { recursive: true, force: true }));
+    const iso = daemonIsolationOptions(runtimeDir);
 
-    const a = new Daemon({ runtimeDir, idleMs: 60_000 });
+    const a = new Daemon({ ...iso, idleMs: 60_000 });
     expect(await a.start()).toEqual({ status: "listening" });
     cleanups.push(async () => a.shutdown());
 
-    const b = new Daemon({ runtimeDir, idleMs: 60_000 });
+    const b = new Daemon({ ...iso, idleMs: 60_000 });
     expect(await b.start()).toEqual({ status: "lost-race" });
 
     const spawnImpl = vi.fn(() => {
@@ -164,20 +167,22 @@ describe("e2e fake-audio (PC-109)", () => {
       return child;
     });
     const result = await ensureDaemonRunning({
-      runtimeDir,
+      ...iso,
       spawnImpl: spawnImpl as unknown as typeof import("node:child_process").spawn,
       connectTimeoutMs: 2000,
     });
     expect(result.status).toBe("already-running");
     expect(spawnImpl).not.toHaveBeenCalled();
+    result.client.close();
   });
 
   it("cold-boot idle-exit guard: open connection blocks idle exit", async () => {
     const runtimeDir = await mkdtemp(join(tmpdir(), "purrcode-e2e-idle-"));
     cleanups.push(async () => rm(runtimeDir, { recursive: true, force: true }));
+    const iso = daemonIsolationOptions(runtimeDir);
     let exited = false;
     const daemon = new Daemon({
-      runtimeDir,
+      ...iso,
       idleMs: 80,
       onIdleExit: () => {
         exited = true;

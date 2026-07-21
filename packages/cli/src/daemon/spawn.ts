@@ -15,6 +15,8 @@ export type EnsureDaemonOptions = {
   connectTimeoutMs?: number;
   /** Short probe used to detect an already-running daemon (default 150 ms). */
   probeTimeoutMs?: number;
+  /** Windows pipe isolation (tests). Forwarded to the child via env. */
+  windowsPipeSuffix?: string;
   spawnImpl?: typeof spawn;
 };
 
@@ -38,10 +40,21 @@ export type EnsureDaemonResult = {
 export async function ensureDaemonRunning(
   options: EnsureDaemonOptions = {},
 ): Promise<EnsureDaemonResult> {
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    ...options.env,
+  };
+  if (options.windowsPipeSuffix) {
+    env.PURRCODE_WINDOWS_PIPE_SUFFIX = options.windowsPipeSuffix;
+  }
+
   const resolved = await resolveControlPipePath({
     ...(options.platform !== undefined ? { platform: options.platform } : {}),
-    ...(options.env !== undefined ? { env: options.env } : {}),
+    env,
     ...(options.runtimeDir !== undefined ? { runtimeDir: options.runtimeDir } : {}),
+    ...(options.windowsPipeSuffix !== undefined
+      ? { windowsPipeSuffix: options.windowsPipeSuffix }
+      : {}),
   });
 
   const client = new ControlPipeClient({ path: resolved.path });
@@ -62,8 +75,7 @@ export async function ensureDaemonRunning(
     detached: true,
     stdio: "ignore",
     env: {
-      ...process.env,
-      ...options.env,
+      ...env,
       PURRCODE_RUNTIME_DIR: resolved.runtimeDir,
     },
   });

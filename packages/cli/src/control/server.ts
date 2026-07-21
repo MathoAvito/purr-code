@@ -69,8 +69,10 @@ export class ControlPipeServer {
   }
 
   /**
-   * Bind the control pipe. Uses socket-bind-as-mutex on UDS (ADR 0003 / PC-104):
-   * EADDRINUSE + live peer → `{ status: "lost-race" }`; stale socket → reclaim.
+   * Bind the control pipe. Socket-bind-as-mutex (ADR 0003 / PC-104):
+   * EADDRINUSE + live peer → `{ status: "lost-race" }`.
+   * UDS only: dead peer → unlink stale socket and retry.
+   * Named pipes: no unlink (pipes vanish with the last handle).
    */
   async listen(): Promise<ListenResult> {
     const server = net.createServer((socket) => this.accept(socket));
@@ -89,7 +91,7 @@ export class ControlPipeServer {
         return { status: "listening" };
       } catch (err) {
         const code = (err as NodeJS.ErrnoException).code;
-        if (code !== "EADDRINUSE" || this.kind !== "uds" || !this.reclaimStaleSocket) {
+        if (code !== "EADDRINUSE" || !this.reclaimStaleSocket) {
           this.server = null;
           throw err;
         }
@@ -98,6 +100,11 @@ export class ControlPipeServer {
           server.close();
           this.server = null;
           return { status: "lost-race" };
+        }
+        // Stale reclaim is Unix-only (ADR 0003): named pipes do not leave a sock file.
+        if (this.kind !== "uds") {
+          this.server = null;
+          throw err;
         }
         try {
           unlinkSync(this.path);

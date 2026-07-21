@@ -14,6 +14,7 @@ import { PlaybackController } from "../src/session/PlaybackController.js";
 import { Daemon } from "../src/daemon/Daemon.js";
 import { ControlPipeClient } from "../src/control/client.js";
 import { PROTOCOL_VERSION } from "../src/control/protocol.js";
+import { daemonIsolationOptions } from "./helpers/controlEndpoint.js";
 
 describe("SessionRegistry", () => {
   it("treats duplicate start as idempotent and unknown stop as no-op", () => {
@@ -194,8 +195,9 @@ describe("Daemon + registry + fake audio", () => {
       enabled: true,
       now: () => clock++,
     });
+    const iso = daemonIsolationOptions(dir);
     const daemon = new Daemon({
-      runtimeDir: dir,
+      ...iso,
       idleMs: 60_000,
       audioBackend: audio,
     });

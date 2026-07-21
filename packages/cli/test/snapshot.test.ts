@@ -14,6 +14,7 @@ import type { SessionRecord } from "../src/session/SessionRegistry.js";
 import { Daemon } from "../src/daemon/Daemon.js";
 import { ControlPipeClient } from "../src/control/client.js";
 import { PROTOCOL_VERSION } from "../src/control/protocol.js";
+import { daemonIsolationOptions } from "./helpers/controlEndpoint.js";
 
 const sample = (id: string, pid?: number): SessionRecord => ({
   sessionId: id,
@@ -62,7 +63,8 @@ describe("registry snapshot (PC-106)", () => {
     const dir = await mkdtemp(join(tmpdir(), "purrcode-snap-boot-"));
     try {
       writeRegistrySnapshot(dir, [sample("keep", process.pid), sample("gone", 1_999_999_999)]);
-      const daemon = new Daemon({ runtimeDir: dir, idleMs: 60_000 });
+      const iso = daemonIsolationOptions(dir);
+      const daemon = new Daemon({ ...iso, idleMs: 60_000 });
       await daemon.start();
       expect(daemon.sessionCount).toBe(1);
       expect(daemon.getSessionRegistry().get("keep")).toBeTruthy();
@@ -80,7 +82,8 @@ describe("registry snapshot (PC-106)", () => {
   it("shutdown snapshots active sessions before teardown (not empty wipe)", async () => {
     const dir = await mkdtemp(join(tmpdir(), "purrcode-snap-shutdown-"));
     try {
-      const daemon = new Daemon({ runtimeDir: dir, idleMs: 60_000 });
+      const iso = daemonIsolationOptions(dir);
+      const daemon = new Daemon({ ...iso, idleMs: 60_000 });
       await daemon.start();
       const client = new ControlPipeClient({ path: daemon.controlPath });
       await client.send({

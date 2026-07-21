@@ -15,15 +15,22 @@ export type ResolveControlPipeOptions = EnsureRuntimeDirOptions & {
  *
  * - Unix: `<runtimeDir>/control.sock` (runtime dir already per-UID per FR-05)
  * - Windows: `\\.\pipe\purrcode-<SID|USERNAME>` (ADR 0003)
+ *
+ * Isolation override (tests / rare multi-instance): `windowsPipeSuffix` option
+ * or `PURRCODE_WINDOWS_PIPE_SUFFIX` env. Production leaves these unset so the
+ * SID (or USERNAME fallback) names the single per-user pipe.
  */
 export async function resolveControlPipePath(
   options: ResolveControlPipeOptions = {},
 ): Promise<{ path: string; runtimeDir: string; kind: "uds" | "named-pipe" }> {
   const platform = options.platform ?? process.platform;
+  const env = options.env ?? process.env;
 
   if (platform === "win32") {
     const suffix =
-      options.windowsPipeSuffix?.trim() || resolveWindowsPipeSuffix(options.env ?? process.env);
+      options.windowsPipeSuffix?.trim() ||
+      env.PURRCODE_WINDOWS_PIPE_SUFFIX?.trim() ||
+      resolveWindowsPipeSuffix(env);
     const path = `\\\\.\\pipe\\purrcode-${suffix}`;
     const runtimeDir = options.runtimeDir ?? (await ensureRuntimeDir(options));
     return { path, runtimeDir, kind: "named-pipe" };

@@ -1,7 +1,3 @@
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
@@ -15,6 +11,10 @@ import {
   resolveWindowsPipeSuffix,
   type ControlRequest,
 } from "../src/control/index.js";
+import { createTestControlEndpoint } from "./helpers/controlEndpoint.js";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 describe("parseControlMessage", () => {
   it("accepts a valid start message", () => {
@@ -82,7 +82,7 @@ describe("resolveControlPipePath / Windows suffix", () => {
     }
   });
 
-  it("Windows path embeds suffix", async () => {
+  it("Windows path embeds suffix and is not under runtimeDir", async () => {
     const base = await mkdtemp(join(tmpdir(), "purrcode-pipe-win-"));
     try {
       const resolved = await resolveControlPipePath({
@@ -92,6 +92,7 @@ describe("resolveControlPipePath / Windows suffix", () => {
       });
       expect(resolved.kind).toBe("named-pipe");
       expect(resolved.path).toBe("\\\\.\\pipe\\purrcode-S-1-5-21-9");
+      expect(resolved.path).not.toContain(base);
     } finally {
       await rm(base, { recursive: true, force: true });
     }
@@ -107,29 +108,29 @@ describe("ControlPipeServer + Client", () => {
     }
   });
 
-  async function withUdsServer(
+  /** Platform-correct control server (UDS on Unix, named pipe on Windows). */
+  async function withControlServer(
     handler: (msg: ControlRequest) => void | { ok: boolean; result?: unknown },
   ): Promise<{ path: string; rejects: Array<{ error: string; detail: string }> }> {
-    const dir = await mkdtemp(join(tmpdir(), "purrcode-ctrl-"));
-    const path = join(dir, "control.sock");
+    const endpoint = await createTestControlEndpoint("ctrl");
     const rejects: Array<{ error: string; detail: string }> = [];
     const server = new ControlPipeServer({
-      path,
-      kind: "uds",
+      path: endpoint.path,
+      kind: endpoint.kind,
       onMessage: (msg) => handler(msg),
       onReject: (info) => rejects.push(info),
     });
     await server.listen();
     cleanups.push(async () => {
       await server.close();
-      await rm(dir, { recursive: true, force: true });
+      await endpoint.cleanup();
     });
-    return { path, rejects };
+    return { path: endpoint.path, rejects };
   }
 
   it("round-trips status request/response and fire-and-forget start", async () => {
     const seen: ControlRequest[] = [];
-    const { path } = await withUdsServer((msg) => {
+    const { path } = await withControlServer((msg) => {
       seen.push(msg);
       if (msg.op === "status") return { ok: true, result: { sessions: 0 } };
     });
@@ -152,7 +153,7 @@ describe("ControlPipeServer + Client", () => {
   });
 
   it("rejects malformed and oversized lines without crashing", async () => {
-    const { path, rejects } = await withUdsServer(() => ({ ok: true }));
+    const { path, rejects } = await withControlServer(() => ({ ok: true }));
     const client = new ControlPipeClient({ path });
     cleanups.push(() => {
       client.close();
@@ -170,15 +171,18 @@ describe("ControlPipeServer + Client", () => {
   });
 
   it("connectWithRetry waits until the server listens", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "purrcode-retry-"));
-    const path = join(dir, "control.sock");
-    cleanups.push(async () => rm(dir, { recursive: true, force: true }));
+    const endpoint = await createTestControlEndpoint("retry");
+    cleanups.push(endpoint.cleanup);
 
-    const connectPromise = connectWithRetry({ path, timeoutMs: 2000, retryDelayMs: 20 });
+    const connectPromise = connectWithRetry({
+      path: endpoint.path,
+      timeoutMs: 2000,
+      retryDelayMs: 20,
+    });
     await new Promise((r) => setTimeout(r, 50));
     const server = new ControlPipeServer({
-      path,
-      kind: "uds",
+      path: endpoint.path,
+      kind: endpoint.kind,
       onMessage: () => ({ ok: true }),
     });
     await server.listen();

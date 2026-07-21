@@ -30,6 +30,11 @@ export type DaemonOptions = {
   audioBackend?: AudioBackend | undefined;
   registry?: SessionRegistry | undefined;
   playback?: PlaybackController | undefined;
+  /**
+   * Windows named-pipe suffix override (tests / isolation).
+   * Production omits this so the per-user SID names the pipe.
+   */
+  windowsPipeSuffix?: string | undefined;
 };
 
 /**
@@ -108,6 +113,9 @@ export class Daemon {
       ...(this.bootOptions.env !== undefined ? { env: this.bootOptions.env } : {}),
       ...(this.bootOptions.runtimeDir !== undefined
         ? { runtimeDir: this.bootOptions.runtimeDir }
+        : {}),
+      ...(this.bootOptions.windowsPipeSuffix !== undefined
+        ? { windowsPipeSuffix: this.bootOptions.windowsPipeSuffix }
         : {}),
     });
     this.runtimeDir = resolved.runtimeDir;
