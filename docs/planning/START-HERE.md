@@ -20,13 +20,13 @@ The repo ships agent workflows as project skills (in `.cursor/skills/`, mirrored
 - **"Run spike PC-00X"** → `run-spike` skill: timeboxed investigation producing a decision record in `docs/decisions/`.
 - **"Close sprint N"** → `sprint-review` skill: assembles the review package for the human gate.
 
-Repo-wide agent context (architecture, commands, hard constraints) lives in `AGENTS.md`; `CLAUDE.md` points there. For agents without skill support, paste: *"Read `AGENTS.md`, then `docs/planning/sprint-N-*.md` story PC-XYZ and the PRD sections it references. Implement it to its acceptance checkboxes including the tests it names. When done: tick the checkboxes, update the board in `docs/planning/START-HERE.md`, and open a PR referencing PC-XYZ."*
+Repo-wide agent context (architecture, commands, hard constraints) lives in `AGENTS.md`; `CLAUDE.md` points there. For agents without skill support, paste: *"Read `AGENTS.md`, then `docs/planning/sprint-N-*.md` story PC-XYZ and the PRD sections it references. Implement it to its acceptance checkboxes including the tests it names. When done: tick the checkboxes, update the board in `docs/planning/START-HERE.md`, and push to the sprint branch / sprint PR."*
 
 ### Per-sprint loop
 
-1. Sprint start: skim the sprint file's goal + demo line so you know what "done" looks like.
-2. Run stories per the board.
-3. Sprint end: run the demo described at the top of the sprint file, review the human-gate items, then move to the next sprint file.
+1. Sprint start: create (or check out) the sprint branch `sprint-N-<short-slug>` off up-to-date `main`, open/update the sprint PR, skim the sprint file's goal + demo line so you know what "done" looks like.
+2. Run stories per the board — all on that one branch; commits reference `PC-XYZ`.
+3. Sprint end: run the demo described at the top of the sprint file, review the human-gate items, merge the sprint PR, then move to the next sprint file.
 4. After Sprint 0 only: run the PC-009 go/no-go and **amend the later sprint files** where spike findings contradict PRD assumptions, before anything from Sprint 1 starts. *(Done 2026-07-19 — go + platform debt.)*
 
 ## What to start right now
@@ -34,7 +34,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 **Sprint 0 closed:** go with platform-debt accepted ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).  
 **Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).
 
-- **Next:** Sprint 2 reliability — **PC-202** (watchdog loop), after PC-201 merges.
+- **In progress:** Sprint 2 reliability on branch `sprint-2-reliability` — next story **PC-202** (watchdog loop).
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---

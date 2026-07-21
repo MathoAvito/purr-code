@@ -22,7 +22,7 @@ Claude Code and OpenCode may also load the same skills from `.claude/skills/` (t
 ## Non-negotiables
 
 - Never start a story whose dependencies are not ✅; never complete a 🚧 human gate alone.
-- One branch per story: `pc-XYZ-<short-slug>` off up-to-date `main`; merge via PR.
+- One branch per sprint: `sprint-N-<short-slug>` off up-to-date `main`; all sprint stories on that branch; one PR when the sprint is ready.
 - Hook paths: exit 0, zero stdout/stderr; errors only via opt-in debug log.
 - No network in runtime; no new runtime deps without an approving issue; exec-form child processes only.
 - Do not modify release workflows, `sounds/`, `ASSETS.md`, or `LICENSE`.
