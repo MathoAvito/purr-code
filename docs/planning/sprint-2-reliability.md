@@ -49,10 +49,10 @@
 
 **As a** user, **I want** volume 0–100 to sound linear to my ears **so that** 20 is subtle and 60→100 isn't imperceptible (FR-06).
 
-- [ ] Shared perceptual model: `gain_dB = −60 + 0.6·v`, `v=0` → hard mute; conversion helpers to linear amplitude.
-- [ ] The mapping is applied **inside each backend adapter**, not the daemon — the fake backend records the perceptual value; the amplitude conversion is exercised via the tier-1/tier-3 adapters in Sprint 3; the mpv adapter must pass the perceptual value through (its own curve applies — no double-mapping).
-- [ ] Fade ramps interpolate in the perceptual domain.
-- [ ] Unit tests: monotonicity over 0–100, 0 = mute, ramp shape, and an adapter-contract test asserting single application per tier.
+- [x] Shared perceptual model: `gain_dB = −60 + 0.6·v`, `v=0` → hard mute; conversion helpers to linear amplitude.
+- [x] The mapping is applied **inside each backend adapter**, not the daemon — the fake backend records the perceptual value; the amplitude conversion is exercised via the tier-1/tier-3 adapters in Sprint 3; the mpv adapter must pass the perceptual value through (its own curve applies — no double-mapping).
+- [x] Fade ramps interpolate in the perceptual domain.
+- [x] Unit tests: monotonicity over 0–100, 0 = mute, ramp shape, and an adapter-contract test asserting single application per tier.
 
 ## PC-206 — Failure-injection & chaos test pass (5 pts, E2/E3/E4)
 

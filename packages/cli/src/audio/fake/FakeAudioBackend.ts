@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
 import type { AudioBackend, BackendCapabilities, PlaybackOptions, PlayerHandle } from "../types.js";
+import { applyVolumeForTier, clampPerceptualVolume } from "../perceptual.js";
 import type { FakeAudioEvent } from "./events.js";
 
 export const PURRCODE_FAKE_AUDIO_ENV = "PURRCODE_FAKE_AUDIO";
@@ -112,16 +113,19 @@ export class FakeAudioBackend implements AudioBackend {
       });
     }
 
+    // Fake tier: record perceptual volume only (PC-205 / no amplitude convert).
+    const perceptual = applyVolumeForTier("fake", options.volume).perceptual;
+
     const handle: PlayerHandle = { id: randomUUID() };
     this.#handle = handle;
-    this.#volume = options.volume;
+    this.#volume = perceptual;
     this.#phase = "playing";
 
     await this.#emit({
       type: "start",
       sidecar: "playing",
       handleId: handle.id,
-      volume: options.volume,
+      volume: perceptual,
       soundPath: options.soundPath,
       ...(options.fadeInMs !== undefined ? { fadeInMs: options.fadeInMs } : {}),
     });
@@ -131,12 +135,13 @@ export class FakeAudioBackend implements AudioBackend {
 
   async setVolume(handle: PlayerHandle, volume: number): Promise<void> {
     this.#assertHandle(handle);
-    this.#volume = volume;
+    const perceptual = clampPerceptualVolume(volume);
+    this.#volume = perceptual;
     await this.#emit({
       type: "volume-change",
       sidecar: "volume",
       handleId: handle.id,
-      volume,
+      volume: perceptual,
     });
   }
 

@@ -41,6 +41,15 @@ export type {
   FakeAudioEventType,
   SidecarEventName,
 } from "./audio/fake/index.js";
+export {
+  applyVolumeForTier,
+  clampPerceptualVolume,
+  interpolatePerceptualVolume,
+  perceptualToGainDb,
+  perceptualToLinearAmplitude,
+  samplePerceptualRamp,
+} from "./audio/perceptual.js";
+export type { VolumeApplication } from "./audio/perceptual.js";
 
 export { RuntimeDirError, ensureRuntimeDir, resolveRuntimeDirPath } from "./runtime/index.js";
 export type {
