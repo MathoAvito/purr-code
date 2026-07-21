@@ -1,5 +1,6 @@
 import { writePidfile, removePidfile } from "./pidfile.js";
-import { applyWatchdogTick, type WatchdogClassify } from "./watchdog.js";
+import { DEFAULT_STALE_SESSION_MS, reconcileRegistry, type ReconcileResult } from "./reconcile.js";
+import type { WatchdogClassify } from "./watchdog.js";
 import {
   ControlPipeServer,
   type ControlMessageHandler,
@@ -9,11 +10,7 @@ import { resolveControlPipePath } from "../control/paths.js";
 import type { ControlRequest } from "../control/protocol.js";
 import { SessionRegistry } from "../session/SessionRegistry.js";
 import { PlaybackController } from "../session/PlaybackController.js";
-import {
-  filterLiveSessions,
-  loadRegistrySnapshot,
-  writeRegistrySnapshot,
-} from "../session/snapshot.js";
+import { loadRegistrySnapshot, writeRegistrySnapshot } from "../session/snapshot.js";
 import type { AudioBackend } from "../audio/types.js";
 import type { ClassifyOptions } from "../process/liveness.js";
 
@@ -49,12 +46,17 @@ export type DaemonOptions = {
   watchdogClassify?: WatchdogClassify | undefined;
   /** Extra classify options (tests). */
   watchdogClassifyOptions?: ClassifyOptions | undefined;
+  /**
+   * Stale-session TTL in ms (PC-203 / RR-04.2). Default 10 minutes.
+   * Set `0` to disable TTL GC (liveness still runs).
+   */
+  staleSessionMs?: number | undefined;
 };
 
 /**
- * Per-user player daemon (PC-104 + PC-105 + PC-202).
+ * Per-user player daemon (PC-104 + PC-105 + PC-202 + PC-203).
  * Bind-as-mutex listen, pidfile, connection-pinned idle-exit, session registry,
- * refcount playback, and state-aware PID watchdog.
+ * refcount playback, state-aware PID watchdog, and event/TTL reconciliation.
  */
 export class Daemon {
   private readonly idleMs: number;
@@ -64,6 +66,7 @@ export class Daemon {
   private readonly registry: SessionRegistry;
   private readonly playback: PlaybackController | null;
   private readonly watchdogIntervalMs: number;
+  private readonly staleSessionMs: number;
   private readonly watchdogClassify: WatchdogClassify | undefined;
   private readonly watchdogClassifyOptions: ClassifyOptions | undefined;
   private bootAt = 0;
@@ -102,6 +105,8 @@ export class Daemon {
       options.watchdogIntervalMs === undefined
         ? DEFAULT_WATCHDOG_INTERVAL_MS
         : options.watchdogIntervalMs;
+    this.staleSessionMs =
+      options.staleSessionMs === undefined ? DEFAULT_STALE_SESSION_MS : options.staleSessionMs;
     this.watchdogClassify = options.watchdogClassify;
     this.watchdogClassifyOptions = options.watchdogClassifyOptions;
   }
@@ -184,9 +189,10 @@ export class Daemon {
       // missing or corrupt → empty registry (safe regeneration)
       return;
     }
-    const live = filterLiveSessions(loaded.snapshot.sessions);
-    this.registry.replaceAll(live);
-    if (live.length > 0 && this.playback) {
+    // Load raw snapshot, then full liveness+TTL reconcile before playback (PC-203).
+    this.registry.replaceAll(loaded.snapshot.sessions);
+    this.reconcileInPlace();
+    if (this.registry.playbackCount() > 0 && this.playback) {
       await this.playback.onActiveCount(this.registry.playbackCount());
     }
   }
@@ -229,17 +235,24 @@ export class Daemon {
 
   private async runWatchdogTick(): Promise<void> {
     if (this.shuttingDown) return;
-    const result = applyWatchdogTick(this.registry, {
+    const result = this.reconcileInPlace();
+    if (!result.changed) return;
+    await this.playback?.onActiveCount(this.registry.playbackCount());
+    this.scheduleSnapshot();
+    this.armIdleTimer();
+  }
+
+  /** Liveness + stale TTL over the full registry (PC-203). */
+  private reconcileInPlace(): ReconcileResult {
+    return reconcileRegistry(this.registry, {
+      now: this.now,
+      staleSessionMs: this.staleSessionMs,
       platform: this.bootOptions.platform ?? process.platform,
       ...(this.watchdogClassify !== undefined ? { classify: this.watchdogClassify } : {}),
       ...(this.watchdogClassifyOptions !== undefined
         ? { classifyOptions: this.watchdogClassifyOptions }
         : {}),
     });
-    if (!result.changed) return;
-    await this.playback?.onActiveCount(this.registry.playbackCount());
-    this.scheduleSnapshot();
-    this.armIdleTimer();
   }
 
   private enqueueMutation<T>(fn: () => Promise<T>): Promise<T> {
@@ -297,6 +310,35 @@ export class Daemon {
         return { ok: true, result: { shuttingDown: true } };
       }
 
+      if (message.op === "start") {
+        this.registry.start({
+          sessionId: message.sessionId,
+          ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
+          ...(message.starttime !== undefined ? { starttime: message.starttime } : {}),
+        });
+      } else if (
+        message.op === "stop" ||
+        message.op === "failure" ||
+        message.op === "session-end"
+      ) {
+        this.registry.touch(message.sessionId);
+        this.registry.stop(message.sessionId);
+      }
+
+      // PC-203: every incoming message reconciles *all* sessions (liveness + TTL).
+      const reconciled = this.reconcileInPlace();
+      await this.playback?.onActiveCount(this.registry.playbackCount());
+      if (
+        reconciled.changed ||
+        message.op === "start" ||
+        message.op === "stop" ||
+        message.op === "failure" ||
+        message.op === "session-end"
+      ) {
+        this.scheduleSnapshot();
+      }
+      this.armIdleTimer();
+
       if (message.op === "status") {
         return {
           ok: true,
@@ -310,27 +352,6 @@ export class Daemon {
             phase: this.playback?.getPhase() ?? "idle",
           },
         };
-      }
-
-      if (message.op === "start") {
-        const { activeCount } = this.registry.start({
-          sessionId: message.sessionId,
-          ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
-          ...(message.starttime !== undefined ? { starttime: message.starttime } : {}),
-        });
-        await this.playback?.onActiveCount(activeCount);
-        this.scheduleSnapshot();
-        this.armIdleTimer();
-      } else if (
-        message.op === "stop" ||
-        message.op === "failure" ||
-        message.op === "session-end"
-      ) {
-        this.registry.touch(message.sessionId);
-        const { activeCount } = this.registry.stop(message.sessionId);
-        await this.playback?.onActiveCount(activeCount);
-        this.scheduleSnapshot();
-        this.armIdleTimer();
       }
 
       if (this.userOnMessage) {

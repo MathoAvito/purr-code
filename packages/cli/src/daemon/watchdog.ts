@@ -1,5 +1,7 @@
 import {
   classifyProcess,
+  primaryStateLetter,
+  readProcessSnapshot,
   type ClassifyOptions,
   type ProcessIdentity,
   type ProcessLiveness,
@@ -22,10 +24,7 @@ export type WatchdogTickResult = {
 export type ApplyWatchdogOptions = {
   classify?: WatchdogClassify;
   classifyOptions?: ClassifyOptions;
-  /**
-   * Platforms that require a starttime token for identity (everything
-   * except win32). Sessions missing starttime are skipped there.
-   */
+  /** Override platform detection (tests). */
   platform?: NodeJS.Platform;
 };
 
@@ -94,12 +93,35 @@ function classifySession(
 
   if (platform !== "win32") {
     if (session.starttime === undefined || session.starttime === "") {
-      // Cannot apply the required (pid, starttime) identity check.
-      return "skip";
+      // Legacy / incomplete registration: no identity token — classify from
+      // live state without the PID-reuse guard (PC-106 boot compatibility).
+      return classifyWithoutStarttime(session.claudePid, classify, classifyOptions, platform);
     }
     return classify({ pid: session.claudePid, starttime: session.starttime }, classifyOptions);
   }
 
   // Windows: existence-only; starttime unused.
   return classify({ pid: session.claudePid, starttime: session.starttime ?? "" }, classifyOptions);
+}
+
+/**
+ * Degraded path when `starttime` is missing: still detect dead/zombie/suspend,
+ * but cannot catch PID reuse.
+ */
+function classifyWithoutStarttime(
+  pid: number,
+  classify: WatchdogClassify,
+  classifyOptions: ClassifyOptions,
+  platform: NodeJS.Platform,
+): ProcessLiveness {
+  // Custom classifiers (tests) typically key on pid alone.
+  if (classify !== classifyProcess) {
+    return classify({ pid, starttime: "" }, classifyOptions);
+  }
+  const snap = classifyOptions.readSnapshot?.(pid) ?? readProcessSnapshot(pid, platform);
+  if (snap === null) return "dead";
+  const letter = primaryStateLetter(snap.state);
+  if (letter === "Z" || letter === "X") return "dead";
+  if (letter === "T") return "suspended";
+  return "running";
 }

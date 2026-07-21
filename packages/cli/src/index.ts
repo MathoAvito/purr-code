@@ -83,8 +83,10 @@ export type {
 
 export {
   Daemon,
+  DEFAULT_STALE_SESSION_MS,
   DEFAULT_WATCHDOG_INTERVAL_MS,
   applyWatchdogTick,
+  reconcileRegistry,
   ensureDaemonRunning,
   pidfilePath,
   readPidfile,
@@ -96,6 +98,8 @@ export type {
   DaemonOptions,
   EnsureDaemonOptions,
   EnsureDaemonResult,
+  ReconcileOptions,
+  ReconcileResult,
   WatchdogClassify,
   WatchdogTickResult,
 } from "./daemon/index.js";

@@ -76,15 +76,15 @@ describe("applyWatchdogTick (PC-202)", () => {
     expect(reg.playbackCount()).toBe(2);
   });
 
-  it("skips Unix sessions without starttime (identity required)", () => {
+  it("degraded path without starttime still applies injected classifier", () => {
     const reg = new SessionRegistry();
     reg.start({ sessionId: "no-token", claudePid: 99 });
     const result = applyWatchdogTick(reg, {
       platform: "linux",
       classify: () => "dead",
     });
-    expect(result.changed).toBe(false);
-    expect(reg.size).toBe(1);
+    expect(result.removed).toEqual(["no-token"]);
+    expect(reg.size).toBe(0);
   });
 });
 

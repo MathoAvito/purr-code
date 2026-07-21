@@ -31,10 +31,10 @@
 
 **As the** daemon, **I want** TTL expiry plus full-registry reconciliation on every incoming event **so that** no single mechanism is a single point of failure for cleanup (RR-04.2–.3).
 
-- [ ] Sessions with no events for `staleSessionMinutes` (default 10, configurable) are garbage-collected.
-- [ ] Every incoming message triggers reconciliation of *all* sessions (liveness + TTL), not just the sender's.
-- [ ] Daemon-boot reconciliation (extends PC-106): snapshot entries re-validated before playback resumes.
-- [ ] Integration tests: stale session GC'd on the next unrelated event; TTL expiry alone stops playback.
+- [x] Sessions with no events for `staleSessionMinutes` (default 10, configurable) are garbage-collected.
+- [x] Every incoming message triggers reconciliation of *all* sessions (liveness + TTL), not just the sender's.
+- [x] Daemon-boot reconciliation (extends PC-106): snapshot entries re-validated before playback resumes.
+- [x] Integration tests: stale session GC'd on the next unrelated event; TTL expiry alone stops playback.
 
 ## PC-204 — Configuration store & schema (3 pts, E6)
 
