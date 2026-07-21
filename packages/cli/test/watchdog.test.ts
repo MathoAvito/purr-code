@@ -288,7 +288,7 @@ describe("Daemon watchdog integration (PC-202)", () => {
       playback,
       watchdogIntervalMs: 0, // manual ticks only
       watchdogClassify: () => (live ? "running" : "dead"),
-      platform: "linux",
+      // Do not override Daemon.platform — that forces UDS on Windows CI.
     });
     await daemon.start();
     cleanups.push(async () => daemon.shutdown());

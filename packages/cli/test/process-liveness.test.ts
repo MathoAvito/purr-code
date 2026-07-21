@@ -160,7 +160,7 @@ describe("classifyProcess with real child processes (PC-201)", () => {
     expect(classifyProcess({ pid, starttime: starttime! })).toBe("running");
   });
 
-  it.runIf(isUnix)("detects SIGSTOP as suspended and SIGCONT as running", () => {
+  it.runIf(isUnix)("detects SIGSTOP as suspended and SIGCONT as running", async () => {
     const child = spawnSleep();
     children.push(child);
     const pid = child.pid!;
@@ -170,10 +170,24 @@ describe("classifyProcess with real child processes (PC-201)", () => {
     expect(classifyProcess({ pid, starttime })).toBe("running");
 
     process.kill(pid, "SIGSTOP");
-    expect(classifyProcess({ pid, starttime })).toBe("suspended");
+    // CI runners can lag /proc state behind the kill — poll briefly.
+    const stopDeadline = Date.now() + 2000;
+    let state: ReturnType<typeof classifyProcess> = "running";
+    while (Date.now() < stopDeadline) {
+      state = classifyProcess({ pid, starttime });
+      if (state === "suspended") break;
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    expect(state).toBe("suspended");
 
     process.kill(pid, "SIGCONT");
-    expect(classifyProcess({ pid, starttime })).toBe("running");
+    const contDeadline = Date.now() + 2000;
+    while (Date.now() < contDeadline) {
+      state = classifyProcess({ pid, starttime });
+      if (state === "running") break;
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    expect(state).toBe("running");
   });
 
   it("classifies a killed child as dead", async () => {

@@ -34,7 +34,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 **Sprint 0 closed:** go with platform-debt accepted ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).  
 **Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).
 
-- **Sprint 2 non-gate stories complete** on branch `sprint-2-reliability` ([PR #17](https://github.com/MathoAvito/purr-code/pull/17)) — ready for human review / `sprint-review` skill (demo: kill mid-turn → fade ≤5 s; SIGSTOP pause / SIGCONT resume).
+- **Sprint 2 review package ready** — [reviews/sprint-2-review.md](reviews/sprint-2-review.md) · [PR #17](https://github.com/MathoAvito/purr-code/pull/17). Human: merge when CI matrix is green; do not start Sprint 3 until accepted.
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---

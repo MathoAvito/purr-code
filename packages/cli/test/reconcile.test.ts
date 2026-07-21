@@ -109,7 +109,7 @@ describe("Daemon reconciliation (PC-203)", () => {
       staleSessionMs: 500,
       now: () => now,
       // No PIDs in this test — liveness skipped; TTL only.
-      platform: "linux",
+      // Do not override Daemon.platform — that forces UDS on Windows CI.
       watchdogClassify: () => "running",
     });
     await daemon.start();
@@ -165,7 +165,6 @@ describe("Daemon reconciliation (PC-203)", () => {
       watchdogIntervalMs: 0,
       staleSessionMs: 500,
       now: () => now,
-      platform: "linux",
       watchdogClassify: () => "running",
     });
     await daemon.start();
@@ -220,7 +219,6 @@ describe("Daemon reconciliation (PC-203)", () => {
       playback,
       watchdogIntervalMs: 0,
       staleSessionMs: 60_000,
-      platform: "linux",
       watchdogClassify: (id) => (id.pid === process.pid ? "running" : "dead"),
       watchdogClassifyOptions: {
         // Bypass starttime mismatch by injecting snapshots that match tokens.
