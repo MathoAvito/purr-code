@@ -24,7 +24,7 @@ import { daemonIsolationOptions } from "./helpers/controlEndpoint.js";
 process.env.PURRCODE_FAKE_AUDIO = "1";
 
 describe("reconcileRegistry (PC-203)", () => {
-  it("GCs sessions past staleSessionMs and still applies liveness", () => {
+  it("GCs sessions past staleSessionMs and still applies liveness", async () => {
     const now = 10_000;
     const reg = new SessionRegistry({ now: () => now });
     reg.start({ sessionId: "fresh", claudePid: 1, starttime: "a" });
@@ -33,7 +33,7 @@ describe("reconcileRegistry (PC-203)", () => {
     const stale = reg.get("stale")!;
     stale.lastSeenAt = 0;
 
-    const result = reconcileRegistry(reg, {
+    const result = await reconcileRegistry(reg, {
       now: () => now,
       staleSessionMs: 1000,
       platform: "linux",
@@ -45,7 +45,7 @@ describe("reconcileRegistry (PC-203)", () => {
     expect(reg.get("fresh")).toBeDefined();
 
     // Liveness: kill fresh on next pass.
-    const dead = reconcileRegistry(reg, {
+    const dead = await reconcileRegistry(reg, {
       now: () => now,
       staleSessionMs: 1000,
       platform: "linux",

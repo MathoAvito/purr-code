@@ -1,5 +1,9 @@
 import { readFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import { execFile, execFileSync } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Process liveness classification for the watchdog (PC-201 / RR-04.1).
@@ -11,6 +15,10 @@ import { execFileSync } from "node:child_process";
  *   running   = otherwise
  *
  * Windows is existence-only (no suspend equivalent; starttime not verified).
+ *
+ * Hot paths (watchdog / reconcile) must use {@link readProcessSnapshots} —
+ * async, batched — so macOS `ps` never blocks the Node event loop.
+ * Sync single-pid helpers remain for the one-shot hook registration path.
  */
 
 export type ProcessLiveness = "running" | "suspended" | "dead";
@@ -59,6 +67,26 @@ export function primaryStateLetter(state: string): string {
   return state.charAt(0);
 }
 
+/**
+ * Parse one or more `ps -o pid=,state=,lstart=` lines (macOS / BSD).
+ * Missing PIDs simply omit a line — callers treat map misses as dead.
+ */
+export function parsePsPidStateLstart(output: string): Map<number, ProcessSnapshot> {
+  const map = new Map<number, ProcessSnapshot>();
+  for (const line of output.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const m = trimmed.match(/^(\d+)\s+(\S+)\s+(.+)$/);
+    if (!m) continue;
+    const pid = Number(m[1]);
+    const state = m[2];
+    const starttime = m[3]?.trim();
+    if (!Number.isInteger(pid) || pid <= 0 || !state || !starttime) continue;
+    map.set(pid, { state, starttime });
+  }
+  return map;
+}
+
 function readLinuxSnapshot(pid: number): ProcessSnapshot | null {
   try {
     const raw = readFileSync(`/proc/${pid}/stat`, "utf8");
@@ -69,22 +97,16 @@ function readLinuxSnapshot(pid: number): ProcessSnapshot | null {
 }
 
 /**
- * macOS / other Unix: one `ps` call for state + lstart identity token.
- * Exec-form only (argument array).
+ * Sync single-pid `ps` — for hook one-shot only. Prefer
+ * {@link readProcessSnapshots} on daemon hot paths.
  */
-function readPsSnapshot(pid: number): ProcessSnapshot | null {
+function readPsSnapshotSync(pid: number): ProcessSnapshot | null {
   try {
-    const out = execFileSync("ps", ["-o", "state=,lstart=", "-p", String(pid)], {
+    const out = execFileSync("ps", ["-o", "pid=,state=,lstart=", "-p", String(pid)], {
       encoding: "utf8",
       timeout: 2_000,
-    }).trim();
-    if (!out) return null;
-    const m = out.match(/^(\S+)\s+(.+)$/);
-    if (!m) return null;
-    const state = m[1];
-    const starttime = m[2]?.trim();
-    if (!state || !starttime) return null;
-    return { state, starttime };
+    });
+    return parsePsPidStateLstart(out).get(pid) ?? null;
   } catch {
     return null;
   }
@@ -111,12 +133,68 @@ export function readProcessSnapshot(
     return windowsExists(pid) ? { state: "R", starttime: "" } : null;
   }
   // darwin and other Unix
-  return readPsSnapshot(pid);
+  return readPsSnapshotSync(pid);
+}
+
+/**
+ * Batch-read snapshots for many PIDs without blocking the event loop.
+ * - Linux: concurrent `/proc` reads via `fs.promises`
+ * - macOS/BSD: one async `ps` for all PIDs
+ * - Windows: existence-only `kill(0)` (no spawn)
+ *
+ * PIDs that are gone are omitted from the map (treat as dead).
+ */
+export async function readProcessSnapshots(
+  pids: readonly number[],
+  platform: NodeJS.Platform = process.platform,
+): Promise<Map<number, ProcessSnapshot>> {
+  const unique = [...new Set(pids.filter((p) => Number.isInteger(p) && p > 0))];
+  const map = new Map<number, ProcessSnapshot>();
+  if (unique.length === 0) return map;
+
+  if (platform === "win32") {
+    for (const pid of unique) {
+      if (windowsExists(pid)) map.set(pid, { state: "R", starttime: "" });
+    }
+    return map;
+  }
+
+  if (platform === "linux") {
+    await Promise.all(
+      unique.map(async (pid) => {
+        try {
+          const raw = await readFile(`/proc/${pid}/stat`, "utf8");
+          const snap = parseLinuxStat(raw);
+          if (snap) map.set(pid, snap);
+        } catch {
+          // gone
+        }
+      }),
+    );
+    return map;
+  }
+
+  // darwin / other Unix — single async ps (exec-form, no shell).
+  try {
+    const { stdout } = await execFileAsync(
+      "ps",
+      ["-o", "pid=,state=,lstart=", "-p", unique.join(",")],
+      { encoding: "utf8", timeout: 2_000, maxBuffer: 256 * 1024 },
+    );
+    for (const [pid, snap] of parsePsPidStateLstart(stdout)) {
+      map.set(pid, snap);
+    }
+  } catch {
+    // Entire ps failed (e.g. all PIDs gone) → empty map → all dead.
+  }
+  return map;
 }
 
 /**
  * Opaque start-time token for registration messages (hook → daemon).
  * Linux: `/proc` field 22. macOS: `ps` lstart. Windows: undefined.
+ *
+ * Sync by design: the hook is a one-shot process and may block briefly.
  */
 export function readStarttimeToken(
   pid: number,

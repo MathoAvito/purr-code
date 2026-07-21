@@ -56,11 +56,42 @@ export class FakeAudioBackend implements AudioBackend {
   #fadeTimer: ReturnType<typeof setTimeout> | null = null;
   #fadeDone: (() => void) | null = null;
   #writeChain: Promise<void> = Promise.resolve();
+  #lostListeners = new Set<(handle: PlayerHandle) => void>();
 
   constructor(options: FakeAudioBackendOptions) {
     this.logPath = options.logPath;
     this.#now = options.now ?? (() => Date.now());
     this.#enabledOverride = options.enabled;
+  }
+
+  /**
+   * Subscribe to unexpected handle death (PC-206).
+   * Fired by {@link crash}; real adapters fire on child-process exit.
+   */
+  onHandleLost(listener: (handle: PlayerHandle) => void): () => void {
+    this.#lostListeners.add(listener);
+    return () => {
+      this.#lostListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Simulate player-process death mid-loop (PC-206 / tests).
+   * Drops the handle without a fade/stop event and notifies listeners.
+   */
+  crash(): void {
+    const handle = this.#handle;
+    if (!handle) return;
+    this.#cancelFadeTimer();
+    this.#handle = null;
+    this.#phase = "idle";
+    for (const listener of this.#lostListeners) {
+      try {
+        listener(handle);
+      } catch {
+        // fail-open — never let a listener break the backend
+      }
+    }
   }
 
   /** Convenience constructor using env log path + `PURRCODE_FAKE_AUDIO`. */

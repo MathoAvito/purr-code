@@ -148,8 +148,10 @@ export type { LoadConfigResult, PurrCodeConfig, ResolveConfigDirOptions } from "
 export {
   classifyProcess,
   parseLinuxStat,
+  parsePsPidStateLstart,
   primaryStateLetter,
   readProcessSnapshot,
+  readProcessSnapshots,
 } from "./process/index.js";
 export type {
   ClassifyOptions,

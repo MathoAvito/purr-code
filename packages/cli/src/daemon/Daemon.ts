@@ -93,6 +93,8 @@ export class Daemon {
   private shuttingDown = false;
   private snapshotTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly bootOptions: DaemonOptions;
+  /** Unsubscribe from backend handle-loss notifications (PC-206). */
+  private handleLostUnsub: (() => void) | null = null;
   /** Resolves when snapshot restore (+ playback) has finished; handlers await this. */
   private bootReady: Promise<void> = Promise.resolve();
   /**
@@ -208,11 +210,30 @@ export class Daemon {
     }
 
     writePidfile(this.runtimeDir, process.pid);
+    this.wirePlayerCrashRecovery();
     this.bootReady = this.restoreSnapshot();
     await this.bootReady;
     this.startWatchdog();
     this.armIdleTimer();
     return result;
+  }
+
+  /**
+   * Backend handle death → invalidate + syncPlayback (PC-206).
+   * Does not wait for a registry change or the next control message.
+   */
+  private wirePlayerCrashRecovery(): void {
+    const backend = this.bootOptions.audioBackend;
+    if (!backend?.onHandleLost || !this.playback) return;
+    this.handleLostUnsub?.();
+    this.handleLostUnsub = backend.onHandleLost((handle) => {
+      this.playback?.invalidateHandle(handle);
+      void this.enqueueMutation(async () => {
+        if (this.shuttingDown) return;
+        await this.syncPlayback();
+        this.armIdleTimer();
+      });
+    });
   }
 
   private async restoreSnapshot(): Promise<void> {
@@ -223,7 +244,7 @@ export class Daemon {
     }
     // Load raw snapshot, then full liveness+TTL reconcile before playback (PC-203).
     this.registry.replaceAll(loaded.snapshot.sessions);
-    this.reconcileInPlace();
+    await this.reconcileInPlace();
     if (this.effectivePlaybackCount() > 0 && this.playback) {
       await this.syncPlayback();
     }
@@ -267,10 +288,12 @@ export class Daemon {
 
   private async runWatchdogTick(): Promise<void> {
     if (this.shuttingDown) return;
-    const result = this.reconcileInPlace();
-    if (!result.changed) return;
+    const result = await this.reconcileInPlace();
+    // Always sync: registry may be unchanged while the player handle died (PC-206).
     await this.syncPlayback();
-    this.scheduleSnapshot();
+    if (result.changed) {
+      this.scheduleSnapshot();
+    }
     this.armIdleTimer();
   }
 
@@ -284,7 +307,7 @@ export class Daemon {
   }
 
   /** Liveness + stale TTL over the full registry (PC-203). */
-  private reconcileInPlace(): ReconcileResult {
+  private reconcileInPlace(): Promise<ReconcileResult> {
     return reconcileRegistry(this.registry, {
       now: this.now,
       staleSessionMs: this.staleSessionMs,
@@ -310,6 +333,8 @@ export class Daemon {
     this.shuttingDown = true;
     void reason;
     this.stopWatchdog();
+    this.handleLostUnsub?.();
+    this.handleLostUnsub = null;
     if (this.idleTimer) {
       clearTimeout(this.idleTimer);
       this.idleTimer = null;
@@ -377,7 +402,7 @@ export class Daemon {
       }
 
       // PC-203: every incoming message reconciles *all* sessions (liveness + TTL).
-      const reconciled = this.reconcileInPlace();
+      const reconciled = await this.reconcileInPlace();
       await this.syncPlayback();
       if (
         reconciled.changed ||

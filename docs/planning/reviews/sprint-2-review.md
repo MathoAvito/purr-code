@@ -100,9 +100,12 @@ No new ADRs. Sprint 2 **implements** Sprint 0 decisions:
 | Item | Severity | Proposed action |
 |---|---|---|
 | CI flake / Windows UDS misuse in tests | Fixed in this review commit | Confirm matrix green on [#17](https://github.com/MathoAvito/purr-code/pull/17) |
+| macOS sync `ps` blocking event loop | **Fixed post-review** | Watchdog/reconcile use async batched `readProcessSnapshots` |
+| Player-crash recovery not closed-loop | **Fixed post-review** | `AudioBackend.onHandleLost` + always `syncPlayback` on ticks |
 | Windows spike rerun still unpaid | Carry-forward | Complete before claiming full multi-OS MVP / before Sprint 3 audio QA if possible |
 | Amplitude conversion in real adapters | Expected | Sprint 3 PC-301/304 exercise `perceptualToLinearAmplitude` |
 | Perceptual audio QA (seams, pops, fatigue) | Human-only | Sprint 3 PC-309 — not claimed here |
+| Live `set-config` volume on playing handle | Known gap | Apply `setVolume` while `playing` (follow-up; not Sprint 2 DoD) |
 
 No unticked acceptance checkboxes. No scope drift into PRD §5 non-goals.
 

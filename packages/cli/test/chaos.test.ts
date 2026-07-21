@@ -161,7 +161,7 @@ describe("chaos: daemon resilience (PC-206)", () => {
     expect(status.ok).toBe(true);
   });
 
-  it("player crash during active session respawns on next sync (PC-206 / §18)", async () => {
+  it("player crash during active session respawns without new events (PC-206 / §18)", async () => {
     const runtimeDir = await mkdtemp(join(tmpdir(), "purrcode-chaos-crash-"));
     cleanups.push(async () => rm(runtimeDir, { recursive: true, force: true }));
     const logPath = join(runtimeDir, "fake.jsonl");
@@ -187,16 +187,50 @@ describe("chaos: daemon resilience (PC-206)", () => {
     await sleep(40);
     expect(playback.getPhase()).toBe("playing");
 
-    // Simulate player process death.
-    playback.invalidateHandle();
-    expect(playback.getPhase()).toBe("idle");
-
-    // Session still active — syncPlayback via status/reconcile path: send a touch start.
-    await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "alive" });
-    await sleep(40);
+    // Production path: backend notifies onHandleLost → daemon syncPlayback.
+    // No control-pipe message and no registry change.
+    audio.crash();
+    await sleep(80);
     expect(playback.getPhase()).toBe("playing");
     const events = await readFakeAudioLog(logPath);
     expect(events.filter((e) => e.type === "start").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("player crash recovers on watchdog tick when notification is missed", async () => {
+    const runtimeDir = await mkdtemp(join(tmpdir(), "purrcode-chaos-wd-"));
+    cleanups.push(async () => rm(runtimeDir, { recursive: true, force: true }));
+    const logPath = join(runtimeDir, "fake.jsonl");
+    const audio = new FakeAudioBackend({ logPath, enabled: true });
+    const playback = new PlaybackController({ backend: audio, fadeOutMs: 50, fadeInMs: 0 });
+    const iso = daemonIsolationOptions(runtimeDir);
+    const daemon = new Daemon({
+      ...iso,
+      idleMs: 60_000,
+      audioBackend: audio,
+      playback,
+      watchdogIntervalMs: 0,
+      // Keep session "alive" for playbackCount without real PID I/O.
+      watchdogClassify: () => "running",
+    });
+    await daemon.start();
+    cleanups.push(async () => daemon.shutdown());
+    const client = new ControlPipeClient({ path: daemon.controlPath });
+    cleanups.push(() => {
+      client.close();
+      return Promise.resolve();
+    });
+
+    await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "alive" });
+    await sleep(40);
+    expect(playback.getPhase()).toBe("playing");
+
+    // Bypass onHandleLost: invalidate only (stale handle, registry unchanged).
+    playback.invalidateHandle();
+    expect(playback.getPhase()).toBe("idle");
+    await daemon.runWatchdogOnce();
+    expect(playback.getPhase()).toBe("playing");
+    const starts = (await readFakeAudioLog(logPath)).filter((e) => e.type === "start");
+    expect(starts.length).toBeGreaterThanOrEqual(2);
   });
 
   it("snapshot write failure does not crash the daemon", async () => {
@@ -323,6 +357,24 @@ describe("chaos: crashing backend handle (PC-206)", () => {
       expect(playback.getPhase()).toBe("playing");
       const starts = (await readFakeAudioLog(logPath)).filter((e) => e.type === "start");
       expect(starts.length).toBe(2);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("FakeAudioBackend.crash notifies onHandleLost", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "purrcode-chaos-lost-"));
+    try {
+      const logPath = join(dir, "f.jsonl");
+      const audio = new FakeAudioBackend({ logPath, enabled: true });
+      const seen: string[] = [];
+      audio.onHandleLost((h) => seen.push(h.id));
+      const handle = await audio.play({ soundPath: "fake://x", volume: 40 });
+      audio.crash();
+      expect(seen).toEqual([handle.id]);
+      // Second crash with no handle is a no-op.
+      audio.crash();
+      expect(seen).toEqual([handle.id]);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

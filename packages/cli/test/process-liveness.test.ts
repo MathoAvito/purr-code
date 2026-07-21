@@ -6,8 +6,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   classifyProcess,
   parseLinuxStat,
+  parsePsPidStateLstart,
   primaryStateLetter,
   readProcessSnapshot,
+  readProcessSnapshots,
   readStarttimeToken,
 } from "../src/process/liveness.js";
 
@@ -53,6 +55,51 @@ describe("primaryStateLetter (PC-201)", () => {
     expect(primaryStateLetter("SNs")).toBe("S");
     expect(primaryStateLetter("TN")).toBe("T");
     expect(primaryStateLetter("Z")).toBe("Z");
+  });
+});
+
+describe("parsePsPidStateLstart (PC-201 / batched ps)", () => {
+  it("parses multi-pid ps output and skips blank lines", () => {
+    const out = `
+  123 S  Wed Jul 22 00:00:00 2026
+  456 TNs Thu Jul 23 01:02:03 2026
+
+`;
+    const map = parsePsPidStateLstart(out);
+    expect(map.get(123)).toEqual({ state: "S", starttime: "Wed Jul 22 00:00:00 2026" });
+    expect(map.get(456)).toEqual({ state: "TNs", starttime: "Thu Jul 23 01:02:03 2026" });
+    expect(map.size).toBe(2);
+  });
+});
+
+describe("readProcessSnapshots (async batch)", () => {
+  it("returns a map for live children and omits dead pids", async () => {
+    if (isWin) {
+      const child = spawnSleep();
+      const pid = child.pid!;
+      try {
+        const map = await readProcessSnapshots([pid, 999_999_999], "win32");
+        expect(map.has(pid)).toBe(true);
+        expect(map.has(999_999_999)).toBe(false);
+      } finally {
+        child.kill();
+        await waitExit(child);
+      }
+      return;
+    }
+
+    const child = spawnSleep();
+    const pid = child.pid!;
+    try {
+      const map = await readProcessSnapshots([pid, 999_999_999]);
+      expect(map.has(pid)).toBe(true);
+      expect(map.has(999_999_999)).toBe(false);
+      const snap = map.get(pid)!;
+      expect(snap.starttime.length).toBeGreaterThan(0);
+    } finally {
+      child.kill();
+      await waitExit(child);
+    }
   });
 });
 

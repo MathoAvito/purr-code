@@ -24,16 +24,17 @@ export type ReconcileResult = WatchdogTickResult & {
  * 2. Stale TTL — sessions with no events for `staleSessionMs` are removed
  *
  * Call on every watchdog tick, every incoming control message, and at boot
- * after snapshot restore.
+ * after snapshot restore. Async so platform snapshot I/O never stalls the
+ * control-pipe accept loop.
  */
-export function reconcileRegistry(
+export async function reconcileRegistry(
   registry: SessionRegistry,
   options: ReconcileOptions = {},
-): ReconcileResult {
+): Promise<ReconcileResult> {
   const now = options.now ?? Date.now;
   const staleSessionMs = options.staleSessionMs ?? DEFAULT_STALE_SESSION_MS;
 
-  const live = applyWatchdogTick(registry, options);
+  const live = await applyWatchdogTick(registry, options);
   const staleRemoved: string[] = [];
 
   if (staleSessionMs > 0) {

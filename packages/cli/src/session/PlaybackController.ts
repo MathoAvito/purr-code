@@ -72,8 +72,10 @@ export class PlaybackController {
   /**
    * Mark the current player handle lost (backend crash / process exit).
    * Next {@link onActiveCount} with count &gt; 0 will respawn.
+   * When `handle` is provided, ignores mismatches (stale notifications).
    */
-  invalidateHandle(): void {
+  invalidateHandle(handle?: PlayerHandle): void {
+    if (handle && this.handle && handle.id !== this.handle.id) return;
     this.handle = null;
     if (this.phase === "playing" || this.phase === "fading-in") {
       this.playEpoch++;

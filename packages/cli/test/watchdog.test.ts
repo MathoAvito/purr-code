@@ -43,7 +43,7 @@ async function waitExit(child: ChildProcess): Promise<void> {
 }
 
 describe("applyWatchdogTick (PC-202)", () => {
-  it("removes dead sessions and pauses/resumes suspended ones", () => {
+  it("removes dead sessions and pauses/resumes suspended ones", async () => {
     const reg = new SessionRegistry({ now: () => 1 });
     reg.start({ sessionId: "alive", claudePid: 1, starttime: "a" });
     reg.start({ sessionId: "dead", claudePid: 2, starttime: "b" });
@@ -55,7 +55,7 @@ describe("applyWatchdogTick (PC-202)", () => {
       [3, "suspended"],
     ]);
 
-    const result = applyWatchdogTick(reg, {
+    const result = await applyWatchdogTick(reg, {
       platform: "linux",
       classify: (id) => states.get(id.pid) ?? "dead",
     });
@@ -67,7 +67,7 @@ describe("applyWatchdogTick (PC-202)", () => {
     expect(reg.playbackCount()).toBe(1);
 
     states.set(3, "running");
-    const resume = applyWatchdogTick(reg, {
+    const resume = await applyWatchdogTick(reg, {
       platform: "linux",
       classify: (id) => states.get(id.pid) ?? "dead",
     });
@@ -76,10 +76,10 @@ describe("applyWatchdogTick (PC-202)", () => {
     expect(reg.playbackCount()).toBe(2);
   });
 
-  it("degraded path without starttime still applies injected classifier", () => {
+  it("degraded path without starttime still applies injected classifier", async () => {
     const reg = new SessionRegistry();
     reg.start({ sessionId: "no-token", claudePid: 99 });
-    const result = applyWatchdogTick(reg, {
+    const result = await applyWatchdogTick(reg, {
       platform: "linux",
       classify: () => "dead",
     });
