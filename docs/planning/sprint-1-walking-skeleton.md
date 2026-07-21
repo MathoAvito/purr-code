@@ -28,11 +28,11 @@
 
 **As the** system, **I want** a duplex UDS/named-pipe channel with a versioned message protocol **so that** hooks and the CLI are thin senders and the daemon is the single serialization point (FR-05).
 
-- [ ] UDS (macOS/Linux) and named pipe (Windows) with UID/SID-embedded names, per PC-003 findings.
-- [ ] Protocol: `start`, `stop`, `failure`, `session-end` (fire-and-forget) and `status`, `volume`, `preview`, `set-config` (request/response); newline-delimited JSON with a protocol version field; size-capped, schema-validated on receipt (§13: untrusted input).
-- [ ] Client library shared by hook adapter and CLI; connect-before-send ordering guaranteed (connect-with-retry cold start per ADR 0003).
-- [ ] Unit tests: malformed/oversized messages rejected without crashing the daemon.
-- [ ] **PC-009:** Windows elevated↔non-elevated named-pipe interop is unpaid; loopback-TCP fallback stays **out of MVP** — failure degrades fail-silent (ADR 0003).
+- [x] UDS (macOS/Linux) and named pipe (Windows) with UID/SID-embedded names, per PC-003 findings.
+- [x] Protocol: `start`, `stop`, `failure`, `session-end` (fire-and-forget) and `status`, `volume`, `preview`, `set-config` (request/response); newline-delimited JSON with a protocol version field; size-capped, schema-validated on receipt (§13: untrusted input).
+- [x] Client library shared by hook adapter and CLI; connect-before-send ordering guaranteed (connect-with-retry cold start per ADR 0003).
+- [x] Unit tests: malformed/oversized messages rejected without crashing the daemon.
+- [x] **PC-009:** Windows elevated↔non-elevated named-pipe interop is unpaid; loopback-TCP fallback stays **out of MVP** — failure degrades fail-silent (ADR 0003).
 
 ## PC-104 — Daemon core: lifecycle, spawn race, idle exit (5 pts, E3)
 

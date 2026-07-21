@@ -49,3 +49,32 @@ export type {
   RuntimeDirErrorCode,
   RuntimeDirFs,
 } from "./runtime/index.js";
+
+export {
+  ALL_OPS,
+  ControlPipeClient,
+  ControlPipeServer,
+  FIRE_AND_FORGET_OPS,
+  MAX_MESSAGE_BYTES,
+  PROTOCOL_VERSION,
+  REQUEST_OPS,
+  connectWithRetry,
+  encodeControlMessage,
+  isFireAndForget,
+  isRequestOp,
+  parseControlMessage,
+  resolveControlPipePath,
+  resolveWindowsPipeSuffix,
+} from "./control/index.js";
+export type {
+  ConnectWithRetryOptions,
+  ControlMessageHandler,
+  ControlOp,
+  ControlPipeClientOptions,
+  ControlPipeServerOptions,
+  ControlRequest,
+  ControlResponse,
+  FireAndForgetOp,
+  RequestOp,
+  ResolveControlPipeOptions,
+} from "./control/index.js";
