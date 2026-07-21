@@ -110,7 +110,15 @@ describe("Daemon watchdog integration (PC-202)", () => {
       }
       await waitExit(child).catch(() => undefined);
     }
-    while (cleanups.length) await cleanups.pop()?.();
+    // LIFO: close client → shutdown daemon → rm dir. Swallow races (ENOTEMPTY
+    // if a late snapshot/log write lands during rm on busy CI runners).
+    while (cleanups.length) {
+      try {
+        await cleanups.pop()?.();
+      } catch {
+        /* ignore */
+      }
+    }
   });
 
   async function sleep(ms: number): Promise<void> {

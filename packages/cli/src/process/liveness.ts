@@ -175,17 +175,23 @@ export async function readProcessSnapshots(
   }
 
   // darwin / other Unix — single async ps (exec-form, no shell).
+  // BSD/macOS `ps` exits non-zero when *any* listed PID is missing, but still
+  // prints survivors on stdout — always parse stdout from success *and* error.
+  let stdout = "";
   try {
-    const { stdout } = await execFileAsync(
+    const result = await execFileAsync(
       "ps",
       ["-o", "pid=,state=,lstart=", "-p", unique.join(",")],
       { encoding: "utf8", timeout: 2_000, maxBuffer: 256 * 1024 },
     );
-    for (const [pid, snap] of parsePsPidStateLstart(stdout)) {
-      map.set(pid, snap);
+    stdout = result.stdout;
+  } catch (err) {
+    if (err && typeof err === "object" && "stdout" in err && typeof err.stdout === "string") {
+      stdout = err.stdout;
     }
-  } catch {
-    // Entire ps failed (e.g. all PIDs gone) → empty map → all dead.
+  }
+  for (const [pid, snap] of parsePsPidStateLstart(stdout)) {
+    map.set(pid, snap);
   }
   return map;
 }
