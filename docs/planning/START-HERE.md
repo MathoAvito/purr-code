@@ -34,7 +34,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 **Sprint 0 closed:** go with platform-debt accepted ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).  
 **Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).
 
-- **In progress:** Sprint 2 reliability on branch `sprint-2-reliability` — next story **PC-207** (suspend/resume turn-state).
+- **Sprint 2 non-gate stories complete** on branch `sprint-2-reliability` ([PR #17](https://github.com/MathoAvito/purr-code/pull/17)) — ready for human review / `sprint-review` skill (demo: kill mid-turn → fade ≤5 s; SIGSTOP pause / SIGCONT resume).
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---
@@ -82,7 +82,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-204 | Configuration store & schema | 3 | PC-008 | ✅ |
 | PC-205 | Perceptual volume model | 3 | PC-101 | ✅ |
 | PC-206 | Failure-injection & chaos pass | 5 | PC-109, PC-202 | ✅ |
-| PC-207 | Suspend/resume turn-state | 3 | PC-202 | 🔵 |
+| PC-207 | Suspend/resume turn-state | 3 | PC-202 | ✅ |
 
 ### Sprint 3 — Real audio, CLI & doctor ([sprint-3-audio-cli.md](sprint-3-audio-cli.md))
 

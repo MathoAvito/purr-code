@@ -67,7 +67,7 @@
 
 **As a** user, **I want** resume-from-suspend to purr only if the turn is actually still open **so that** `fg` at an idle shell prompt doesn't restart the purr (§20 row 2 nuance).
 
-- [ ] Paused sessions keep their registry entry and turn state; resume re-checks whether a stop/session-end arrived while suspended.
-- [ ] TTL continues counting during suspension (a session suspended > `staleSessionMinutes` is GC'd — decision recorded if spike evidence suggests otherwise).
-- [ ] Integration tests: suspend → stop event arrives → resume → **no** playback; suspend → resume with turn open → playback resumes.
-- [ ] **PC-009:** drive suspend/resume tests with **SIGSTOP/SIGCONT**, not SIGTSTP (Claude Code handles SIGTSTP itself; ADR 0002).
+- [x] Paused sessions keep their registry entry and turn state; resume re-checks whether a stop/session-end arrived while suspended.
+- [x] TTL continues counting during suspension (a session suspended > `staleSessionMinutes` is GC'd — decision recorded if spike evidence suggests otherwise).
+- [x] Integration tests: suspend → stop event arrives → resume → **no** playback; suspend → resume with turn open → playback resumes.
+- [x] **PC-009:** drive suspend/resume tests with **SIGSTOP/SIGCONT**, not SIGTSTP (Claude Code handles SIGTSTP itself; ADR 0002).
