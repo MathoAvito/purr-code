@@ -17,10 +17,10 @@ export type PlaybackControllerOptions = {
  */
 export class PlaybackController {
   private readonly backend: AudioBackend;
-  private readonly soundPath: string;
-  private readonly volume: number;
-  private readonly fadeInMs: number;
-  private readonly fadeOutMs: number;
+  private soundPath: string;
+  private volume: number;
+  private fadeInMs: number;
+  private fadeOutMs: number;
   private phase: PlaybackPhase = "idle";
   private handle: PlayerHandle | null = null;
   private stopChain: Promise<void> = Promise.resolve();
@@ -40,15 +40,47 @@ export class PlaybackController {
     return this.phase;
   }
 
+  /** Hot-reload fade/volume/sound from config (PC-204). */
+  applySettings(settings: {
+    volume?: number;
+    fadeInMs?: number;
+    fadeOutMs?: number;
+    soundPath?: string;
+  }): void {
+    if (settings.volume !== undefined) this.volume = settings.volume;
+    if (settings.fadeInMs !== undefined) this.fadeInMs = settings.fadeInMs;
+    if (settings.fadeOutMs !== undefined) this.fadeOutMs = settings.fadeOutMs;
+    if (settings.soundPath !== undefined) this.soundPath = settings.soundPath;
+  }
+
   /**
    * Apply a new active-session count. Call after registry mutations.
    */
   async onActiveCount(activeCount: number): Promise<void> {
     if (activeCount > 0) {
+      // Player-crash recovery (PC-206): if the handle died while we still
+      // believe we're playing, drop to idle so ensurePlaying respawns.
+      if (this.phase === "playing" && this.handle === null) {
+        this.phase = "idle";
+      }
       await this.ensurePlaying();
       return;
     }
     await this.ensureStopped();
+  }
+
+  /**
+   * Mark the current player handle lost (backend crash / process exit).
+   * Next {@link onActiveCount} with count &gt; 0 will respawn.
+   * When `handle` is provided, ignores mismatches (stale notifications).
+   */
+  invalidateHandle(handle?: PlayerHandle): void {
+    if (handle && this.handle && handle.id !== this.handle.id) return;
+    this.handle = null;
+    if (this.phase === "playing" || this.phase === "fading-in") {
+      this.playEpoch++;
+      this.phase = "idle";
+    }
   }
 
   private async ensurePlaying(): Promise<void> {

@@ -7,7 +7,7 @@ alwaysApply: true
 
 - `AGENTS.md` at the repo root is the canonical agent context: architecture map, commands, and hard constraints. Read it before implementing anything.
 - Callable project agent: **`purrcode`** — prompt in `docs/agents/purrcode.md`, Cursor wrapper in `.cursor/agents/purrcode.md`. Prefer `/purrcode` (or Task → purrcode) for story/spike/sprint work.
-- Work comes from the backlog: `docs/planning/START-HERE.md` has the progress board and dependency order. Stories are `PC-<sprint><nn>` in `docs/planning/sprint-N-*.md`; their acceptance checkboxes are the definition of done.
+- Work comes from the backlog: `docs/planning/START-HERE.md` has the progress board and dependency order. Stories are `PC-<sprint><nn>` in `docs/planning/sprint-N-*.md`; their acceptance checkboxes are the definition of done. One git branch per sprint (`sprint-N-<short-slug>`), not per story.
 - Workflow skills: `.cursor/skills/{implement-story,run-spike,sprint-review}/SKILL.md`.
 - Never start a story whose dependencies aren't ✅ on the board; never cross a 🚧 human-gate item autonomously.
 - The PRD (`docs/PurrCode-PRD-v0.4.md`) is the spec and roadmap. Scope drift into its §5 non-goals gets stopped, not built.

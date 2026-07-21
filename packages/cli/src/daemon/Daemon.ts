@@ -1,4 +1,6 @@
 import { writePidfile, removePidfile } from "./pidfile.js";
+import { reconcileRegistry, type ReconcileResult } from "./reconcile.js";
+import type { WatchdogClassify } from "./watchdog.js";
 import {
   ControlPipeServer,
   type ControlMessageHandler,
@@ -8,12 +10,18 @@ import { resolveControlPipePath } from "../control/paths.js";
 import type { ControlRequest } from "../control/protocol.js";
 import { SessionRegistry } from "../session/SessionRegistry.js";
 import { PlaybackController } from "../session/PlaybackController.js";
-import {
-  filterLiveSessions,
-  loadRegistrySnapshot,
-  writeRegistrySnapshot,
-} from "../session/snapshot.js";
+import { loadRegistrySnapshot, writeRegistrySnapshot } from "../session/snapshot.js";
 import type { AudioBackend } from "../audio/types.js";
+import type { ClassifyOptions } from "../process/liveness.js";
+import {
+  applyConfigPatch,
+  loadConfig,
+  type PurrCodeConfig,
+  type ResolveConfigDirOptions,
+} from "../config/index.js";
+
+/** Default watchdog cadence — proven ≤5 s fade bound in ADR 0006. */
+export const DEFAULT_WATCHDOG_INTERVAL_MS = 2000;
 
 export type DaemonOptions = {
   runtimeDir?: string | undefined;
@@ -35,12 +43,30 @@ export type DaemonOptions = {
    * Production omits this so the per-user SID names the pipe.
    */
   windowsPipeSuffix?: string | undefined;
+  /**
+   * Watchdog poll interval in ms (PC-202). Default 2000; set `0` to disable.
+   * Allowed range for production cadence is 2–5 s; tests may use shorter.
+   */
+  watchdogIntervalMs?: number | undefined;
+  /** Inject classifier (tests). */
+  watchdogClassify?: WatchdogClassify | undefined;
+  /** Extra classify options (tests). */
+  watchdogClassifyOptions?: ClassifyOptions | undefined;
+  /**
+   * Stale-session TTL in ms (PC-203 / RR-04.2). Default from config
+   * (`staleSessionMinutes` × 60s) or 10 minutes. Set `0` to disable TTL GC.
+   */
+  staleSessionMs?: number | undefined;
+  /** Config directory resolution overrides (PC-204 tests). */
+  configDir?: ResolveConfigDirOptions | undefined;
+  /** Inject initial config (tests); skips disk load when set. */
+  config?: PurrCodeConfig | undefined;
 };
 
 /**
- * Per-user player daemon (PC-104 + PC-105).
+ * Per-user player daemon (PC-104 + PC-105 + PC-202 + PC-203).
  * Bind-as-mutex listen, pidfile, connection-pinned idle-exit, session registry,
- * and refcount playback state machine.
+ * refcount playback, state-aware PID watchdog, and event/TTL reconciliation.
  */
 export class Daemon {
   private readonly idleMs: number;
@@ -49,10 +75,17 @@ export class Daemon {
   private readonly userOnMessage: ControlMessageHandler | undefined;
   private readonly registry: SessionRegistry;
   private readonly playback: PlaybackController | null;
+  private readonly watchdogIntervalMs: number;
+  private staleSessionMs: number;
+  private config: PurrCodeConfig;
+  private readonly configDirOptions: ResolveConfigDirOptions;
+  private readonly watchdogClassify: WatchdogClassify | undefined;
+  private readonly watchdogClassifyOptions: ClassifyOptions | undefined;
   private bootAt = 0;
   private lastActivityAt = 0;
   private connections = 0;
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
+  private watchdogTimer: ReturnType<typeof setInterval> | null = null;
   private server: ControlPipeServer | null = null;
   private runtimeDir = "";
   private pipePath = "";
@@ -60,8 +93,15 @@ export class Daemon {
   private shuttingDown = false;
   private snapshotTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly bootOptions: DaemonOptions;
+  /** Unsubscribe from backend handle-loss notifications (PC-206). */
+  private handleLostUnsub: (() => void) | null = null;
   /** Resolves when snapshot restore (+ playback) has finished; handlers await this. */
   private bootReady: Promise<void> = Promise.resolve();
+  /**
+   * Serializes registry + playback mutations so the watchdog never races the
+   * control-pipe handler (and ticks never block the pipe accept loop).
+   */
+  private mutationChain: Promise<void> = Promise.resolve();
 
   constructor(options: DaemonOptions = {}) {
     this.idleMs = options.idleMs ?? 1500;
@@ -69,12 +109,40 @@ export class Daemon {
     this.onIdleExit = options.onIdleExit;
     this.userOnMessage = options.onMessage;
     this.bootOptions = options;
+    this.configDirOptions = {
+      ...(options.platform !== undefined ? { platform: options.platform } : {}),
+      ...(options.env !== undefined ? { env: options.env } : {}),
+      ...options.configDir,
+    };
+    this.config =
+      options.config ??
+      loadConfig({ ...this.configDirOptions, writeDefaultsIfMissing: false }).config;
     this.registry = options.registry ?? new SessionRegistry({ now: this.now });
     this.playback =
       options.playback ??
       (options.audioBackend
-        ? new PlaybackController({ backend: options.audioBackend, fadeOutMs: 50, fadeInMs: 0 })
+        ? new PlaybackController({
+            backend: options.audioBackend,
+            volume: this.config.volume,
+            fadeInMs: this.config.fadeInMs,
+            fadeOutMs: this.config.fadeOutMs,
+            soundPath: `fake://${this.config.sound}`,
+          })
         : null);
+    this.watchdogIntervalMs =
+      options.watchdogIntervalMs === undefined
+        ? DEFAULT_WATCHDOG_INTERVAL_MS
+        : options.watchdogIntervalMs;
+    this.staleSessionMs =
+      options.staleSessionMs === undefined
+        ? this.config.staleSessionMinutes * 60_000
+        : options.staleSessionMs;
+    this.watchdogClassify = options.watchdogClassify;
+    this.watchdogClassifyOptions = options.watchdogClassifyOptions;
+  }
+
+  getConfig(): PurrCodeConfig {
+    return this.config;
   }
 
   get connectionCount(): number {
@@ -142,10 +210,30 @@ export class Daemon {
     }
 
     writePidfile(this.runtimeDir, process.pid);
+    this.wirePlayerCrashRecovery();
     this.bootReady = this.restoreSnapshot();
     await this.bootReady;
+    this.startWatchdog();
     this.armIdleTimer();
     return result;
+  }
+
+  /**
+   * Backend handle death → invalidate + syncPlayback (PC-206).
+   * Does not wait for a registry change or the next control message.
+   */
+  private wirePlayerCrashRecovery(): void {
+    const backend = this.bootOptions.audioBackend;
+    if (!backend?.onHandleLost || !this.playback) return;
+    this.handleLostUnsub?.();
+    this.handleLostUnsub = backend.onHandleLost((handle) => {
+      this.playback?.invalidateHandle(handle);
+      void this.enqueueMutation(async () => {
+        if (this.shuttingDown) return;
+        await this.syncPlayback();
+        this.armIdleTimer();
+      });
+    });
   }
 
   private async restoreSnapshot(): Promise<void> {
@@ -154,10 +242,11 @@ export class Daemon {
       // missing or corrupt → empty registry (safe regeneration)
       return;
     }
-    const live = filterLiveSessions(loaded.snapshot.sessions);
-    this.registry.replaceAll(live);
-    if (live.length > 0 && this.playback) {
-      await this.playback.onActiveCount(live.length);
+    // Load raw snapshot, then full liveness+TTL reconcile before playback (PC-203).
+    this.registry.replaceAll(loaded.snapshot.sessions);
+    await this.reconcileInPlace();
+    if (this.effectivePlaybackCount() > 0 && this.playback) {
+      await this.syncPlayback();
     }
   }
 
@@ -173,10 +262,79 @@ export class Daemon {
     }, 50);
   }
 
+  private startWatchdog(): void {
+    if (this.watchdogIntervalMs <= 0) return;
+    if (this.watchdogTimer) return;
+    // Schedule on the event loop; the tick itself is enqueued so it never
+    // stalls the control-pipe accept/read path (PC-202).
+    this.watchdogTimer = setInterval(() => {
+      void this.enqueueMutation(() => this.runWatchdogTick());
+    }, this.watchdogIntervalMs);
+    // Unref so the timer alone cannot keep the process alive after idle-exit.
+    this.watchdogTimer.unref?.();
+  }
+
+  private stopWatchdog(): void {
+    if (this.watchdogTimer) {
+      clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+  }
+
+  /** Exposed for tests — run one watchdog pass under the mutation lock. */
+  async runWatchdogOnce(): Promise<void> {
+    await this.enqueueMutation(() => this.runWatchdogTick());
+  }
+
+  private async runWatchdogTick(): Promise<void> {
+    if (this.shuttingDown) return;
+    const result = await this.reconcileInPlace();
+    // Always sync: registry may be unchanged while the player handle died (PC-206).
+    await this.syncPlayback();
+    if (result.changed) {
+      this.scheduleSnapshot();
+    }
+    this.armIdleTimer();
+  }
+
+  private effectivePlaybackCount(): number {
+    if (!this.config.enabled) return 0;
+    return this.registry.playbackCount();
+  }
+
+  private async syncPlayback(): Promise<void> {
+    await this.playback?.onActiveCount(this.effectivePlaybackCount());
+  }
+
+  /** Liveness + stale TTL over the full registry (PC-203). */
+  private reconcileInPlace(): Promise<ReconcileResult> {
+    return reconcileRegistry(this.registry, {
+      now: this.now,
+      staleSessionMs: this.staleSessionMs,
+      platform: this.bootOptions.platform ?? process.platform,
+      ...(this.watchdogClassify !== undefined ? { classify: this.watchdogClassify } : {}),
+      ...(this.watchdogClassifyOptions !== undefined
+        ? { classifyOptions: this.watchdogClassifyOptions }
+        : {}),
+    });
+  }
+
+  private enqueueMutation<T>(fn: () => Promise<T>): Promise<T> {
+    const run = this.mutationChain.then(fn, fn);
+    this.mutationChain = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
+
   async shutdown(reason = "shutdown"): Promise<void> {
     if (this.shuttingDown) return;
     this.shuttingDown = true;
     void reason;
+    this.stopWatchdog();
+    this.handleLostUnsub?.();
+    this.handleLostUnsub = null;
     if (this.idleTimer) {
       clearTimeout(this.idleTimer);
       this.idleTimer = null;
@@ -208,50 +366,81 @@ export class Daemon {
 
   private async handleMessage(message: ControlRequest) {
     await this.bootReady;
-    this.touchActivity();
+    return this.enqueueMutation(async () => {
+      this.touchActivity();
 
-    if (message.op === "shutdown") {
-      setTimeout(() => {
-        void this.shutdown("message");
-      }, 0);
-      return { ok: true, result: { shuttingDown: true } };
-    }
+      if (message.op === "shutdown") {
+        setTimeout(() => {
+          void this.shutdown("message");
+        }, 0);
+        return { ok: true, result: { shuttingDown: true } };
+      }
 
-    if (message.op === "status") {
-      return {
-        ok: true,
-        result: {
-          pid: process.pid,
-          bootAt: this.bootAt,
-          lastActivityAt: this.lastActivityAt,
-          connections: this.connections,
-          sessions: this.registry.size,
-          phase: this.playback?.getPhase() ?? "idle",
-        },
-      };
-    }
+      if (message.op === "set-config") {
+        const { config } = applyConfigPatch(this.config, message.config, this.configDirOptions);
+        this.config = config;
+        this.staleSessionMs = config.staleSessionMinutes * 60_000;
+        this.playback?.applySettings({
+          volume: config.volume,
+          fadeInMs: config.fadeInMs,
+          fadeOutMs: config.fadeOutMs,
+          soundPath: `fake://${config.sound}`,
+        });
+      } else if (message.op === "start") {
+        this.registry.start({
+          sessionId: message.sessionId,
+          ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
+          ...(message.starttime !== undefined ? { starttime: message.starttime } : {}),
+        });
+      } else if (
+        message.op === "stop" ||
+        message.op === "failure" ||
+        message.op === "session-end"
+      ) {
+        this.registry.touch(message.sessionId);
+        this.registry.stop(message.sessionId);
+      }
 
-    if (message.op === "start") {
-      const { activeCount } = this.registry.start({
-        sessionId: message.sessionId,
-        ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
-        ...(message.starttime !== undefined ? { starttime: message.starttime } : {}),
-      });
-      await this.playback?.onActiveCount(activeCount);
-      this.scheduleSnapshot();
+      // PC-203: every incoming message reconciles *all* sessions (liveness + TTL).
+      const reconciled = await this.reconcileInPlace();
+      await this.syncPlayback();
+      if (
+        reconciled.changed ||
+        message.op === "start" ||
+        message.op === "stop" ||
+        message.op === "failure" ||
+        message.op === "session-end" ||
+        message.op === "set-config"
+      ) {
+        this.scheduleSnapshot();
+      }
       this.armIdleTimer();
-    } else if (message.op === "stop" || message.op === "failure" || message.op === "session-end") {
-      this.registry.touch(message.sessionId);
-      const { activeCount } = this.registry.stop(message.sessionId);
-      await this.playback?.onActiveCount(activeCount);
-      this.scheduleSnapshot();
-      this.armIdleTimer();
-    }
 
-    if (this.userOnMessage) {
-      return this.userOnMessage(message);
-    }
-    return { ok: true };
+      if (message.op === "status") {
+        return {
+          ok: true,
+          result: {
+            pid: process.pid,
+            bootAt: this.bootAt,
+            lastActivityAt: this.lastActivityAt,
+            connections: this.connections,
+            sessions: this.registry.size,
+            playbackSessions: this.registry.playbackCount(),
+            phase: this.playback?.getPhase() ?? "idle",
+            enabled: this.config.enabled,
+          },
+        };
+      }
+
+      if (message.op === "set-config") {
+        return { ok: true, result: { config: this.config } };
+      }
+
+      if (this.userOnMessage) {
+        return this.userOnMessage(message);
+      }
+      return { ok: true };
+    });
   }
 
   private touchActivity(): void {

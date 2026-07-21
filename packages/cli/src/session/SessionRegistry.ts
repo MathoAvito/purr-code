@@ -4,6 +4,11 @@ export type SessionRecord = {
   lastSeenAt: number;
   claudePid?: number | undefined;
   starttime?: string | undefined;
+  /**
+   * Owner process is suspended (SIGSTOP). Session stays registered with its
+   * turn open, but does not contribute to playback refcount (PC-202).
+   */
+  paused?: boolean | undefined;
 };
 
 export type SessionStartInput = {
@@ -28,6 +33,15 @@ export class SessionRegistry {
     return this.sessions.size;
   }
 
+  /** Sessions that should drive purr playback (registered and not paused). */
+  playbackCount(): number {
+    let n = 0;
+    for (const s of this.sessions.values()) {
+      if (!s.paused) n++;
+    }
+    return n;
+  }
+
   list(): SessionRecord[] {
     return [...this.sessions.values()];
   }
@@ -44,7 +58,9 @@ export class SessionRegistry {
       existing.lastSeenAt = now;
       if (input.claudePid !== undefined) existing.claudePid = input.claudePid;
       if (input.starttime !== undefined) existing.starttime = input.starttime;
-      return { created: false, activeCount: this.sessions.size };
+      // A fresh start event implies the turn is active again.
+      existing.paused = false;
+      return { created: false, activeCount: this.playbackCount() };
     }
     this.sessions.set(input.sessionId, {
       sessionId: input.sessionId,
@@ -53,7 +69,7 @@ export class SessionRegistry {
       ...(input.claudePid !== undefined ? { claudePid: input.claudePid } : {}),
       ...(input.starttime !== undefined ? { starttime: input.starttime } : {}),
     });
-    return { created: true, activeCount: this.sessions.size };
+    return { created: true, activeCount: this.playbackCount() };
   }
 
   /** Touch lastSeenAt for any known session. */
@@ -63,12 +79,26 @@ export class SessionRegistry {
   }
 
   /**
+   * Mark a session paused / unpaused for suspend-aware playback (PC-202).
+   * Returns whether the flag actually changed.
+   */
+  setPaused(sessionId: string, paused: boolean): boolean {
+    const existing = this.sessions.get(sessionId);
+    if (!existing) return false;
+    const was = Boolean(existing.paused);
+    if (was === paused) return false;
+    if (paused) existing.paused = true;
+    else delete existing.paused;
+    return true;
+  }
+
+  /**
    * Remove a session. Unknown / repeat stops are harmless no-ops.
    * Returns whether an active session was removed.
    */
   stop(sessionId: string): { removed: boolean; activeCount: number } {
     const removed = this.sessions.delete(sessionId);
-    return { removed, activeCount: this.sessions.size };
+    return { removed, activeCount: this.playbackCount() };
   }
 
   clear(): void {

@@ -41,6 +41,15 @@ export type {
   FakeAudioEventType,
   SidecarEventName,
 } from "./audio/fake/index.js";
+export {
+  applyVolumeForTier,
+  clampPerceptualVolume,
+  interpolatePerceptualVolume,
+  perceptualToGainDb,
+  perceptualToLinearAmplitude,
+  samplePerceptualRamp,
+} from "./audio/perceptual.js";
+export type { VolumeApplication } from "./audio/perceptual.js";
 
 export { RuntimeDirError, ensureRuntimeDir, resolveRuntimeDirPath } from "./runtime/index.js";
 export type {
@@ -83,13 +92,26 @@ export type {
 
 export {
   Daemon,
+  DEFAULT_STALE_SESSION_MS,
+  DEFAULT_WATCHDOG_INTERVAL_MS,
+  applyWatchdogTick,
+  reconcileRegistry,
   ensureDaemonRunning,
   pidfilePath,
   readPidfile,
   removePidfile,
   writePidfile,
 } from "./daemon/index.js";
-export type { DaemonOptions, EnsureDaemonOptions, EnsureDaemonResult } from "./daemon/index.js";
+export type {
+  ApplyWatchdogOptions,
+  DaemonOptions,
+  EnsureDaemonOptions,
+  EnsureDaemonResult,
+  ReconcileOptions,
+  ReconcileResult,
+  WatchdogClassify,
+  WatchdogTickResult,
+} from "./daemon/index.js";
 
 export { PlaybackController, SessionRegistry } from "./session/index.js";
 export type {
@@ -109,6 +131,34 @@ export type { LoadSnapshotResult, RegistrySnapshot } from "./session/index.js";
 
 export { parseHookStdin, readStarttimeToken, runHook, shouldSuppressHooks } from "./hook/index.js";
 export type { HookEventName, HookPayload, ParseHookResult, RunHookOptions } from "./hook/index.js";
+
+export {
+  CONFIG_SCHEMA_VERSION,
+  DEFAULT_CONFIG,
+  applyConfigPatch,
+  loadConfig,
+  mergeConfig,
+  normalizeConfig,
+  resolveConfigDirPath,
+  resolveConfigFilePath,
+  writeConfig,
+} from "./config/index.js";
+export type { LoadConfigResult, PurrCodeConfig, ResolveConfigDirOptions } from "./config/index.js";
+
+export {
+  classifyProcess,
+  parseLinuxStat,
+  parsePsPidStateLstart,
+  primaryStateLetter,
+  readProcessSnapshot,
+  readProcessSnapshots,
+} from "./process/index.js";
+export type {
+  ClassifyOptions,
+  ProcessIdentity,
+  ProcessLiveness,
+  ProcessSnapshot,
+} from "./process/index.js";
 
 export {
   PURRCODE_LOG_ENV,

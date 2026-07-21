@@ -29,7 +29,13 @@ describe("e2e fake-audio (PC-109)", () => {
   const cleanups: Array<() => Promise<void>> = [];
 
   afterEach(async () => {
-    while (cleanups.length) await cleanups.pop()?.();
+    while (cleanups.length) {
+      try {
+        await cleanups.pop()?.();
+      } catch {
+        /* ignore cleanup races */
+      }
+    }
   });
 
   async function sleep(ms: number): Promise<void> {
@@ -209,18 +215,23 @@ describe("e2e fake-audio (PC-109)", () => {
     expect(exited).toBe(true);
   });
 
-  it("abandoned-turn stub: owner PID gone with no stop (Sprint 2 deepens)", async () => {
+  it("abandoned-turn: dead owner is reconciled away with no stop (PC-202/203)", async () => {
     const { client, daemon } = await harness();
     await client.send({
       v: PROTOCOL_VERSION,
       op: "start",
       sessionId: "abandoned",
       claudePid: 1_999_999_999,
+      starttime: "ghost",
     });
-    await sleep(30);
-    expect(daemon.sessionCount).toBe(1);
+    // Event-driven reconcile drops the dead owner before playback sticks.
+    const deadline = Date.now() + 2000;
+    while (Date.now() < deadline && daemon.sessionCount > 0) {
+      await sleep(20);
+    }
+    expect(daemon.sessionCount).toBe(0);
     const status = await client.request({ v: PROTOCOL_VERSION, op: "status", id: "ab" });
-    expect(status.result).toMatchObject({ sessions: 1, phase: "playing" });
+    expect(status.result).toMatchObject({ sessions: 0, phase: "idle" });
   });
 
   it("sdk-cli / CI suppression: hook does nothing", async () => {

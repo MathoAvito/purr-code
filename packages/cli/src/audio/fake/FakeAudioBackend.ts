@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
 import type { AudioBackend, BackendCapabilities, PlaybackOptions, PlayerHandle } from "../types.js";
+import { applyVolumeForTier, clampPerceptualVolume } from "../perceptual.js";
 import type { FakeAudioEvent } from "./events.js";
 
 export const PURRCODE_FAKE_AUDIO_ENV = "PURRCODE_FAKE_AUDIO";
@@ -55,11 +56,42 @@ export class FakeAudioBackend implements AudioBackend {
   #fadeTimer: ReturnType<typeof setTimeout> | null = null;
   #fadeDone: (() => void) | null = null;
   #writeChain: Promise<void> = Promise.resolve();
+  #lostListeners = new Set<(handle: PlayerHandle) => void>();
 
   constructor(options: FakeAudioBackendOptions) {
     this.logPath = options.logPath;
     this.#now = options.now ?? (() => Date.now());
     this.#enabledOverride = options.enabled;
+  }
+
+  /**
+   * Subscribe to unexpected handle death (PC-206).
+   * Fired by {@link crash}; real adapters fire on child-process exit.
+   */
+  onHandleLost(listener: (handle: PlayerHandle) => void): () => void {
+    this.#lostListeners.add(listener);
+    return () => {
+      this.#lostListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Simulate player-process death mid-loop (PC-206 / tests).
+   * Drops the handle without a fade/stop event and notifies listeners.
+   */
+  crash(): void {
+    const handle = this.#handle;
+    if (!handle) return;
+    this.#cancelFadeTimer();
+    this.#handle = null;
+    this.#phase = "idle";
+    for (const listener of this.#lostListeners) {
+      try {
+        listener(handle);
+      } catch {
+        // fail-open — never let a listener break the backend
+      }
+    }
   }
 
   /** Convenience constructor using env log path + `PURRCODE_FAKE_AUDIO`. */
@@ -112,16 +144,19 @@ export class FakeAudioBackend implements AudioBackend {
       });
     }
 
+    // Fake tier: record perceptual volume only (PC-205 / no amplitude convert).
+    const perceptual = applyVolumeForTier("fake", options.volume).perceptual;
+
     const handle: PlayerHandle = { id: randomUUID() };
     this.#handle = handle;
-    this.#volume = options.volume;
+    this.#volume = perceptual;
     this.#phase = "playing";
 
     await this.#emit({
       type: "start",
       sidecar: "playing",
       handleId: handle.id,
-      volume: options.volume,
+      volume: perceptual,
       soundPath: options.soundPath,
       ...(options.fadeInMs !== undefined ? { fadeInMs: options.fadeInMs } : {}),
     });
@@ -131,12 +166,13 @@ export class FakeAudioBackend implements AudioBackend {
 
   async setVolume(handle: PlayerHandle, volume: number): Promise<void> {
     this.#assertHandle(handle);
-    this.#volume = volume;
+    const perceptual = clampPerceptualVolume(volume);
+    this.#volume = perceptual;
     await this.#emit({
       type: "volume-change",
       sidecar: "volume",
       handleId: handle.id,
-      volume,
+      volume: perceptual,
     });
   }
 

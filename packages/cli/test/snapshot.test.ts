@@ -16,12 +16,15 @@ import { ControlPipeClient } from "../src/control/client.js";
 import { PROTOCOL_VERSION } from "../src/control/protocol.js";
 import { daemonIsolationOptions } from "./helpers/controlEndpoint.js";
 
-const sample = (id: string, pid?: number): SessionRecord => ({
-  sessionId: id,
-  startedAt: 1,
-  lastSeenAt: 2,
-  ...(pid !== undefined ? { claudePid: pid } : {}),
-});
+const sample = (id: string, pid?: number): SessionRecord => {
+  const t = Date.now();
+  return {
+    sessionId: id,
+    startedAt: t,
+    lastSeenAt: t,
+    ...(pid !== undefined ? { claudePid: pid } : {}),
+  };
+};
 
 describe("registry snapshot (PC-106)", () => {
   it("writes atomically and reloads", async () => {
