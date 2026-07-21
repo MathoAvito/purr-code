@@ -58,10 +58,10 @@
 
 **As the** team, **I want** systematic failure injection **so that** "fail open, fail silent" (RR-02) is demonstrated, not asserted.
 
-- [ ] Hook adapter under: daemon dead, socket present-but-unresponsive, runtime dir unwritable, stdin garbage/oversized, spawn failure → always exit 0, always silent.
-- [ ] Daemon under: backend `play()` throwing, player handle dying mid-loop (respawn/recover), snapshot write failure, SIGTERM mid-fade.
-- [ ] Player-crash-during-active-session scenario from §18 integration list.
-- [ ] Rapid-fire stress: 50 interleaved start/stop messages across 5 fake sessions — final state consistent, no stuck fades.
+- [x] Hook adapter under: daemon dead, socket present-but-unresponsive, runtime dir unwritable, stdin garbage/oversized, spawn failure → always exit 0, always silent.
+- [x] Daemon under: backend `play()` throwing, player handle dying mid-loop (respawn/recover), snapshot write failure, SIGTERM mid-fade.
+- [x] Player-crash-during-active-session scenario from §18 integration list.
+- [x] Rapid-fire stress: 50 interleaved start/stop messages across 5 fake sessions — final state consistent, no stuck fades.
 
 ## PC-207 — Suspend/resume turn-state correctness (3 pts, E4)
 

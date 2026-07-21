@@ -58,10 +58,27 @@ export class PlaybackController {
    */
   async onActiveCount(activeCount: number): Promise<void> {
     if (activeCount > 0) {
+      // Player-crash recovery (PC-206): if the handle died while we still
+      // believe we're playing, drop to idle so ensurePlaying respawns.
+      if (this.phase === "playing" && this.handle === null) {
+        this.phase = "idle";
+      }
       await this.ensurePlaying();
       return;
     }
     await this.ensureStopped();
+  }
+
+  /**
+   * Mark the current player handle lost (backend crash / process exit).
+   * Next {@link onActiveCount} with count &gt; 0 will respawn.
+   */
+  invalidateHandle(): void {
+    this.handle = null;
+    if (this.phase === "playing" || this.phase === "fading-in") {
+      this.playEpoch++;
+      this.phase = "idle";
+    }
   }
 
   private async ensurePlaying(): Promise<void> {
