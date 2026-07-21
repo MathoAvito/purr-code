@@ -1,6 +1,6 @@
 # AGENTS.md — canonical agent context for PurrCode
 
-This is the single source of truth for AI coding agents (Claude Code, Cursor, Codex, and similar) working in this repository. `CLAUDE.md` points here; do not duplicate context into per-tool files.
+This is the single source of truth for AI coding agents (Claude Code, Cursor, OpenCode, Codex, and similar) working in this repository. `CLAUDE.md` points here; do not duplicate hard constraints into per-tool files.
 
 ## What this project is
 
@@ -14,9 +14,19 @@ The project is being built sprint-by-sprint from a written backlog. **Before doi
 - Story details: `docs/planning/sprint-N-*.md` (acceptance checkboxes are the definition of done)
 - Spike/architecture decisions: `docs/decisions/` (use `TEMPLATE.md`)
 
-## Commands
+## Invoking the PurrCode agent
 
-Scaffolding lands with story PC-008. Once it exists, the canonical commands are:
+The callable project agent is **`purrcode`**. Canonical prompt: [docs/agents/purrcode.md](docs/agents/purrcode.md). Tool wrappers (frontmatter only) live at:
+
+| Tool | Invoke | Wrapper |
+| --- | --- | --- |
+| **Cursor** | `/purrcode` or Task → purrcode | [`.cursor/agents/purrcode.md`](.cursor/agents/purrcode.md) |
+| **Claude Code** | `@purrcode` or ask to use the purrcode agent | [`.claude/agents/purrcode.md`](.claude/agents/purrcode.md) |
+| **OpenCode** | Tab to `purrcode`, or `@purrcode` | [`.opencode/agents/purrcode.md`](.opencode/agents/purrcode.md) |
+
+Workflow skills (implement story / spike / sprint review) live under [`.cursor/skills/`](.cursor/skills/); Claude mirrors under [`.claude/skills/`](.claude/skills/) point at those files. OpenCode loads `AGENTS.md` plus [opencode.json](opencode.json) instructions.
+
+## Commands
 
 ```bash
 pnpm install          # setup (Node 20+, pnpm workspace)
@@ -25,8 +35,6 @@ pnpm typecheck        # tsc --noEmit, strict
 pnpm test             # Vitest unit tests
 pnpm e2e:fake-audio   # integration suite against the fake audio backend
 ```
-
-If these scripts don't exist yet, PC-008 hasn't landed — don't invent alternatives; implement or wait on PC-008.
 
 ## Verifying changes headlessly
 
@@ -45,7 +53,7 @@ Set `PURRCODE_FAKE_AUDIO=1` to use the fake audio backend (story PC-101): it imp
 
 ## Conventions
 
-- **One branch per story.** Every story gets its own branch off `main`, named `pc-XYZ-<short-slug>` (e.g. `pc-008-repo-scaffolding`, `pc-001-hook-payload-spike`). Never commit story work directly to `main`; merge via PR. One story per branch — don't bundle.
+- **One branch per story.** Every story gets its own branch off `main`, named `pc-XYZ-<short-slug>` (e.g. `pc-008-repo-scaffolding`, `pc-001-hook-payload-spike`). Never commit story work directly to `main`; merge via PR. One story per branch — don't bundle (unless a human explicitly overrides for a scoped sprint slice).
 - TypeScript strict, Node 20+, pnpm. Conventional-commit style messages referencing the story ID (e.g. `feat(daemon): session registry state machine (PC-105)`).
 - When a story is complete: tick its checkboxes in the sprint file and update the board in `START-HERE.md` in the same commit.
 - Scope discipline: PRD §5 non-goals are enforced. If a change drifts toward them, stop and say so instead of building it.
