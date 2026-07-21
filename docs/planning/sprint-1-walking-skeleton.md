@@ -48,45 +48,45 @@
 
 **As the** daemon, **I want** the registry and the `idle → fading-in → playing → fading-out → idle` state machine **so that** multi-session refcounting and the fade races are correct by construction (FR-05, RR-05).
 
-- [ ] Registry keyed by `session_id`: `startedAt`, `lastSeenAt`, `claudePid`; duplicate `start` from one session is idempotent; every event updates `lastSeenAt`.
-- [ ] Playback driven by active-session count: 0→1 starts fade-in; last-session stop starts fade-out; **start during fading-out cancels the fade and resumes** (explicit transition).
-- [ ] Repeated/unknown-session stop events are harmless no-ops (RR-03).
-- [ ] Unit tests enumerate the full transition table, including fade-cancel and rapid start/stop interleavings.
+- [x] Registry keyed by `session_id`: `startedAt`, `lastSeenAt`, `claudePid`; duplicate `start` from one session is idempotent; every event updates `lastSeenAt`.
+- [x] Playback driven by active-session count: 0→1 starts fade-in; last-session stop starts fade-out; **start during fading-out cancels the fade and resumes** (explicit transition).
+- [x] Repeated/unknown-session stop events are harmless no-ops (RR-03).
+- [x] Unit tests enumerate the full transition table, including fade-cancel and rapid start/stop interleavings.
 
 ## PC-106 — Registry snapshot & corruption recovery (2 pts, E3)
 
 **As the** daemon, **I want** the registry snapshotted to disk and safely restored **so that** a daemon restart doesn't strand or hallucinate sessions (FR-05, RR-04.4).
 
-- [ ] Atomic snapshot writes (temp + rename) on registry mutation (debounced).
-- [ ] On boot: restore snapshot, then discard entries failing PID liveness checks.
-- [ ] **Unreadable/corrupt snapshot triggers safe regeneration — never a crash, never hook-visible failure.**
-- [ ] Unit tests: truncated JSON, wrong schema, dead-PID entries.
+- [x] Atomic snapshot writes (temp + rename) on registry mutation (debounced).
+- [x] On boot: restore snapshot, then discard entries failing PID liveness checks.
+- [x] **Unreadable/corrupt snapshot triggers safe regeneration — never a crash, never hook-visible failure.**
+- [x] Unit tests: truncated JSON, wrong schema, dead-PID entries.
 
 ## PC-107 — Hook adapter (5 pts, E2)
 
 **As** Claude Code, **I want** a transient handler for all four events **so that** the purr tracks the turn lifecycle and is completely invisible (FR-03, FR-04, RR-02).
 
-- [ ] Entrypoint `dist/hook.js <event>` for `start|stop|failure|session-end`; reads stdin JSON as untrusted (schema-validate, size-cap, never interpolate into shell/paths).
-- [ ] Extracts `session_id`; on `start`, captures Claude PID as **`process.ppid`** and a start-time token per ADR 0002 / 0006 (exec-form hooks only — string-form is forbidden; it breaks refcounting).
-- [ ] Connects to daemon (spawning per PC-104 if absent), sends the message, exits.
-- [ ] **Invisibility invariant:** exit 0 in *all* circumstances; zero bytes on stdout/stderr — enforced by a top-level catch-all and by tests injecting: daemon unreachable, malformed stdin, unwritable runtime dir, spawn failure. Cover **async** hook paths (ADR 0001: async stderr may be invisible today; still never write).
-- [ ] Completes < 2 s under normal conditions (RR-01); errors go only to the debug log (PC-108).
-- [ ] Respects `CI` / `CLAUDE_CODE_REMOTE=true` suppression: exit 0 immediately, do nothing (§16).
-- [ ] **PC-009:** also suppress when `CLAUDE_CODE_ENTRYPOINT=sdk-cli` (headless `-p`); do not expect async `Stop` there — rely on `SessionEnd` (ADR 0001).
+- [x] Entrypoint `dist/hook.js <event>` for `start|stop|failure|session-end`; reads stdin JSON as untrusted (schema-validate, size-cap, never interpolate into shell/paths).
+- [x] Extracts `session_id`; on `start`, captures Claude PID as **`process.ppid`** and a start-time token per ADR 0002 / 0006 (exec-form hooks only — string-form is forbidden; it breaks refcounting).
+- [x] Connects to daemon (spawning per PC-104 if absent), sends the message, exits.
+- [x] **Invisibility invariant:** exit 0 in *all* circumstances; zero bytes on stdout/stderr — enforced by a top-level catch-all and by tests injecting: daemon unreachable, malformed stdin, unwritable runtime dir, spawn failure. Cover **async** hook paths (ADR 0001: async stderr may be invisible today; still never write).
+- [x] Completes < 2 s under normal conditions (RR-01); errors go only to the debug log (PC-108).
+- [x] Respects `CI` / `CLAUDE_CODE_REMOTE=true` suppression: exit 0 immediately, do nothing (§16).
+- [x] **PC-009:** also suppress when `CLAUDE_CODE_ENTRYPOINT=sdk-cli` (headless `-p`); do not expect async `Stop` there — rely on `SessionEnd` (ADR 0001).
 
 ## PC-108 — Debug logging (2 pts, E2)
 
 **As a** troubleshooting user, **I want** opt-in debug logs **so that** invisible-by-design failures are still diagnosable (FR-11).
 
-- [ ] Disabled by default; `PURRCODE_LOG=debug` enables file logging (never stdout/stderr from hook paths).
-- [ ] May contain: event type, timestamp, **hashed** session ID, PIDs, selected sound, playback errors. Must never contain: prompt text, responses, tool inputs, file contents, env values, credentials.
-- [ ] Unit test greps a full-lifecycle debug log for forbidden content categories using seeded fixtures.
+- [x] Disabled by default; `PURRCODE_LOG=debug` enables file logging (never stdout/stderr from hook paths).
+- [x] May contain: event type, timestamp, **hashed** session ID, PIDs, selected sound, playback errors. Must never contain: prompt text, responses, tool inputs, file contents, env values, credentials.
+- [x] Unit test greps a full-lifecycle debug log for forbidden content categories using seeded fixtures.
 
 ## PC-109 — End-to-end integration suite v1 (3 pts, E3/E4)
 
 **As the** team, **I want** the PRD §18 core scenarios automated against the fake backend **so that** the skeleton's correctness is locked in before Sprint 2 builds on it.
 
-- [ ] Scenarios: start → stop; start → failure; start → session-end; two sessions → one stop (purr continues) → final stop (fade); duplicate start; **start during fade-out** (fade-cancel event asserted); daemon-spawn race; cold-boot idle-exit guard.
-- [ ] **PC-009:** include abandoned-turn stubs that Sprint 2 will deepen — owner PID gone with **no** stop event (Esc/kill path from ADR 0001/0006); headless/`sdk-cli` session that never emits async `Stop`.
-- [ ] Runs headlessly on the full CI matrix via `pnpm e2e:fake-audio`.
-- [ ] Test harness simulates hook invocations with realistic stdin payloads captured in PC-001.
+- [x] Scenarios: start → stop; start → failure; start → session-end; two sessions → one stop (purr continues) → final stop (fade); duplicate start; **start during fade-out** (fade-cancel event asserted); daemon-spawn race; cold-boot idle-exit guard.
+- [x] **PC-009:** include abandoned-turn stubs that Sprint 2 will deepen — owner PID gone with **no** stop event (Esc/kill path from ADR 0001/0006); headless/`sdk-cli` session that never emits async `Stop`.
+- [x] Runs headlessly on the full CI matrix via `pnpm e2e:fake-audio`.
+- [x] Test harness simulates hook invocations with realistic stdin payloads captured in PC-001.

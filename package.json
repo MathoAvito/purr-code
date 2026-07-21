@@ -13,7 +13,8 @@
     "lint": "eslint . && prettier --check .",
     "lint:fix": "eslint . --fix && prettier --write .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e:fake-audio": "vitest run packages/cli/test/e2e-fake-audio.test.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
