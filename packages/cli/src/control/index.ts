@@ -1,0 +1,45 @@
+export {
+  ControlPipeClient,
+  connectWithRetry,
+  writeFully,
+  type ConnectWithRetryOptions,
+  type ControlPipeClientOptions,
+} from "./client.js";
+export {
+  resolveControlPipePath,
+  resolveWindowsPipeSuffix,
+  type ResolveControlPipeOptions,
+} from "./paths.js";
+export {
+  ALL_OPS,
+  FIRE_AND_FORGET_OPS,
+  MAX_MESSAGE_BYTES,
+  PROTOCOL_VERSION,
+  REQUEST_OPS,
+  encodeControlMessage,
+  isFireAndForget,
+  isRequestOp,
+  parseControlMessage,
+  type ControlMessageBase,
+  type ControlOp,
+  type ControlRequest,
+  type ControlResponse,
+  type FireAndForgetOp,
+  type ParseFailure,
+  type ParseResult,
+  type ParseSuccess,
+  type PreviewMessage,
+  type RequestOp,
+  type SessionScopedMessage,
+  type SetConfigMessage,
+  type ShutdownMessage,
+  type StartMessage,
+  type StatusMessage,
+  type VolumeMessage,
+} from "./protocol.js";
+export {
+  ControlPipeServer,
+  type ControlMessageHandler,
+  type ControlPipeServerOptions,
+  type ListenResult,
+} from "./server.js";

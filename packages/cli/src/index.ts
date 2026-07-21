@@ -41,3 +41,80 @@ export type {
   FakeAudioEventType,
   SidecarEventName,
 } from "./audio/fake/index.js";
+
+export { RuntimeDirError, ensureRuntimeDir, resolveRuntimeDirPath } from "./runtime/index.js";
+export type {
+  EnsureRuntimeDirOptions,
+  ResolveRuntimeDirOptions,
+  RuntimeDirErrorCode,
+  RuntimeDirFs,
+} from "./runtime/index.js";
+
+export {
+  ALL_OPS,
+  ControlPipeClient,
+  ControlPipeServer,
+  FIRE_AND_FORGET_OPS,
+  MAX_MESSAGE_BYTES,
+  PROTOCOL_VERSION,
+  REQUEST_OPS,
+  connectWithRetry,
+  encodeControlMessage,
+  isFireAndForget,
+  isRequestOp,
+  parseControlMessage,
+  resolveControlPipePath,
+  resolveWindowsPipeSuffix,
+  writeFully,
+} from "./control/index.js";
+export type {
+  ConnectWithRetryOptions,
+  ControlMessageHandler,
+  ControlOp,
+  ControlPipeClientOptions,
+  ControlPipeServerOptions,
+  ControlRequest,
+  ControlResponse,
+  FireAndForgetOp,
+  ListenResult,
+  RequestOp,
+  ResolveControlPipeOptions,
+} from "./control/index.js";
+
+export {
+  Daemon,
+  ensureDaemonRunning,
+  pidfilePath,
+  readPidfile,
+  removePidfile,
+  writePidfile,
+} from "./daemon/index.js";
+export type { DaemonOptions, EnsureDaemonOptions, EnsureDaemonResult } from "./daemon/index.js";
+
+export { PlaybackController, SessionRegistry } from "./session/index.js";
+export type {
+  PlaybackControllerOptions,
+  PlaybackPhase,
+  SessionRecord,
+  SessionStartInput,
+} from "./session/index.js";
+export {
+  SNAPSHOT_VERSION,
+  filterLiveSessions,
+  loadRegistrySnapshot,
+  snapshotPath,
+  writeRegistrySnapshot,
+} from "./session/index.js";
+export type { LoadSnapshotResult, RegistrySnapshot } from "./session/index.js";
+
+export { parseHookStdin, readStarttimeToken, runHook, shouldSuppressHooks } from "./hook/index.js";
+export type { HookEventName, HookPayload, ParseHookResult, RunHookOptions } from "./hook/index.js";
+
+export {
+  PURRCODE_LOG_ENV,
+  debugLog,
+  defaultDebugLogPath,
+  hashSessionId,
+  isDebugLogEnabled,
+} from "./log/index.js";
+export type { DebugLogFields } from "./log/index.js";

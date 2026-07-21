@@ -39,3 +39,7 @@ jobs:
       - run: pnpm typecheck
 
       - run: pnpm test
+
+      - run: pnpm e2e:fake-audio
+        env:
+          PURRCODE_FAKE_AUDIO: "1"
