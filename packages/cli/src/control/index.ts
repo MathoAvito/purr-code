@@ -1,6 +1,7 @@
 export {
   ControlPipeClient,
   connectWithRetry,
+  writeFully,
   type ConnectWithRetryOptions,
   type ControlPipeClientOptions,
 } from "./client.js";

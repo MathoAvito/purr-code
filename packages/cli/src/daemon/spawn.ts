@@ -1,8 +1,8 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { ControlPipeClient, connectWithRetry } from "../control/client.js";
+import { ControlPipeClient } from "../control/client.js";
 import { resolveControlPipePath } from "../control/paths.js";
 import { PROTOCOL_VERSION } from "../control/protocol.js";
 
@@ -13,17 +13,27 @@ export type EnsureDaemonOptions = {
   platform?: NodeJS.Platform;
   runtimeDir?: string;
   connectTimeoutMs?: number;
+  /** Short probe used to detect an already-running daemon (default 150 ms). */
+  probeTimeoutMs?: number;
   spawnImpl?: typeof spawn;
 };
 
-export type EnsureDaemonResult =
-  | { status: "already-running"; path: string }
-  | { status: "spawned"; path: string; child: ChildProcess }
-  | { status: "connected-after-spawn"; path: string };
+export type EnsureDaemonResult = {
+  status: "already-running" | "connected-after-spawn";
+  path: string;
+  /**
+   * Live client that **holds the control connection** (FR-05 cold-start).
+   * Caller must send the first message on this client, then {@link ControlPipeClient.close}.
+   */
+  client: ControlPipeClient;
+};
 
 /**
  * Ensure a daemon is reachable: connect, or spawn detached and connect-with-retry.
  * Socket bind remains the spawn mutex inside the daemon process (PC-104).
+ *
+ * Returns a **held** {@link ControlPipeClient} so idle-exit cannot win between
+ * spawn and the first hook message (FR-05).
  */
 export async function ensureDaemonRunning(
   options: EnsureDaemonOptions = {},
@@ -34,16 +44,15 @@ export async function ensureDaemonRunning(
     ...(options.runtimeDir !== undefined ? { runtimeDir: options.runtimeDir } : {}),
   });
 
+  const client = new ControlPipeClient({ path: resolved.path });
+  const probeTimeoutMs = options.probeTimeoutMs ?? 150;
+
   try {
-    const socket = await connectWithRetry({
-      path: resolved.path,
-      timeoutMs: 150,
-      retryDelayMs: 25,
-    });
-    socket.destroy();
-    return { status: "already-running", path: resolved.path };
+    await client.ensureConnected(probeTimeoutMs);
+    await client.request({ v: PROTOCOL_VERSION, op: "status", id: "spawn-probe" }, 2000);
+    return { status: "already-running", path: resolved.path, client };
   } catch {
-    // need spawn
+    client.close();
   }
 
   const entry =
@@ -60,19 +69,13 @@ export async function ensureDaemonRunning(
   });
   child.unref();
 
-  const client = new ControlPipeClient({ path: resolved.path });
+  const spawned = new ControlPipeClient({ path: resolved.path });
   try {
-    await connectWithRetry({
-      path: resolved.path,
-      timeoutMs: options.connectTimeoutMs ?? 5000,
-      retryDelayMs: 25,
-    }).then((s) => s.destroy());
-    // Prove protocol works
-    await client.request({ v: PROTOCOL_VERSION, op: "status", id: "spawn-probe" }, 2000);
-    client.close();
-    return { status: "connected-after-spawn", path: resolved.path };
+    await spawned.ensureConnected(options.connectTimeoutMs ?? 5000);
+    await spawned.request({ v: PROTOCOL_VERSION, op: "status", id: "spawn-probe" }, 2000);
+    return { status: "connected-after-spawn", path: resolved.path, client: spawned };
   } catch (err) {
-    client.close();
+    spawned.close();
     throw err;
   }
 }

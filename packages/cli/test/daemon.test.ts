@@ -104,7 +104,7 @@ describe("Daemon (PC-104)", () => {
     await expect(connectWithRetry({ path, timeoutMs: 200, retryDelayMs: 20 })).rejects.toBeTruthy();
   });
 
-  it("ensureDaemonRunning spawns detached with stdio ignored", async () => {
+  it("ensureDaemonRunning spawns detached with stdio ignored and holds client", async () => {
     const runtimeDir = await tempRuntime();
     const spawnImpl = vi.fn(() => {
       const child = {
@@ -125,6 +125,10 @@ describe("Daemon (PC-104)", () => {
       spawnImpl: spawnImpl as unknown as typeof import("node:child_process").spawn,
       connectTimeoutMs: 3000,
     });
+    cleanups.push(() => {
+      result.client.close();
+      return Promise.resolve();
+    });
 
     expect(spawnImpl).toHaveBeenCalled();
     const call = spawnImpl.mock.calls[0] as unknown as [
@@ -134,5 +138,44 @@ describe("Daemon (PC-104)", () => {
     ];
     expect(call[2]).toMatchObject({ detached: true, stdio: "ignore" });
     expect(result.path).toContain("control.sock");
+    expect(result.client).toBeTruthy();
+    // Held connection pins idle-exit (FR-05).
+    const status = await result.client.request({
+      v: PROTOCOL_VERSION,
+      op: "status",
+      id: "held",
+    });
+    expect(status.ok).toBe(true);
+  });
+
+  it("held ensureDaemon client blocks idle-exit until close (spawn-then-delayed-message)", async () => {
+    const runtimeDir = await tempRuntime();
+    let exited = false;
+    const daemon = new Daemon({
+      runtimeDir,
+      idleMs: 80,
+      onIdleExit: () => {
+        exited = true;
+      },
+    });
+    await daemon.start();
+    cleanups.push(async () => daemon.shutdown());
+
+    const ensured = await ensureDaemonRunning({ runtimeDir, probeTimeoutMs: 500 });
+    cleanups.push(() => {
+      ensured.client.close();
+      return Promise.resolve();
+    });
+
+    await new Promise((r) => setTimeout(r, 200));
+    expect(exited).toBe(false);
+
+    // Delayed first message while connection held.
+    await ensured.client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "late" });
+    await new Promise((r) => setTimeout(r, 30));
+    expect(daemon.sessionCount).toBe(1);
+
+    ensured.client.close();
+    await daemon.shutdown();
   });
 });

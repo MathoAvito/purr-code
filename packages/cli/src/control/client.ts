@@ -54,9 +54,21 @@ export function connectWithRetry(options: ConnectWithRetryOptions): Promise<net.
   });
 }
 
+/** Await kernel accept of a write (avoids destroy-before-flush message loss). */
+export function writeFully(socket: net.Socket, data: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    socket.write(data, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
+
 export type ControlPipeClientOptions = {
   path: string;
   connectWithRetry?: typeof connectWithRetry;
+  /** Default connect timeout for {@link ControlPipeClient.ensureConnected}. */
+  connectTimeoutMs?: number;
 };
 
 /**
@@ -67,6 +79,7 @@ export type ControlPipeClientOptions = {
 export class ControlPipeClient {
   private readonly path: string;
   private readonly connectFn: typeof connectWithRetry;
+  private readonly connectTimeoutMs: number;
   private socket: net.Socket | null = null;
   private buffer = "";
   private readonly pending = new Map<
@@ -77,19 +90,27 @@ export class ControlPipeClient {
   constructor(options: ControlPipeClientOptions) {
     this.path = options.path;
     this.connectFn = options.connectWithRetry ?? connectWithRetry;
+    this.connectTimeoutMs = options.connectTimeoutMs ?? 5000;
   }
 
-  async ensureConnected(): Promise<net.Socket> {
+  get pathName(): string {
+    return this.path;
+  }
+
+  async ensureConnected(timeoutMs = this.connectTimeoutMs): Promise<net.Socket> {
     if (this.socket && !this.socket.destroyed) return this.socket;
-    const socket = await this.connectFn({ path: this.path });
+    const socket = await this.connectFn({ path: this.path, timeoutMs });
     this.attach(socket);
     return socket;
   }
 
-  /** Fire-and-forget: write and do not wait for a reply. */
+  /**
+   * Fire-and-forget: write and wait until the kernel has accepted the bytes
+   * (so a subsequent {@link close} cannot drop the message).
+   */
   async send(message: ControlRequest): Promise<void> {
     const socket = await this.ensureConnected();
-    socket.write(encodeControlMessage(message));
+    await writeFully(socket, encodeControlMessage(message));
   }
 
   /** Request/response: wait for a matching `id` reply. */
@@ -118,7 +139,11 @@ export class ControlPipeClient {
         },
       });
 
-      socket.write(encodeControlMessage(withId));
+      void writeFully(socket, encodeControlMessage(withId)).catch((err: unknown) => {
+        this.pending.delete(id);
+        clearTimeout(timer);
+        reject(err instanceof Error ? err : new Error("write failed"));
+      });
     });
   }
 
@@ -127,8 +152,9 @@ export class ControlPipeClient {
       p.reject(new Error("client closed"));
     }
     this.pending.clear();
-    this.socket?.destroy();
+    const socket = this.socket;
     this.socket = null;
+    socket?.destroy();
   }
 
   private attach(socket: net.Socket): void {
@@ -145,6 +171,8 @@ export class ControlPipeClient {
       }
     });
     socket.on("close", () => {
+      // Ignore stale close from a previous socket after reconnect.
+      if (this.socket !== socket) return;
       this.socket = null;
       for (const [, p] of this.pending) {
         p.reject(new Error("socket closed"));
