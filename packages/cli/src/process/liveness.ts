@@ -96,19 +96,45 @@ function readLinuxSnapshot(pid: number): ProcessSnapshot | null {
   }
 }
 
+function psArgsForPid(pid: number): string[] {
+  return ["-o", "pid=,state=,lstart=", "-p", String(pid)];
+}
+
+function stdoutFromExecError(err: unknown): string {
+  if (!err || typeof err !== "object" || !("stdout" in err)) return "";
+  const stdout = Reflect.get(err, "stdout");
+  if (typeof stdout === "string") return stdout;
+  if (Buffer.isBuffer(stdout)) return stdout.toString("utf8");
+  return "";
+}
+
 /**
  * Sync single-pid `ps` — for hook one-shot only. Prefer
  * {@link readProcessSnapshots} on daemon hot paths.
  */
 function readPsSnapshotSync(pid: number): ProcessSnapshot | null {
   try {
-    const out = execFileSync("ps", ["-o", "pid=,state=,lstart=", "-p", String(pid)], {
+    const out = execFileSync("ps", psArgsForPid(pid), {
       encoding: "utf8",
       timeout: 2_000,
     });
     return parsePsPidStateLstart(out).get(pid) ?? null;
-  } catch {
-    return null;
+  } catch (err) {
+    return parsePsPidStateLstart(stdoutFromExecError(err)).get(pid) ?? null;
+  }
+}
+
+/** Async single-pid `ps` — used for darwin/BSD batching (one spawn per PID). */
+async function readPsSnapshotAsync(pid: number): Promise<ProcessSnapshot | null> {
+  try {
+    const { stdout } = await execFileAsync("ps", psArgsForPid(pid), {
+      encoding: "utf8",
+      timeout: 2_000,
+      maxBuffer: 64 * 1024,
+    });
+    return parsePsPidStateLstart(stdout).get(pid) ?? null;
+  } catch (err) {
+    return parsePsPidStateLstart(stdoutFromExecError(err)).get(pid) ?? null;
   }
 }
 
@@ -174,25 +200,16 @@ export async function readProcessSnapshots(
     return map;
   }
 
-  // darwin / other Unix — single async ps (exec-form, no shell).
-  // BSD/macOS `ps` exits non-zero when *any* listed PID is missing, but still
-  // prints survivors on stdout — always parse stdout from success *and* error.
-  let stdout = "";
-  try {
-    const result = await execFileAsync(
-      "ps",
-      ["-o", "pid=,state=,lstart=", "-p", unique.join(",")],
-      { encoding: "utf8", timeout: 2_000, maxBuffer: 256 * 1024 },
-    );
-    stdout = result.stdout;
-  } catch (err) {
-    if (err && typeof err === "object" && "stdout" in err && typeof err.stdout === "string") {
-      stdout = err.stdout;
-    }
-  }
-  for (const [pid, snap] of parsePsPidStateLstart(stdout)) {
-    map.set(pid, snap);
-  }
+  // darwin / other Unix: one async `ps` per PID (exec-form, no shell).
+  // Multi-pid `-p a,b` is unreliable on macOS when any target is missing
+  // (exit non-zero and often no usable survivor output), so we parallelize
+  // single-pid queries instead of one fragile batch spawn.
+  await Promise.all(
+    unique.map(async (pid) => {
+      const snap = await readPsSnapshotAsync(pid);
+      if (snap) map.set(pid, snap);
+    }),
+  );
   return map;
 }
 
