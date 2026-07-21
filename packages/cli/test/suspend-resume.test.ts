@@ -55,7 +55,13 @@ describe.skipIf(!isUnix)("suspend/resume turn-state (PC-207)", () => {
       }
       await waitExit(child).catch(() => undefined);
     }
-    while (cleanups.length) await cleanups.pop()?.();
+    while (cleanups.length) {
+      try {
+        await cleanups.pop()?.();
+      } catch {
+        /* ignore cleanup races */
+      }
+    }
   });
 
   async function sleep(ms: number): Promise<void> {

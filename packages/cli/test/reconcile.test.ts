@@ -60,7 +60,13 @@ describe("Daemon reconciliation (PC-203)", () => {
   const cleanups: Array<() => Promise<void>> = [];
 
   afterEach(async () => {
-    while (cleanups.length) await cleanups.pop()?.();
+    while (cleanups.length) {
+      try {
+        await cleanups.pop()?.();
+      } catch {
+        /* ignore cleanup races */
+      }
+    }
   });
 
   async function sleep(ms: number): Promise<void> {

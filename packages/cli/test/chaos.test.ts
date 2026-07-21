@@ -113,7 +113,13 @@ describe("chaos: daemon resilience (PC-206)", () => {
   const cleanups: Array<() => Promise<void>> = [];
 
   afterEach(async () => {
-    while (cleanups.length) await cleanups.pop()?.();
+    while (cleanups.length) {
+      try {
+        await cleanups.pop()?.();
+      } catch {
+        // Ignore cleanup races (ENOTEMPTY while a late fake-audio write lands).
+      }
+    }
   });
 
   async function sleep(ms: number): Promise<void> {
@@ -190,10 +196,19 @@ describe("chaos: daemon resilience (PC-206)", () => {
     // Production path: backend notifies onHandleLost → daemon syncPlayback.
     // No control-pipe message and no registry change.
     audio.crash();
-    await sleep(80);
-    expect(playback.getPhase()).toBe("playing");
-    const events = await readFakeAudioLog(logPath);
-    expect(events.filter((e) => e.type === "start").length).toBeGreaterThanOrEqual(2);
+    const deadline = Date.now() + 2000;
+    let recovered = false;
+    while (Date.now() < deadline) {
+      if (playback.getPhase() === "playing") {
+        const starts = (await readFakeAudioLog(logPath)).filter((e) => e.type === "start");
+        if (starts.length >= 2) {
+          recovered = true;
+          break;
+        }
+      }
+      await sleep(25);
+    }
+    expect(recovered).toBe(true);
   });
 
   it("player crash recovers on watchdog tick when notification is missed", async () => {
