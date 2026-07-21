@@ -83,13 +83,22 @@ export type {
 
 export {
   Daemon,
+  DEFAULT_WATCHDOG_INTERVAL_MS,
+  applyWatchdogTick,
   ensureDaemonRunning,
   pidfilePath,
   readPidfile,
   removePidfile,
   writePidfile,
 } from "./daemon/index.js";
-export type { DaemonOptions, EnsureDaemonOptions, EnsureDaemonResult } from "./daemon/index.js";
+export type {
+  ApplyWatchdogOptions,
+  DaemonOptions,
+  EnsureDaemonOptions,
+  EnsureDaemonResult,
+  WatchdogClassify,
+  WatchdogTickResult,
+} from "./daemon/index.js";
 
 export { PlaybackController, SessionRegistry } from "./session/index.js";
 export type {

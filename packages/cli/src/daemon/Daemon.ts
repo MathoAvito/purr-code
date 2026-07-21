@@ -1,4 +1,5 @@
 import { writePidfile, removePidfile } from "./pidfile.js";
+import { applyWatchdogTick, type WatchdogClassify } from "./watchdog.js";
 import {
   ControlPipeServer,
   type ControlMessageHandler,
@@ -14,6 +15,10 @@ import {
   writeRegistrySnapshot,
 } from "../session/snapshot.js";
 import type { AudioBackend } from "../audio/types.js";
+import type { ClassifyOptions } from "../process/liveness.js";
+
+/** Default watchdog cadence — proven ≤5 s fade bound in ADR 0006. */
+export const DEFAULT_WATCHDOG_INTERVAL_MS = 2000;
 
 export type DaemonOptions = {
   runtimeDir?: string | undefined;
@@ -35,12 +40,21 @@ export type DaemonOptions = {
    * Production omits this so the per-user SID names the pipe.
    */
   windowsPipeSuffix?: string | undefined;
+  /**
+   * Watchdog poll interval in ms (PC-202). Default 2000; set `0` to disable.
+   * Allowed range for production cadence is 2–5 s; tests may use shorter.
+   */
+  watchdogIntervalMs?: number | undefined;
+  /** Inject classifier (tests). */
+  watchdogClassify?: WatchdogClassify | undefined;
+  /** Extra classify options (tests). */
+  watchdogClassifyOptions?: ClassifyOptions | undefined;
 };
 
 /**
- * Per-user player daemon (PC-104 + PC-105).
+ * Per-user player daemon (PC-104 + PC-105 + PC-202).
  * Bind-as-mutex listen, pidfile, connection-pinned idle-exit, session registry,
- * and refcount playback state machine.
+ * refcount playback, and state-aware PID watchdog.
  */
 export class Daemon {
   private readonly idleMs: number;
@@ -49,10 +63,14 @@ export class Daemon {
   private readonly userOnMessage: ControlMessageHandler | undefined;
   private readonly registry: SessionRegistry;
   private readonly playback: PlaybackController | null;
+  private readonly watchdogIntervalMs: number;
+  private readonly watchdogClassify: WatchdogClassify | undefined;
+  private readonly watchdogClassifyOptions: ClassifyOptions | undefined;
   private bootAt = 0;
   private lastActivityAt = 0;
   private connections = 0;
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
+  private watchdogTimer: ReturnType<typeof setInterval> | null = null;
   private server: ControlPipeServer | null = null;
   private runtimeDir = "";
   private pipePath = "";
@@ -62,6 +80,11 @@ export class Daemon {
   private readonly bootOptions: DaemonOptions;
   /** Resolves when snapshot restore (+ playback) has finished; handlers await this. */
   private bootReady: Promise<void> = Promise.resolve();
+  /**
+   * Serializes registry + playback mutations so the watchdog never races the
+   * control-pipe handler (and ticks never block the pipe accept loop).
+   */
+  private mutationChain: Promise<void> = Promise.resolve();
 
   constructor(options: DaemonOptions = {}) {
     this.idleMs = options.idleMs ?? 1500;
@@ -75,6 +98,12 @@ export class Daemon {
       (options.audioBackend
         ? new PlaybackController({ backend: options.audioBackend, fadeOutMs: 50, fadeInMs: 0 })
         : null);
+    this.watchdogIntervalMs =
+      options.watchdogIntervalMs === undefined
+        ? DEFAULT_WATCHDOG_INTERVAL_MS
+        : options.watchdogIntervalMs;
+    this.watchdogClassify = options.watchdogClassify;
+    this.watchdogClassifyOptions = options.watchdogClassifyOptions;
   }
 
   get connectionCount(): number {
@@ -144,6 +173,7 @@ export class Daemon {
     writePidfile(this.runtimeDir, process.pid);
     this.bootReady = this.restoreSnapshot();
     await this.bootReady;
+    this.startWatchdog();
     this.armIdleTimer();
     return result;
   }
@@ -157,7 +187,7 @@ export class Daemon {
     const live = filterLiveSessions(loaded.snapshot.sessions);
     this.registry.replaceAll(live);
     if (live.length > 0 && this.playback) {
-      await this.playback.onActiveCount(live.length);
+      await this.playback.onActiveCount(this.registry.playbackCount());
     }
   }
 
@@ -173,10 +203,59 @@ export class Daemon {
     }, 50);
   }
 
+  private startWatchdog(): void {
+    if (this.watchdogIntervalMs <= 0) return;
+    if (this.watchdogTimer) return;
+    // Schedule on the event loop; the tick itself is enqueued so it never
+    // stalls the control-pipe accept/read path (PC-202).
+    this.watchdogTimer = setInterval(() => {
+      void this.enqueueMutation(() => this.runWatchdogTick());
+    }, this.watchdogIntervalMs);
+    // Unref so the timer alone cannot keep the process alive after idle-exit.
+    this.watchdogTimer.unref?.();
+  }
+
+  private stopWatchdog(): void {
+    if (this.watchdogTimer) {
+      clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+  }
+
+  /** Exposed for tests — run one watchdog pass under the mutation lock. */
+  async runWatchdogOnce(): Promise<void> {
+    await this.enqueueMutation(() => this.runWatchdogTick());
+  }
+
+  private async runWatchdogTick(): Promise<void> {
+    if (this.shuttingDown) return;
+    const result = applyWatchdogTick(this.registry, {
+      platform: this.bootOptions.platform ?? process.platform,
+      ...(this.watchdogClassify !== undefined ? { classify: this.watchdogClassify } : {}),
+      ...(this.watchdogClassifyOptions !== undefined
+        ? { classifyOptions: this.watchdogClassifyOptions }
+        : {}),
+    });
+    if (!result.changed) return;
+    await this.playback?.onActiveCount(this.registry.playbackCount());
+    this.scheduleSnapshot();
+    this.armIdleTimer();
+  }
+
+  private enqueueMutation<T>(fn: () => Promise<T>): Promise<T> {
+    const run = this.mutationChain.then(fn, fn);
+    this.mutationChain = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
+
   async shutdown(reason = "shutdown"): Promise<void> {
     if (this.shuttingDown) return;
     this.shuttingDown = true;
     void reason;
+    this.stopWatchdog();
     if (this.idleTimer) {
       clearTimeout(this.idleTimer);
       this.idleTimer = null;
@@ -208,50 +287,57 @@ export class Daemon {
 
   private async handleMessage(message: ControlRequest) {
     await this.bootReady;
-    this.touchActivity();
+    return this.enqueueMutation(async () => {
+      this.touchActivity();
 
-    if (message.op === "shutdown") {
-      setTimeout(() => {
-        void this.shutdown("message");
-      }, 0);
-      return { ok: true, result: { shuttingDown: true } };
-    }
+      if (message.op === "shutdown") {
+        setTimeout(() => {
+          void this.shutdown("message");
+        }, 0);
+        return { ok: true, result: { shuttingDown: true } };
+      }
 
-    if (message.op === "status") {
-      return {
-        ok: true,
-        result: {
-          pid: process.pid,
-          bootAt: this.bootAt,
-          lastActivityAt: this.lastActivityAt,
-          connections: this.connections,
-          sessions: this.registry.size,
-          phase: this.playback?.getPhase() ?? "idle",
-        },
-      };
-    }
+      if (message.op === "status") {
+        return {
+          ok: true,
+          result: {
+            pid: process.pid,
+            bootAt: this.bootAt,
+            lastActivityAt: this.lastActivityAt,
+            connections: this.connections,
+            sessions: this.registry.size,
+            playbackSessions: this.registry.playbackCount(),
+            phase: this.playback?.getPhase() ?? "idle",
+          },
+        };
+      }
 
-    if (message.op === "start") {
-      const { activeCount } = this.registry.start({
-        sessionId: message.sessionId,
-        ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
-        ...(message.starttime !== undefined ? { starttime: message.starttime } : {}),
-      });
-      await this.playback?.onActiveCount(activeCount);
-      this.scheduleSnapshot();
-      this.armIdleTimer();
-    } else if (message.op === "stop" || message.op === "failure" || message.op === "session-end") {
-      this.registry.touch(message.sessionId);
-      const { activeCount } = this.registry.stop(message.sessionId);
-      await this.playback?.onActiveCount(activeCount);
-      this.scheduleSnapshot();
-      this.armIdleTimer();
-    }
+      if (message.op === "start") {
+        const { activeCount } = this.registry.start({
+          sessionId: message.sessionId,
+          ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
+          ...(message.starttime !== undefined ? { starttime: message.starttime } : {}),
+        });
+        await this.playback?.onActiveCount(activeCount);
+        this.scheduleSnapshot();
+        this.armIdleTimer();
+      } else if (
+        message.op === "stop" ||
+        message.op === "failure" ||
+        message.op === "session-end"
+      ) {
+        this.registry.touch(message.sessionId);
+        const { activeCount } = this.registry.stop(message.sessionId);
+        await this.playback?.onActiveCount(activeCount);
+        this.scheduleSnapshot();
+        this.armIdleTimer();
+      }
 
-    if (this.userOnMessage) {
-      return this.userOnMessage(message);
-    }
-    return { ok: true };
+      if (this.userOnMessage) {
+        return this.userOnMessage(message);
+      }
+      return { ok: true };
+    });
   }
 
   private touchActivity(): void {

@@ -20,12 +20,12 @@
 
 **As a** user who pressed Esc, hit Ctrl+Z, or closed the terminal, **I want** the purr to stop promptly even though no stop event fired (§8, RR-04).
 
-- [ ] Every 2–5 s the daemon classifies each session's `claudePid`.
-- [ ] **Dead** → remove session; if active count hits zero, fade out. End-to-end bound: fade starts ≤ 5 s after owner death.
-- [ ] **Suspended** → mark session *paused* (not removed); when no non-paused sessions remain, fade out. On return to running with the turn still open, fade back in.
-- [ ] Watchdog ticks are cheap (no subprocess spawn per tick where avoidable) and never block the control pipe.
-- [ ] Integration tests (fake backend, real child processes standing in for Claude): owner-kill ≤ 5 s fade; SIGSTOP → pause within one cycle → SIGCONT → resume; one-suspended-one-running keeps purring.
-- [ ] **PC-009:** Esc/kill fire **no** Stop (ADR 0001) — this loop is the **primary** abandoned-turn cleanup path, not a backup. Tests must cover owner death with zero stop/failure events.
+- [x] Every 2–5 s the daemon classifies each session's `claudePid`.
+- [x] **Dead** → remove session; if active count hits zero, fade out. End-to-end bound: fade starts ≤ 5 s after owner death.
+- [x] **Suspended** → mark session *paused* (not removed); when no non-paused sessions remain, fade out. On return to running with the turn still open, fade back in.
+- [x] Watchdog ticks are cheap (no subprocess spawn per tick where avoidable) and never block the control pipe.
+- [x] Integration tests (fake backend, real child processes standing in for Claude): owner-kill ≤ 5 s fade; SIGSTOP → pause within one cycle → SIGCONT → resume; one-suspended-one-running keeps purring.
+- [x] **PC-009:** Esc/kill fire **no** Stop (ADR 0001) — this loop is the **primary** abandoned-turn cleanup path, not a backup. Tests must cover owner death with zero stop/failure events.
 
 ## PC-203 — Stale-session TTL & event-driven reconciliation (3 pts, E4)
 
