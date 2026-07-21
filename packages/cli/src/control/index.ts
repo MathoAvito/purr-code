@@ -40,4 +40,5 @@ export {
   ControlPipeServer,
   type ControlMessageHandler,
   type ControlPipeServerOptions,
+  type ListenResult,
 } from "./server.js";

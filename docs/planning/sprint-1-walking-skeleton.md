@@ -38,11 +38,11 @@
 
 **As the** system, **I want** exactly one healthy daemon per user **so that** concurrency is serialized in one place with no lock choreography (FR-05).
 
-- [ ] Fully detached spawn (new session, stdio ignored) per PC-003 findings; pidfile in runtime dir.
-- [ ] **Socket bind is the spawn mutex:** loser of a spawn race detects the live socket and becomes a client (RR-05).
-- [ ] **Cold-start guard:** activity clock initialized to boot time; idle-exit never evaluated while any client connection is open; idle-exit requires zero sessions + zero connections + grace period (FR-05 lifecycle).
-- [ ] Clean shutdown on `shutdown` message and SIGTERM: fade out, snapshot, remove socket + pidfile.
-- [ ] Integration tests: parallel spawn race; spawn-then-delayed-message must not self-terminate (the PRD's named race).
+- [x] Fully detached spawn (new session, stdio ignored) per PC-003 findings; pidfile in runtime dir.
+- [x] **Socket bind is the spawn mutex:** loser of a spawn race detects the live socket and becomes a client (RR-05).
+- [x] **Cold-start guard:** activity clock initialized to boot time; idle-exit never evaluated while any client connection is open; idle-exit requires zero sessions + zero connections + grace period (FR-05 lifecycle).
+- [x] Clean shutdown on `shutdown` message and SIGTERM: fade out, snapshot, remove socket + pidfile.
+- [x] Integration tests: parallel spawn race; spawn-then-delayed-message must not self-terminate (the PRD's named race).
 
 ## PC-105 — Session registry & playback state machine (5 pts, E3)
 

@@ -75,6 +75,17 @@ export type {
   ControlRequest,
   ControlResponse,
   FireAndForgetOp,
+  ListenResult,
   RequestOp,
   ResolveControlPipeOptions,
 } from "./control/index.js";
+
+export {
+  Daemon,
+  ensureDaemonRunning,
+  pidfilePath,
+  readPidfile,
+  removePidfile,
+  writePidfile,
+} from "./daemon/index.js";
+export type { DaemonOptions, EnsureDaemonOptions, EnsureDaemonResult } from "./daemon/index.js";

@@ -33,7 +33,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 
 **Sprint 0 closed: go with platform-debt accepted** ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).
 
-- **Next:** Sprint 1 walking skeleton — **PC-104** (daemon core) after PC-103 ✅.
+- **Next:** Sprint 1 walking skeleton — **PC-105** (session registry) after PC-104 ✅.
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---
@@ -64,8 +64,8 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-101 | Fake audio backend | 3 | PC-008 | ✅ |
 | PC-102 | Runtime directory (hardened) | 2 | PC-008 | ✅ |
 | PC-103 | Control pipe & message protocol | 5 | PC-003, PC-102 | ✅ |
-| PC-104 | Daemon core: lifecycle, races | 5 | PC-103 | 🔵 |
-| PC-105 | Session registry & state machine | 5 | PC-104, PC-101 | ⬜ |
+| PC-104 | Daemon core: lifecycle, races | 5 | PC-103 | ✅ |
+| PC-105 | Session registry & state machine | 5 | PC-104, PC-101 | 🔵 |
 | PC-106 | Snapshot & corruption recovery | 2 | PC-105 | ⬜ |
 | PC-107 | Hook adapter | 5 | PC-001, PC-002, PC-104 | ⬜ |
 | PC-108 | Debug logging | 2 | PC-107 | ⬜ |
