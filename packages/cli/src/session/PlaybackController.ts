@@ -17,10 +17,10 @@ export type PlaybackControllerOptions = {
  */
 export class PlaybackController {
   private readonly backend: AudioBackend;
-  private readonly soundPath: string;
-  private readonly volume: number;
-  private readonly fadeInMs: number;
-  private readonly fadeOutMs: number;
+  private soundPath: string;
+  private volume: number;
+  private fadeInMs: number;
+  private fadeOutMs: number;
   private phase: PlaybackPhase = "idle";
   private handle: PlayerHandle | null = null;
   private stopChain: Promise<void> = Promise.resolve();
@@ -38,6 +38,19 @@ export class PlaybackController {
 
   getPhase(): PlaybackPhase {
     return this.phase;
+  }
+
+  /** Hot-reload fade/volume/sound from config (PC-204). */
+  applySettings(settings: {
+    volume?: number;
+    fadeInMs?: number;
+    fadeOutMs?: number;
+    soundPath?: string;
+  }): void {
+    if (settings.volume !== undefined) this.volume = settings.volume;
+    if (settings.fadeInMs !== undefined) this.fadeInMs = settings.fadeInMs;
+    if (settings.fadeOutMs !== undefined) this.fadeOutMs = settings.fadeOutMs;
+    if (settings.soundPath !== undefined) this.soundPath = settings.soundPath;
   }
 
   /**

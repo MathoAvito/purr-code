@@ -40,10 +40,10 @@
 
 **As the** system, **I want** persistent user configuration with the FR-06 defaults **so that** volume/sound/toggles survive restarts and future versions can migrate.
 
-- [ ] Config file in the user data directory with FR-06 defaults (`enabled`, `sound`, `volume`, `fadeInMs`, `fadeOutMs`, `staleSessionMinutes`) and `schemaVersion` from day one.
-- [ ] Atomic writes; refuses to follow unexpected symlinks (§13); unknown keys preserved on rewrite.
-- [ ] Validation with per-field fallback to defaults on invalid values (never crash, never hook-visible).
-- [ ] Daemon watches/reloads config on `set-config` messages so changes apply to the current loop.
+- [x] Config file in the user data directory with FR-06 defaults (`enabled`, `sound`, `volume`, `fadeInMs`, `fadeOutMs`, `staleSessionMinutes`) and `schemaVersion` from day one.
+- [x] Atomic writes; refuses to follow unexpected symlinks (§13); unknown keys preserved on rewrite.
+- [x] Validation with per-field fallback to defaults on invalid values (never crash, never hook-visible).
+- [x] Daemon watches/reloads config on `set-config` messages so changes apply to the current loop.
 
 ## PC-205 — Perceptual volume model (3 pts, E5)
 

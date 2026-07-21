@@ -34,7 +34,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 **Sprint 0 closed:** go with platform-debt accepted ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).  
 **Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).
 
-- **In progress:** Sprint 2 reliability on branch `sprint-2-reliability` — next story **PC-204** (configuration store).
+- **In progress:** Sprint 2 reliability on branch `sprint-2-reliability` — next story **PC-205** (perceptual volume model).
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---
@@ -79,7 +79,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-201 | Process liveness classification | 5 | PC-002 | ✅ |
 | PC-202 | Watchdog loop | 5 | PC-201, PC-105 | ✅ |
 | PC-203 | Stale TTL & reconciliation | 3 | PC-202 | ✅ |
-| PC-204 | Configuration store & schema | 3 | PC-008 | ⬜ |
+| PC-204 | Configuration store & schema | 3 | PC-008 | ✅ |
 | PC-205 | Perceptual volume model | 3 | PC-101 | ⬜ |
 | PC-206 | Failure-injection & chaos pass | 5 | PC-109, PC-202 | ⬜ |
 | PC-207 | Suspend/resume turn-state | 3 | PC-202 | ⬜ |

@@ -1,5 +1,5 @@
 import { writePidfile, removePidfile } from "./pidfile.js";
-import { DEFAULT_STALE_SESSION_MS, reconcileRegistry, type ReconcileResult } from "./reconcile.js";
+import { reconcileRegistry, type ReconcileResult } from "./reconcile.js";
 import type { WatchdogClassify } from "./watchdog.js";
 import {
   ControlPipeServer,
@@ -13,6 +13,12 @@ import { PlaybackController } from "../session/PlaybackController.js";
 import { loadRegistrySnapshot, writeRegistrySnapshot } from "../session/snapshot.js";
 import type { AudioBackend } from "../audio/types.js";
 import type { ClassifyOptions } from "../process/liveness.js";
+import {
+  applyConfigPatch,
+  loadConfig,
+  type PurrCodeConfig,
+  type ResolveConfigDirOptions,
+} from "../config/index.js";
 
 /** Default watchdog cadence — proven ≤5 s fade bound in ADR 0006. */
 export const DEFAULT_WATCHDOG_INTERVAL_MS = 2000;
@@ -47,10 +53,14 @@ export type DaemonOptions = {
   /** Extra classify options (tests). */
   watchdogClassifyOptions?: ClassifyOptions | undefined;
   /**
-   * Stale-session TTL in ms (PC-203 / RR-04.2). Default 10 minutes.
-   * Set `0` to disable TTL GC (liveness still runs).
+   * Stale-session TTL in ms (PC-203 / RR-04.2). Default from config
+   * (`staleSessionMinutes` × 60s) or 10 minutes. Set `0` to disable TTL GC.
    */
   staleSessionMs?: number | undefined;
+  /** Config directory resolution overrides (PC-204 tests). */
+  configDir?: ResolveConfigDirOptions | undefined;
+  /** Inject initial config (tests); skips disk load when set. */
+  config?: PurrCodeConfig | undefined;
 };
 
 /**
@@ -66,7 +76,9 @@ export class Daemon {
   private readonly registry: SessionRegistry;
   private readonly playback: PlaybackController | null;
   private readonly watchdogIntervalMs: number;
-  private readonly staleSessionMs: number;
+  private staleSessionMs: number;
+  private config: PurrCodeConfig;
+  private readonly configDirOptions: ResolveConfigDirOptions;
   private readonly watchdogClassify: WatchdogClassify | undefined;
   private readonly watchdogClassifyOptions: ClassifyOptions | undefined;
   private bootAt = 0;
@@ -95,20 +107,40 @@ export class Daemon {
     this.onIdleExit = options.onIdleExit;
     this.userOnMessage = options.onMessage;
     this.bootOptions = options;
+    this.configDirOptions = {
+      ...(options.platform !== undefined ? { platform: options.platform } : {}),
+      ...(options.env !== undefined ? { env: options.env } : {}),
+      ...options.configDir,
+    };
+    this.config =
+      options.config ??
+      loadConfig({ ...this.configDirOptions, writeDefaultsIfMissing: false }).config;
     this.registry = options.registry ?? new SessionRegistry({ now: this.now });
     this.playback =
       options.playback ??
       (options.audioBackend
-        ? new PlaybackController({ backend: options.audioBackend, fadeOutMs: 50, fadeInMs: 0 })
+        ? new PlaybackController({
+            backend: options.audioBackend,
+            volume: this.config.volume,
+            fadeInMs: this.config.fadeInMs,
+            fadeOutMs: this.config.fadeOutMs,
+            soundPath: `fake://${this.config.sound}`,
+          })
         : null);
     this.watchdogIntervalMs =
       options.watchdogIntervalMs === undefined
         ? DEFAULT_WATCHDOG_INTERVAL_MS
         : options.watchdogIntervalMs;
     this.staleSessionMs =
-      options.staleSessionMs === undefined ? DEFAULT_STALE_SESSION_MS : options.staleSessionMs;
+      options.staleSessionMs === undefined
+        ? this.config.staleSessionMinutes * 60_000
+        : options.staleSessionMs;
     this.watchdogClassify = options.watchdogClassify;
     this.watchdogClassifyOptions = options.watchdogClassifyOptions;
+  }
+
+  getConfig(): PurrCodeConfig {
+    return this.config;
   }
 
   get connectionCount(): number {
@@ -192,8 +224,8 @@ export class Daemon {
     // Load raw snapshot, then full liveness+TTL reconcile before playback (PC-203).
     this.registry.replaceAll(loaded.snapshot.sessions);
     this.reconcileInPlace();
-    if (this.registry.playbackCount() > 0 && this.playback) {
-      await this.playback.onActiveCount(this.registry.playbackCount());
+    if (this.effectivePlaybackCount() > 0 && this.playback) {
+      await this.syncPlayback();
     }
   }
 
@@ -237,9 +269,18 @@ export class Daemon {
     if (this.shuttingDown) return;
     const result = this.reconcileInPlace();
     if (!result.changed) return;
-    await this.playback?.onActiveCount(this.registry.playbackCount());
+    await this.syncPlayback();
     this.scheduleSnapshot();
     this.armIdleTimer();
+  }
+
+  private effectivePlaybackCount(): number {
+    if (!this.config.enabled) return 0;
+    return this.registry.playbackCount();
+  }
+
+  private async syncPlayback(): Promise<void> {
+    await this.playback?.onActiveCount(this.effectivePlaybackCount());
   }
 
   /** Liveness + stale TTL over the full registry (PC-203). */
@@ -310,7 +351,17 @@ export class Daemon {
         return { ok: true, result: { shuttingDown: true } };
       }
 
-      if (message.op === "start") {
+      if (message.op === "set-config") {
+        const { config } = applyConfigPatch(this.config, message.config, this.configDirOptions);
+        this.config = config;
+        this.staleSessionMs = config.staleSessionMinutes * 60_000;
+        this.playback?.applySettings({
+          volume: config.volume,
+          fadeInMs: config.fadeInMs,
+          fadeOutMs: config.fadeOutMs,
+          soundPath: `fake://${config.sound}`,
+        });
+      } else if (message.op === "start") {
         this.registry.start({
           sessionId: message.sessionId,
           ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
@@ -327,13 +378,14 @@ export class Daemon {
 
       // PC-203: every incoming message reconciles *all* sessions (liveness + TTL).
       const reconciled = this.reconcileInPlace();
-      await this.playback?.onActiveCount(this.registry.playbackCount());
+      await this.syncPlayback();
       if (
         reconciled.changed ||
         message.op === "start" ||
         message.op === "stop" ||
         message.op === "failure" ||
-        message.op === "session-end"
+        message.op === "session-end" ||
+        message.op === "set-config"
       ) {
         this.scheduleSnapshot();
       }
@@ -350,8 +402,13 @@ export class Daemon {
             sessions: this.registry.size,
             playbackSessions: this.registry.playbackCount(),
             phase: this.playback?.getPhase() ?? "idle",
+            enabled: this.config.enabled,
           },
         };
+      }
+
+      if (message.op === "set-config") {
+        return { ok: true, result: { config: this.config } };
       }
 
       if (this.userOnMessage) {

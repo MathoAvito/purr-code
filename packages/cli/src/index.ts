@@ -124,6 +124,19 @@ export { parseHookStdin, readStarttimeToken, runHook, shouldSuppressHooks } from
 export type { HookEventName, HookPayload, ParseHookResult, RunHookOptions } from "./hook/index.js";
 
 export {
+  CONFIG_SCHEMA_VERSION,
+  DEFAULT_CONFIG,
+  applyConfigPatch,
+  loadConfig,
+  mergeConfig,
+  normalizeConfig,
+  resolveConfigDirPath,
+  resolveConfigFilePath,
+  writeConfig,
+} from "./config/index.js";
+export type { LoadConfigResult, PurrCodeConfig, ResolveConfigDirOptions } from "./config/index.js";
+
+export {
   classifyProcess,
   parseLinuxStat,
   primaryStateLetter,

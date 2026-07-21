@@ -10,6 +10,8 @@ import { join } from "node:path";
 
 import { expect } from "vitest";
 
+import { DEFAULT_CONFIG, normalizeConfig, type PurrCodeConfig } from "../../src/config/index.js";
+
 export type TestControlEndpoint = {
   path: string;
   kind: "uds" | "named-pipe";
@@ -61,20 +63,31 @@ export function expectPlatformControlPath(path: string): void {
 
 /**
  * Options to pass into Daemon / ensureDaemonRunning so Windows tests do not
- * collide on the production SID pipe.
+ * collide on the production SID pipe, and config never reads the developer's
+ * real `~/.config/purrcode` (PC-204).
  */
 export function daemonIsolationOptions(runtimeDir: string): {
   runtimeDir: string;
   windowsPipeSuffix?: string;
   env?: NodeJS.ProcessEnv;
+  configDir: { home: string; platform: NodeJS.Platform; env: NodeJS.ProcessEnv };
+  config: PurrCodeConfig;
 } {
+  const configDir = {
+    home: runtimeDir,
+    platform: process.platform,
+    env: {} as NodeJS.ProcessEnv,
+  };
+  const config = normalizeConfig({ ...DEFAULT_CONFIG });
   if (process.platform !== "win32") {
-    return { runtimeDir };
+    return { runtimeDir, configDir, config };
   }
   const windowsPipeSuffix = uniqueWindowsPipeSuffix("d");
   return {
     runtimeDir,
     windowsPipeSuffix,
     env: { ...process.env, PURRCODE_WINDOWS_PIPE_SUFFIX: windowsPipeSuffix },
+    configDir,
+    config,
   };
 }
