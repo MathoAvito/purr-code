@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs";
-
 import { MAX_MESSAGE_BYTES } from "../control/protocol.js";
+
+export { readStarttimeToken } from "../process/liveness.js";
 
 export type HookEventName = "start" | "stop" | "failure" | "session-end";
 
@@ -61,16 +61,4 @@ export function shouldSuppressHooks(env: NodeJS.ProcessEnv = process.env): boole
   if (env.CLAUDE_CODE_REMOTE === "true") return true;
   if (env.CLAUDE_CODE_ENTRYPOINT === "sdk-cli") return true;
   return false;
-}
-
-export function readStarttimeToken(pid: number): string | undefined {
-  try {
-    // Linux: field 22 of /proc/<pid>/stat. Best-effort; macOS uses lstart elsewhere (PC-201).
-    const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
-    const closeParen = stat.lastIndexOf(")");
-    const rest = stat.slice(closeParen + 2).split(" ");
-    return rest[19]; // starttime
-  } catch {
-    return undefined;
-  }
 }

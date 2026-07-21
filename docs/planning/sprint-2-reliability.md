@@ -10,11 +10,11 @@
 
 **As the** watchdog, **I want** a per-platform module classifying a PID as running / suspended / dead **so that** state-aware decisions (RR-04.1) rest on tested primitives.
 
-- [ ] Linux: parse `/proc/[pid]/stat` state field (handles comm names containing spaces/parens); `T` = suspended; **`Z`/`X` = dead** (zombie/dead — do not treat as alive; ADR 0006 amends ADR 0002).
-- [ ] macOS: `ps -o state= -p <pid>`; `T` = suspended.
-- [ ] Windows: existence-only per PC-002 findings.
-- [ ] PID-reuse guard: identity is **`(pid, starttime)`** per ADR 0002 — required, not optional.
-- [ ] Unit tests with real child processes: spawn, SIGSTOP, SIGCONT, kill — assert classification at each step (Unix); existence checks on Windows. Include a zombie-state fixture on Linux (`Z` → dead).
+- [x] Linux: parse `/proc/[pid]/stat` state field (handles comm names containing spaces/parens); `T` = suspended; **`Z`/`X` = dead** (zombie/dead — do not treat as alive; ADR 0006 amends ADR 0002).
+- [x] macOS: `ps -o state= -p <pid>`; `T` = suspended.
+- [x] Windows: existence-only per PC-002 findings.
+- [x] PID-reuse guard: identity is **`(pid, starttime)`** per ADR 0002 — required, not optional.
+- [x] Unit tests with real child processes: spawn, SIGSTOP, SIGCONT, kill — assert classification at each step (Unix); existence checks on Windows. Include a zombie-state fixture on Linux (`Z` → dead).
 
 ## PC-202 — Watchdog loop (5 pts, E4)
 

@@ -111,6 +111,19 @@ export { parseHookStdin, readStarttimeToken, runHook, shouldSuppressHooks } from
 export type { HookEventName, HookPayload, ParseHookResult, RunHookOptions } from "./hook/index.js";
 
 export {
+  classifyProcess,
+  parseLinuxStat,
+  primaryStateLetter,
+  readProcessSnapshot,
+} from "./process/index.js";
+export type {
+  ClassifyOptions,
+  ProcessIdentity,
+  ProcessLiveness,
+  ProcessSnapshot,
+} from "./process/index.js";
+
+export {
   PURRCODE_LOG_ENV,
   debugLog,
   defaultDebugLogPath,
