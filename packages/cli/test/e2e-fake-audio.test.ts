@@ -36,6 +36,30 @@ describe("e2e fake-audio (PC-109)", () => {
     await new Promise((r) => setTimeout(r, ms));
   }
 
+  /** Poll fake-audio log until the lifecycle subsequence appears (avoids Windows timing flakes). */
+  async function waitForLifecycle(
+    logPath: string,
+    expected: Array<"start" | "fade-start" | "fade-cancel" | "stop">,
+    timeoutMs = 2000,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let last = "(empty)";
+    while (Date.now() < deadline) {
+      const events = await readFakeAudioLog(logPath);
+      const relevant = events.filter((e) =>
+        ["start", "fade-start", "fade-cancel", "stop"].includes(e.type),
+      );
+      last = relevant.map((e) => e.type).join(" → ") || "(empty)";
+      try {
+        assertContainsSequence(relevant, expected);
+        return;
+      } catch {
+        await sleep(25);
+      }
+    }
+    throw new Error(`Timed out waiting for [${expected.join(" → ")}]; last seen [${last}]`);
+  }
+
   async function harness(options: { fadeOutMs?: number } = {}): Promise<{
     runtimeDir: string;
     logPath: string;
@@ -72,40 +96,22 @@ describe("e2e fake-audio (PC-109)", () => {
   it("start → stop fades out", async () => {
     const { client, logPath } = await harness();
     await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "s1" });
-    await sleep(30);
     await client.send({ v: PROTOCOL_VERSION, op: "stop", sessionId: "s1" });
-    await sleep(100);
-    const events = await readFakeAudioLog(logPath);
-    assertContainsSequence(
-      events.filter((e) => ["start", "fade-start", "stop"].includes(e.type)),
-      ["start", "fade-start", "stop"],
-    );
+    await waitForLifecycle(logPath, ["start", "fade-start", "stop"]);
   });
 
   it("start → failure fades out", async () => {
     const { client, logPath } = await harness();
     await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "s1" });
-    await sleep(20);
     await client.send({ v: PROTOCOL_VERSION, op: "failure", sessionId: "s1" });
-    await sleep(100);
-    const events = await readFakeAudioLog(logPath);
-    assertContainsSequence(
-      events.filter((e) => ["start", "fade-start", "stop"].includes(e.type)),
-      ["start", "fade-start", "stop"],
-    );
+    await waitForLifecycle(logPath, ["start", "fade-start", "stop"]);
   });
 
   it("start → session-end fades out", async () => {
     const { client, logPath } = await harness();
     await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "s1" });
-    await sleep(20);
     await client.send({ v: PROTOCOL_VERSION, op: "session-end", sessionId: "s1" });
-    await sleep(100);
-    const events = await readFakeAudioLog(logPath);
-    assertContainsSequence(
-      events.filter((e) => ["start", "fade-start", "stop"].includes(e.type)),
-      ["start", "fade-start", "stop"],
-    );
+    await waitForLifecycle(logPath, ["start", "fade-start", "stop"]);
   });
 
   it("two sessions: one stop continues; final stop fades", async () => {
