@@ -31,9 +31,10 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 
 ## What to start right now
 
-**Sprint 0 closed: go with platform-debt accepted** ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).
+**Sprint 0 closed:** go with platform-debt accepted ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).  
+**Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).
 
-- **Next:** Sprint 2 reliability — **PC-201** (process liveness classification). Sprint 1 walking skeleton is complete on `sprint-1-walking-skeleton`.
+- **Next:** Sprint 2 reliability — **PC-201** (process liveness classification).
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---
