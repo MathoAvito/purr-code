@@ -40,17 +40,48 @@ export class PlaybackController {
     return this.phase;
   }
 
-  /** Hot-reload fade/volume/sound from config (PC-204). */
-  applySettings(settings: {
+  /**
+   * Hot-reload fade/volume/sound from config (PC-204).
+   *
+   * Volume is pushed to a live handle via {@link AudioBackend.setVolume} when
+   * the backend supports runtime volume (fake / sidecar / mpv). Tier-3 may omit
+   * `setVolume` — then the new level applies on the next `play()` only.
+   * Fail-open: backend `setVolume` errors never throw out of this method.
+   */
+  async applySettings(settings: {
     volume?: number;
     fadeInMs?: number;
     fadeOutMs?: number;
     soundPath?: string;
-  }): void {
+  }): Promise<void> {
+    const volumeChanged = settings.volume !== undefined && settings.volume !== this.volume;
     if (settings.volume !== undefined) this.volume = settings.volume;
     if (settings.fadeInMs !== undefined) this.fadeInMs = settings.fadeInMs;
     if (settings.fadeOutMs !== undefined) this.fadeOutMs = settings.fadeOutMs;
     if (settings.soundPath !== undefined) this.soundPath = settings.soundPath;
+
+    if (volumeChanged) {
+      await this.pushVolumeToBackend();
+    }
+  }
+
+  /**
+   * Apply {@link volume} to the current player handle when one exists.
+   * Waits out an in-flight fade-in so we don't miss a handle that is about to appear.
+   */
+  private async pushVolumeToBackend(): Promise<void> {
+    if (!this.backend.setVolume) return;
+    if (this.phase === "fading-in") {
+      await this.playChain;
+    }
+    const handle = this.handle;
+    if (!handle) return;
+    if (this.phase !== "playing" && this.phase !== "fading-in") return;
+    try {
+      await this.backend.setVolume(handle, this.volume);
+    } catch {
+      // fail-open — keep the in-memory level for the next play()
+    }
   }
 
   /**
