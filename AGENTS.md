@@ -47,9 +47,9 @@ Set `PURRCODE_FAKE_AUDIO=1` to use the fake audio backend (story PC-101): it imp
 3. **No new runtime dependencies** without a linked issue approving them. Dev dependencies need a reason in the PR.
 4. **All child processes in exec form** (argument arrays). Never shell-interpolated strings, never `eval`, never `npx` in anything a hook executes.
 5. **Treat hook stdin as untrusted:** schema-validate, size-cap, never interpolate its fields into shell commands or paths.
-6. **Never modify** release workflows (`.github/workflows/` publish/release files), `sounds/` audio assets, or licensing files (`ASSETS.md`, `LICENSE`) — human-gated per CODEOWNERS.
+6. **Never modify** release workflows (`.github/workflows/` publish/release files), `sounds/` audio assets, or licensing files (`ASSETS.md`, `LICENSE`) — human-gated per CODEOWNERS. Audio provenance/credits live in [`ASSETS.md`](ASSETS.md).
 7. **No prompt/transcript access.** Never read, store, or log prompt text, responses, tool inputs, or repository contents in runtime code or logs.
-8. Agents may not contribute audio assets and may not sign the DCO on a human's behalf.
+8. Agents may not contribute audio assets and may not sign the DCO on a human's behalf. (Humans may instruct an agent to *place* an already-sourced, license-verified file the human provides — still update `ASSETS.md` in the same commit.)
 
 ## Conventions
 

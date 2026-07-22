@@ -1,10 +1,10 @@
 # 0004 — Tier-1 audio sidecar: miniaudio (C) selected
 
-- **Status:** Accepted — Linux x64 + macOS arm64 PoCs built; Windows build unpaid (PC-301)
-- **Date:** 2026-07-18 (macOS rerun 2026-07-19)
-- **Story:** PC-004
+- **Status:** Accepted — amended PC-301 (production protocol, OGG via stb_vorbis, CI builds)
+- **Date:** 2026-07-18 (macOS rerun 2026-07-19; PC-301 amendment 2026-07-22)
+- **Story:** PC-004 / PC-301
 - **macOS evidence:** [macos-rerun-20260719.md](../planning/reviews/macos-rerun-20260719.md) · `spikes/pc-004-audio-sidecar/evidence/macos-20260719/`
-- **PRD refs:** §11.3 (tier-1 backend) / §20 rows 5, 10 / §12 (distribution)
+- **PRD refs:** §11.3 (tier-1 backend) / FR-07 / §20 rows 5, 10 / §12 (distribution)
 
 ## Question
 
@@ -56,16 +56,22 @@ in [`spikes/pc-004-audio-sidecar/`](../../spikes/pc-004-audio-sidecar/README.md)
   PC-008 matrix already provides native macOS/Linux/Windows runners, so no
   cross-compilation is needed at all), dlopen'd backends degrade cleanly, and
   the null backend gives CI/agents a real playback path without hardware.
-- **Control protocol: stdin line protocol, not a socket.** Commands
-  `LOAD <path>` / `PLAY` / `VOLUME <0-100>` (perceptual; cubic amplitude map
-  as placeholder until PC-205) / `FADEOUT <ms>` / `QUIT`; JSON events on
-  stdout. The daemon owns the pipe: no naming, no permissions surface, and
-  stdin EOF doubles as orphan cleanup — the sidecar exits when its daemon
-  dies. (Verified: PoC exits on EOF.)
-- **OGG note for PC-301:** miniaudio decodes WAV/FLAC/MP3 natively but *not*
-  Vorbis; OGG support means vendoring `stb_vorbis.c` (~single file, ~+100 KB)
-  or shipping WAV-only assets for MVP. Decide in PC-301 with the PC-305 asset
-  format; either fits the size budget.
+- **Control protocol: newline-delimited JSON on stdin, JSON events on stdout
+  (not a socket).** Production (PC-301) replaced the PoC's text tokens with
+  NDJSON so the Node adapter and C sidecar share one schema:
+  `{"cmd":"load"|"play"|"volume"|"fadeout"|"quit"|"stats",...}`.
+  **`volume` carries linear amplitude `[0,1]`** — the
+  `SidecarAudioBackend` applies the PC-205 perceptual→amplitude map once;
+  the sidecar never sees the 0–100 perceptual scale (avoids double-mapping).
+  `fadeout` is non-blocking and emits `stopped` (process stays alive) so
+  fade-cancel can resume; `quit` / stdin EOF still exit for orphan safety.
+- **OGG (PC-301 decision): vendor `stb_vorbis`.** FR-07 keeps bundled
+  OGG/WAV; PC-305 ships `sounds/sleepy.{ogg,wav}`; tier-1 plays the original
+  (OGG preferred). Pin miniaudio **0.11.25** + its `extras/stb_vorbis.c`.
+  Disable MP3/FLAC/generation. Linux x64 stripped size ≈ **557 KB** (under
+  the soft 900 KB budget). WAV remains for FR-08 cache / tier-3.
+  **Rejected for MVP:** WAV-only sidecar (would force FR-07 amendment and
+  block OGG-as-primary).
 - Rejected: rodio (build friction + size floor, no offsetting advantage
   here); shipping a socket protocol for the sidecar (needless surface when
   the daemon already owns the process); dynamic-link-time audio deps
@@ -73,18 +79,15 @@ in [`spikes/pc-004-audio-sidecar/`](../../spikes/pc-004-audio-sidecar/README.md)
 
 ## Consequences
 
-- Backlog impact (flag for PC-009):
-  - PC-301 (production sidecar): port the PoC's protocol and looping/ramp
-    structure; add stb_vorbis or WAV-only decision; build in CI natively per
-    platform (macos arm64 + x64 via `-arch`, ubuntu x64, windows x64), strip,
-    checksum.
-  - PC-101 (fake backend): mirror the event vocabulary
-    (ready/loaded/playing/volume/fadeout/exiting) so integration tests
-    exercise the same shapes.
-  - PC-205 (perceptual volume): replace the PoC's cubic curve with the real
-    model; the ramp mechanism stays.
-- PRD impact: none — §11.3 tier-1 assumptions confirmed.
-- macOS arm64 (2026-07-19): stripped **325 632 B**, Null + **Core Audio**,
-  `gapless: true`, fadeout→exiting clean. No `-ldl` on the link line.
-- Follow-ups: Windows (and macOS x64 if needed) CI builds at PC-301; human
-  audio QA of loop/fade quality at PC-309.
+- Backlog impact:
+  - PC-301 ✅ production sidecar under `packages/sidecar/` + per-platform
+    `optionalDependencies`; CI `sidecar-*` jobs build from source and publish
+    `SHA256SUMS` artifacts (no postinstall).
+  - PC-101 fake backend vocabulary extended with `stopped` / `error` / `stats`.
+  - PC-205 applied inside `SidecarAudioBackend` (not the C binary).
+  - PC-302+ detection consumes `SidecarAudioBackend.detect()`.
+- PRD impact: none — FR-07 OGG/WAV retained; §11.3 tier-1 confirmed.
+- macOS arm64 (2026-07-19 PoC): stripped **325 632 B** WAV-only; production
+  binary grows with stb_vorbis (still a few hundred KB).
+- Follow-ups: human audio QA of loop/fade quality at PC-309; npm publish of
+  platform packages lands with Sprint 4 release pipeline (PC-407).

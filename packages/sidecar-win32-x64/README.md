@@ -1,7 +1,13 @@
-# @purrcode/sidecar-win32-x64
+# `@purrcode/sidecar-win32-x64`
 
-Placeholder for the prebuilt tier-1 audio sidecar binary (win32/x64).
+Prebuilt tier-1 audio sidecar for **win32/x64** (PC-301 / ADR 0004).
 
-The real binary is selected in spike PC-004 and built in CI from source in
-PC-301, distributed esbuild-style via `optionalDependencies` — no postinstall
-scripts (PRD §11.3, §20).
+Distributed as an npm `optionalDependency` of `purr-code` — **no postinstall**.
+Binaries are built in CI from source with published `SHA256SUMS`.
+
+Local rebuild (Git Bash or PowerShell):
+
+```bash
+bash packages/sidecar/scripts/build.sh
+# or: powershell packages/sidecar/scripts/build.ps1
+```

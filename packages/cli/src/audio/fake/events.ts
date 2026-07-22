@@ -17,8 +17,9 @@ export const FAKE_AUDIO_EVENT_TYPES = [
 
 export type FakeAudioEventType = (typeof FAKE_AUDIO_EVENT_TYPES)[number];
 
-/** Sidecar stdout event names from the PC-004 PoC. */
-export type SidecarEventName = "ready" | "loaded" | "playing" | "volume" | "fadeout" | "exiting";
+/** Sidecar stdout event names (PC-004 PoC + PC-301 production protocol). */
+export type SidecarEventName =
+  "ready" | "loaded" | "playing" | "volume" | "fadeout" | "stopped" | "stats" | "exiting" | "error";
 
 type FakeAudioEventBase = {
   /** Unix epoch milliseconds. */

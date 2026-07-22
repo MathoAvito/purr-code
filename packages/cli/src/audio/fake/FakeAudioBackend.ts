@@ -98,6 +98,7 @@ export class FakeAudioBackend implements AudioBackend {
   static fromEnv(env: NodeJS.ProcessEnv = process.env): FakeAudioBackend {
     return new FakeAudioBackend({
       logPath: resolveFakeAudioLogPath(env),
+      enabled: isFakeAudioEnabled(env),
     });
   }
 

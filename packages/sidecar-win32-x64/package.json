@@ -2,12 +2,17 @@
   "name": "@purrcode/sidecar-win32-x64",
   "version": "0.0.0",
   "private": true,
-  "description": "PurrCode tier-1 audio sidecar binary for win32/x64 (placeholder \u2014 lands with PC-301)",
+  "description": "PurrCode tier-1 audio sidecar binary for win32/x64 (PC-301)",
   "license": "MIT",
   "os": [
     "win32"
   ],
   "cpu": [
     "x64"
+  ],
+  "files": [
+    "bin",
+    "SHA256SUMS",
+    "README.md"
   ]
 }

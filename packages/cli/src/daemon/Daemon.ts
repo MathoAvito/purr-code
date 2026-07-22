@@ -11,7 +11,8 @@ import type { ControlRequest } from "../control/protocol.js";
 import { SessionRegistry } from "../session/SessionRegistry.js";
 import { PlaybackController } from "../session/PlaybackController.js";
 import { loadRegistrySnapshot, writeRegistrySnapshot } from "../session/snapshot.js";
-import type { AudioBackend } from "../audio/types.js";
+import type { AudioBackend, BackendCapabilities, PlayerHandle } from "../audio/types.js";
+import type { BackendProbe } from "../audio/detect.js";
 import type { ClassifyOptions } from "../process/liveness.js";
 import {
   applyConfigPatch,
@@ -19,6 +20,9 @@ import {
   type PurrCodeConfig,
   type ResolveConfigDirOptions,
 } from "../config/index.js";
+import { clampPerceptualVolume } from "../audio/perceptual.js";
+import { isFakeAudioEnabled } from "../audio/fake/index.js";
+import { resolveBundledSoundPath } from "../audio/wavCache.js";
 
 /** Default watchdog cadence — proven ≤5 s fade bound in ADR 0006. */
 export const DEFAULT_WATCHDOG_INTERVAL_MS = 2000;
@@ -36,6 +40,10 @@ export type DaemonOptions = {
   onIdleExit?: (() => void) | undefined;
   /** When set, drives fade/play from session refcount (PC-105). */
   audioBackend?: AudioBackend | undefined;
+  /** Selected backend capabilities (PC-302); exposed via status. */
+  backendCapabilities?: BackendCapabilities | undefined;
+  /** Detection probes from selectAudioBackend (PC-302 / doctor). */
+  backendProbes?: BackendProbe[] | undefined;
   registry?: SessionRegistry | undefined;
   playback?: PlaybackController | undefined;
   /**
@@ -75,6 +83,8 @@ export class Daemon {
   private readonly userOnMessage: ControlMessageHandler | undefined;
   private readonly registry: SessionRegistry;
   private readonly playback: PlaybackController | null;
+  private readonly backendCapabilities: BackendCapabilities | null;
+  private readonly backendProbes: BackendProbe[];
   private readonly watchdogIntervalMs: number;
   private staleSessionMs: number;
   private config: PurrCodeConfig;
@@ -97,6 +107,9 @@ export class Daemon {
   private handleLostUnsub: (() => void) | null = null;
   /** Resolves when snapshot restore (+ playback) has finished; handlers await this. */
   private bootReady: Promise<void> = Promise.resolve();
+  /** Active CLI preview handle (PC-306); independent of session refcount. */
+  private previewHandle: PlayerHandle | null = null;
+  private previewTimer: ReturnType<typeof setTimeout> | null = null;
   /**
    * Serializes registry + playback mutations so the watchdog never races the
    * control-pipe handler (and ticks never block the pipe accept loop).
@@ -126,9 +139,11 @@ export class Daemon {
             volume: this.config.volume,
             fadeInMs: this.config.fadeInMs,
             fadeOutMs: this.config.fadeOutMs,
-            soundPath: `fake://${this.config.sound}`,
+            soundPath: resolveDaemonSoundPath(this.config.sound, this.configDirOptions.env),
           })
         : null);
+    this.backendCapabilities = options.backendCapabilities ?? null;
+    this.backendProbes = options.backendProbes ?? [];
     this.watchdogIntervalMs =
       options.watchdogIntervalMs === undefined
         ? DEFAULT_WATCHDOG_INTERVAL_MS
@@ -343,6 +358,7 @@ export class Daemon {
       clearTimeout(this.snapshotTimer);
       this.snapshotTimer = null;
     }
+    await this.stopPreview();
     // Persist sessions *before* clearing so a restart can recover (PC-106).
     // Idle-exit already has an empty registry, so this writes [].
     try {
@@ -384,8 +400,15 @@ export class Daemon {
           volume: config.volume,
           fadeInMs: config.fadeInMs,
           fadeOutMs: config.fadeOutMs,
-          soundPath: `fake://${config.sound}`,
+          soundPath: resolveDaemonSoundPath(config.sound, this.configDirOptions.env),
         });
+      } else if (message.op === "volume") {
+        const value = clampPerceptualVolume(message.value);
+        const { config } = applyConfigPatch(this.config, { volume: value }, this.configDirOptions);
+        this.config = config;
+        await this.playback?.applySettings({ volume: config.volume });
+      } else if (message.op === "preview") {
+        await this.runPreview(message.sound, message.durationMs);
       } else if (message.op === "start") {
         this.registry.start({
           sessionId: message.sessionId,
@@ -410,13 +433,15 @@ export class Daemon {
         message.op === "stop" ||
         message.op === "failure" ||
         message.op === "session-end" ||
-        message.op === "set-config"
+        message.op === "set-config" ||
+        message.op === "volume"
       ) {
         this.scheduleSnapshot();
       }
       this.armIdleTimer();
 
       if (message.op === "status") {
+        const paused = this.registry.list().filter((s) => s.paused).length;
         return {
           ok: true,
           result: {
@@ -426,8 +451,13 @@ export class Daemon {
             connections: this.connections,
             sessions: this.registry.size,
             playbackSessions: this.registry.playbackCount(),
+            pausedSessions: paused,
             phase: this.playback?.getPhase() ?? "idle",
             enabled: this.config.enabled,
+            sound: this.config.sound,
+            volume: this.config.volume,
+            backend: this.backendCapabilities,
+            backendProbes: this.backendProbes,
           },
         };
       }
@@ -436,11 +466,58 @@ export class Daemon {
         return { ok: true, result: { config: this.config } };
       }
 
+      if (message.op === "volume") {
+        return { ok: true, result: { volume: this.config.volume } };
+      }
+
+      if (message.op === "preview") {
+        const sound = message.sound && message.sound.length > 0 ? message.sound : this.config.sound;
+        return { ok: true, result: { previewing: true, sound } };
+      }
+
       if (this.userOnMessage) {
         return this.userOnMessage(message);
       }
       return { ok: true };
     });
+  }
+
+  /** Play selected (or named) sound for a few seconds via the daemon backend (PC-306). */
+  private async runPreview(soundName?: string, durationMs = 10_000): Promise<void> {
+    const backend = this.bootOptions.audioBackend;
+    if (!backend) return;
+    await this.stopPreview();
+    const sound = soundName && soundName.length > 0 ? soundName : this.config.sound;
+    // Preview floors volume so default 20 (−48 dB linear) is not inaudible on QA.
+    const previewVolume = Math.max(this.config.volume, 50);
+    const handle = await backend.play({
+      soundPath: resolveDaemonSoundPath(sound, this.configDirOptions.env),
+      volume: previewVolume,
+      fadeInMs: 0,
+    });
+    this.previewHandle = handle;
+    const ms = Number.isFinite(durationMs) ? Math.max(100, Math.min(120_000, durationMs)) : 10_000;
+    this.previewTimer = setTimeout(() => {
+      void this.stopPreview();
+    }, ms);
+  }
+
+  private async stopPreview(): Promise<void> {
+    if (this.previewTimer) {
+      clearTimeout(this.previewTimer);
+      this.previewTimer = null;
+    }
+    const handle = this.previewHandle;
+    this.previewHandle = null;
+    if (handle) {
+      const backend = this.bootOptions.audioBackend;
+      try {
+        await backend?.stop(handle, 0);
+      } catch {
+        // fail-open
+      }
+    }
+    this.armIdleTimer();
   }
 
   private touchActivity(): void {
@@ -455,10 +532,18 @@ export class Daemon {
     if (this.shuttingDown) return;
     if (this.connections > 0) return;
     if (this.registry.size > 0) return;
+    if (this.previewHandle) return;
 
     this.idleTimer = setTimeout(() => {
       this.idleTimer = null;
-      if (this.connections > 0 || this.registry.size > 0 || this.shuttingDown) return;
+      if (
+        this.connections > 0 ||
+        this.registry.size > 0 ||
+        this.previewHandle ||
+        this.shuttingDown
+      ) {
+        return;
+      }
       const idleFor = this.now() - this.lastActivityAt;
       if (idleFor < this.idleMs) {
         this.armIdleTimer();
@@ -467,4 +552,15 @@ export class Daemon {
       void this.shutdown("idle").then(() => this.onIdleExit?.());
     }, this.idleMs);
   }
+}
+
+/** Sound URI/path for the active backend: fake:// under PURRCODE_FAKE_AUDIO, else bundled file. */
+export function resolveDaemonSoundPath(
+  sound: string,
+  env: NodeJS.ProcessEnv | undefined = process.env,
+): string {
+  if (isFakeAudioEnabled(env)) {
+    return `fake://${sound}`;
+  }
+  return resolveBundledSoundPath(sound).preferred;
 }

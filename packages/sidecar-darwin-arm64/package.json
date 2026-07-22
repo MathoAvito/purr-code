@@ -2,12 +2,17 @@
   "name": "@purrcode/sidecar-darwin-arm64",
   "version": "0.0.0",
   "private": true,
-  "description": "PurrCode tier-1 audio sidecar binary for darwin/arm64 (placeholder \u2014 lands with PC-301)",
+  "description": "PurrCode tier-1 audio sidecar binary for darwin/arm64 (PC-301)",
   "license": "MIT",
   "os": [
     "darwin"
   ],
   "cpu": [
     "arm64"
+  ],
+  "files": [
+    "bin",
+    "SHA256SUMS",
+    "README.md"
   ]
 }

@@ -2,6 +2,8 @@
 # - fork PRs run on the plain `pull_request` trigger only (never pull_request_target)
 # - zero secrets available to PR workflows; least-privilege permissions
 # - every action pinned to an immutable commit SHA
+#
+# Sidecar builds (PC-301): native compile per OS, checksummed artifacts, no postinstall.
 name: CI
 
 on:
@@ -43,3 +45,73 @@ jobs:
       - run: pnpm e2e:fake-audio
         env:
           PURRCODE_FAKE_AUDIO: "1"
+
+  sidecar:
+    name: sidecar-${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            runner: ubuntu-latest
+            os: linux
+            arch: x64
+          - target: darwin-arm64
+            runner: macos-latest
+            os: darwin
+            arch: arm64
+          - target: darwin-x64
+            runner: macos-latest
+            os: darwin
+            arch: x64
+          - target: win32-x64
+            runner: windows-latest
+            os: win32
+            arch: x64
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Fetch vendored headers
+        shell: bash
+        run: bash packages/sidecar/scripts/fetch-vendor.sh
+
+      - name: Build sidecar (Unix)
+        if: matrix.os != 'win32'
+        shell: bash
+        env:
+          TARGET_OS: ${{ matrix.os }}
+          TARGET_ARCH: ${{ matrix.arch }}
+        run: bash packages/sidecar/scripts/build.sh
+
+      - name: Build sidecar (Windows)
+        if: matrix.os == 'win32'
+        shell: bash
+        env:
+          TARGET_OS: win32
+          TARGET_ARCH: x64
+        run: bash packages/sidecar/scripts/build.sh
+
+      - name: Verify checksum file
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg="packages/sidecar-${{ matrix.target }}"
+          test -f "$pkg/SHA256SUMS"
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd "$pkg" && sha256sum -c SHA256SUMS)
+          else
+            (cd "$pkg" && shasum -a 256 -c SHA256SUMS)
+          fi
+          echo "Checksum OK for ${{ matrix.target }}:"
+          cat "$pkg/SHA256SUMS"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: purr-sidecar-${{ matrix.target }}
+          path: |
+            packages/sidecar-${{ matrix.target }}/bin/**
+            packages/sidecar-${{ matrix.target }}/SHA256SUMS
+          if-no-files-found: error

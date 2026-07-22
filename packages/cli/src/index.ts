@@ -42,6 +42,44 @@ export type {
   SidecarEventName,
 } from "./audio/fake/index.js";
 export {
+  SidecarAudioBackend,
+  PURRCODE_SIDECAR_BIN_ENV,
+  PURRCODE_SIDECAR_NULL_ENV,
+  encodeSidecarCommand,
+  parseSidecarEventLine,
+  resolveSidecarBinaryPath,
+  sidecarPackageName,
+} from "./audio/sidecar/index.js";
+export type {
+  SidecarAudioBackendOptions,
+  SidecarCommand,
+  SidecarEvent,
+  SidecarProtocolEventName,
+} from "./audio/sidecar/index.js";
+export { NoneAudioBackend } from "./audio/none/NoneAudioBackend.js";
+export { MpvAudioBackend } from "./audio/mpv/index.js";
+export type { MpvAudioBackendOptions } from "./audio/mpv/index.js";
+export { NativeAudioBackend, defaultResolvePlayer } from "./audio/native/index.js";
+export type { NativeAudioBackendOptions, NativePlayer } from "./audio/native/index.js";
+export {
+  ensureWavCache,
+  isWavFile,
+  sanitizeSoundName,
+  resolveBundledSoundPath,
+} from "./audio/wavCache.js";
+export { resolveDataDirPath, resolveSoundsDirPath } from "./audio/dataDir.js";
+export {
+  selectAudioBackend,
+  detectMpvPresent,
+  detectNativePresent,
+  isOnPath,
+} from "./audio/detect.js";
+export type {
+  BackendProbe,
+  SelectAudioBackendOptions,
+  SelectedAudioBackend,
+} from "./audio/detect.js";
+export {
   applyVolumeForTier,
   clampPerceptualVolume,
   interpolatePerceptualVolume,

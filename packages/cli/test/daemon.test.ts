@@ -65,6 +65,36 @@ describe("Daemon (PC-104)", () => {
     expect(status.result).toMatchObject({ pid: process.pid, sessions: 0 });
   });
 
+  it("status exposes selected backend capabilities (PC-302)", async () => {
+    const { FakeAudioBackend } = await import("../src/audio/fake/index.js");
+    const runtimeDir = await tempRuntime();
+    const iso = daemonIsolationOptions(runtimeDir);
+    const audio = new FakeAudioBackend({
+      logPath: `${runtimeDir}/fake.jsonl`,
+      enabled: true,
+    });
+    const caps = await audio.detect();
+    const daemon = new Daemon({
+      ...iso,
+      idleMs: 60_000,
+      audioBackend: audio,
+      backendCapabilities: caps,
+      backendProbes: [{ tier: "fake", name: "fake", present: true }],
+    });
+    await daemon.start();
+    cleanups.push(async () => daemon.shutdown());
+    const client = new ControlPipeClient({ path: daemon.controlPath });
+    cleanups.push(() => {
+      client.close();
+      return Promise.resolve();
+    });
+    const status = await client.request({ v: PROTOCOL_VERSION, op: "status", id: "be" });
+    expect(status.result).toMatchObject({
+      backend: { tier: "fake", available: true, loop: true, fade: true, runtimeVolume: true },
+      backendProbes: [{ tier: "fake", present: true }],
+    });
+  });
+
   it("socket bind is the spawn mutex — second listener loses the race", async () => {
     const runtimeDir = await tempRuntime();
     const iso = daemonIsolationOptions(runtimeDir);

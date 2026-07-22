@@ -14,7 +14,10 @@
     "lint:fix": "eslint . --fix && prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "e2e:fake-audio": "vitest run packages/cli/test/e2e-fake-audio.test.ts"
+    "e2e:fake-audio": "vitest run packages/cli/test/e2e-fake-audio.test.ts",
+    "sidecar:fetch-vendor": "pnpm --filter @purrcode/sidecar fetch-vendor",
+    "sidecar:build": "pnpm --filter @purrcode/sidecar build",
+    "e2e:sidecar": "vitest run packages/cli/test/e2e-sidecar.test.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

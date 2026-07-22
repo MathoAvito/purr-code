@@ -1,7 +1,12 @@
-# @purrcode/sidecar-darwin-arm64
+# `@purrcode/sidecar-darwin-arm64`
 
-Placeholder for the prebuilt tier-1 audio sidecar binary (darwin/arm64).
+Prebuilt tier-1 audio sidecar for **darwin/arm64** (PC-301 / ADR 0004).
 
-The real binary is selected in spike PC-004 and built in CI from source in
-PC-301, distributed esbuild-style via `optionalDependencies` — no postinstall
-scripts (PRD §11.3, §20).
+Distributed as an npm `optionalDependency` of `purr-code` — **no postinstall**.
+Binaries are built in CI from source with published `SHA256SUMS`.
+
+Local rebuild:
+
+```bash
+pnpm --filter @purrcode/sidecar build
+```
