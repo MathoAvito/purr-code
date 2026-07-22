@@ -1,0 +1,167 @@
+# PC-407 — releases from tags only (§23.3 / §13).
+# Never triggered by pull_request. Behind the protected `release` environment.
+#
+# Human prep (PC-409): create GitHub Environment `release` (main-only + required
+# reviewers), configure npm Trusted Publisher for this workflow, then tag vX.Y.Z
+# on main after `changeset version`.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-sidecars:
+    name: sidecar-${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            runner: ubuntu-latest
+            os: linux
+            arch: x64
+          - target: darwin-arm64
+            runner: macos-latest
+            os: darwin
+            arch: arm64
+          - target: darwin-x64
+            runner: macos-latest
+            os: darwin
+            arch: x64
+          - target: win32-x64
+            runner: windows-latest
+            os: win32
+            arch: x64
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Fetch vendored headers
+        shell: bash
+        run: bash packages/sidecar/scripts/fetch-vendor.sh
+
+      - name: Build sidecar
+        shell: bash
+        env:
+          TARGET_OS: ${{ matrix.os }}
+          TARGET_ARCH: ${{ matrix.arch }}
+        run: bash packages/sidecar/scripts/build.sh
+
+      - name: Verify checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg="packages/sidecar-${{ matrix.target }}"
+          test -f "$pkg/SHA256SUMS"
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd "$pkg" && sha256sum -c SHA256SUMS)
+          else
+            (cd "$pkg" && shasum -a 256 -c SHA256SUMS)
+          fi
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: purr-sidecar-${{ matrix.target }}
+          path: |
+            packages/sidecar-${{ matrix.target }}/bin/**
+            packages/sidecar-${{ matrix.target }}/SHA256SUMS
+          if-no-files-found: error
+
+  publish:
+    name: publish
+    needs: build-sidecars
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Download sidecar artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          path: sidecar-artifacts
+          pattern: purr-sidecar-*
+          merge-multiple: false
+
+      - name: Restore sidecar packages from artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for target in linux-x64 darwin-arm64 darwin-x64 win32-x64; do
+            src="sidecar-artifacts/purr-sidecar-${target}"
+            dst="packages/sidecar-${target}"
+            mkdir -p "$dst/bin"
+            cp -a "$src"/. "$dst"/
+            test -f "$dst/SHA256SUMS"
+          done
+
+      - name: Build CLI + plugin marketplace
+        run: pnpm plugin:build
+
+      - name: Publish to npm (provenance)
+        env:
+          NPM_CONFIG_PROVENANCE: "true"
+          # Trusted Publisher / OIDC: empty token forces OIDC path (see changesets#1152).
+          NODE_AUTH_TOKEN: ""
+          NPM_TOKEN: ""
+        run: |
+          set -euo pipefail
+          pnpm --filter "@purrcode/sidecar-*" publish --access public --no-git-checks
+          pnpm --filter purr-code publish --access public --no-git-checks
+
+      - name: GitHub Release with checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          notes="$(mktemp)"
+          {
+            echo "## PurrCode ${tag}"
+            echo
+            echo "npm: \`purr-code\` + platform sidecar optionalDependencies (provenance attached)."
+            echo
+            echo "### Sidecar checksums"
+            echo
+            for target in linux-x64 darwin-arm64 darwin-x64 win32-x64; do
+              echo "#### ${target}"
+              echo '```'
+              cat "packages/sidecar-${target}/SHA256SUMS"
+              echo '```'
+              echo
+            done
+          } >"$notes"
+          gh release create "$tag" \
+            --title "$tag" \
+            --notes-file "$notes" \
+            packages/sidecar-linux-x64/SHA256SUMS \
+            packages/sidecar-darwin-arm64/SHA256SUMS \
+            packages/sidecar-darwin-x64/SHA256SUMS \
+            packages/sidecar-win32-x64/SHA256SUMS \
+            packages/sidecar-linux-x64/bin/* \
+            packages/sidecar-darwin-arm64/bin/* \
+            packages/sidecar-darwin-x64/bin/* \
+            packages/sidecar-win32-x64/bin/*

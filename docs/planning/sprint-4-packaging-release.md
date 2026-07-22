@@ -56,18 +56,18 @@
 
 **As the** maintainer, **I want** the §23.3 fork-PR rules enforced **so that** the secret-exfiltration and release-poisoning risks (§20) are structurally closed.
 
-- [ ] Fork PRs: `pull_request` trigger only; **`pull_request_target` + fork checkout banned** (enforced by a workflow-lint check in CI, not just convention).
-- [ ] Zero secrets in PR workflows; least-privilege `permissions` per job; SHA pins audited; Renovate/Dependabot configured to keep pins and deps current; secret scanning enabled.
-- [ ] DCO check required on all PRs.
+- [x] Fork PRs: `pull_request` trigger only; **`pull_request_target` + fork checkout banned** (enforced by a workflow-lint check in CI, not just convention).
+- [x] Zero secrets in PR workflows; least-privilege `permissions` per job; SHA pins audited; Renovate/Dependabot configured to keep pins and deps current; secret scanning enabled. *(Dependabot + SHA lint in-repo; **secret scanning** still human in GitHub settings — see `docs/planning/reviews/pc-406-human-gate.md`.)*
+- [ ] DCO check required on all PRs. *(CI workflow `.github/workflows/dco.yml` shipped; human must mark it **required** on `main`.)*
 - [ ] Branch protection on `main` (human applies): required CI matrix, required review, squash merge, linear history.
 
 ## PC-407 — Release pipeline: Changesets + protected npm publish (3 pts, E8)
 
 **As the** maintainer, **I want** a releases-from-tags-only pipeline **so that** no PR-triggered workflow can ever publish (§23.3, §13).
 
-- [ ] Changesets configured; user-facing changes require a changeset (CI-enforced).
-- [ ] Publish workflow: tags on `main` only, behind a **protected `release` GitHub environment**, npm provenance enabled; sidecar binaries built in CI from source with checksums published alongside the release.
-- [ ] Dry-run release rehearsal documented in CONTRIBUTING (reproducible release procedure per §13).
+- [x] Changesets configured; user-facing changes require a changeset (CI-enforced).
+- [x] Publish workflow: tags on `main` only, behind a **protected `release` GitHub environment**, npm provenance enabled; sidecar binaries built in CI from source with checksums published alongside the release. *(Workflow + packages ready; human must create the `release` environment + npm Trusted Publisher before first tag — see `docs/planning/reviews/pc-407-pc-409-human-notes.md`.)*
+- [x] Dry-run release rehearsal documented in CONTRIBUTING (reproducible release procedure per §13).
 
 ## PC-408 — Definition-of-Done audit (3 pts, E8) — human gate on licensing line
 

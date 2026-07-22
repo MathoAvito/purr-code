@@ -20,9 +20,12 @@
     "e2e:sidecar": "vitest run packages/cli/test/e2e-sidecar.test.ts",
     "plugin:assemble": "pnpm --filter @purrcode/plugin assemble",
     "plugin:validate": "pnpm --filter @purrcode/plugin validate",
-    "plugin:build": "pnpm --filter @purrcode/plugin build"
+    "plugin:build": "pnpm --filter @purrcode/plugin build",
+    "changeset": "changeset",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.1",
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.1.1",
     "eslint": "^10.7.0",

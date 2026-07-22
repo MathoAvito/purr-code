@@ -1,12 +1,15 @@
 {
   "name": "purr-code",
   "version": "0.0.0",
-  "private": true,
   "description": "Claude Code purrs while working — hook adapter, CLI, and player daemon",
   "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

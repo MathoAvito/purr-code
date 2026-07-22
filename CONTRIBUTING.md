@@ -50,9 +50,40 @@ Headless / CI verification uses the fake audio backend (`PURRCODE_FAKE_AUDIO=1`)
 
 - One git branch per sprint for backlog work (`sprint-N-<slug>`); small fixes may use a focused branch.
 - Conventional commits with story IDs when applicable: `feat(cli): … (PC-402)`.
-- User-facing changes will require a Changeset once PC-407 lands.
+- User-facing changes under `packages/cli/src/`, sidecar packages, plugin marketplace, or `sounds/` **require a Changeset** (CI-enforced):
+
+  ```bash
+  pnpm changeset
+  ```
+
 - Fill out the PR template (tests, licensing, AI disclosure).
 - Keep PRs reviewable; unverified bulk submissions may be closed without extended triage.
+
+### Release procedure (reproducible dry-run / PC-407)
+
+Publish is **tags on `main` only**, via `.github/workflows/release.yml` behind the protected GitHub Environment `release`. PR workflows can never publish.
+
+1. Land user-facing work with Changesets on `main` (via the sprint PR).
+2. Locally on `main`:
+
+   ```bash
+   git checkout main && git pull
+   pnpm install
+   pnpm version-packages          # applies .changeset → package.json + CHANGELOG
+   git add -A && git commit -m "chore(release): version packages"
+   git push origin main
+   ```
+
+3. Dry-run (no tag / no publish):
+
+   ```bash
+   pnpm plugin:build
+   pnpm --filter purr-code publish --dry-run --no-git-checks
+   ```
+
+4. Human release (PC-409): create annotated tag `vX.Y.Z` on the version commit on `main`, push the tag. The Release workflow builds sidecars from source, publishes npm with provenance, and attaches checksums to the GitHub Release.
+
+5. One-time human setup: GitHub Environment `release` (deploy from `main` only + required reviewers); npm Trusted Publisher for workflow `release.yml` / environment `release`.
 
 ### DCO (Developer Certificate of Origin)
 

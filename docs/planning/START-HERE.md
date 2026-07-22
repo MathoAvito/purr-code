@@ -110,8 +110,8 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-403 | `purrcode uninstall` | 3 | PC-402 | ✅ |
 | PC-404 | Community health files | 3 | — | ✅ |
 | PC-405 | AGENTS.md + CLAUDE.md | 2 | PC-404 | ✅ |
-| PC-406 | CI security hardening & DCO | 3 | PC-008 | 🚧 |
-| PC-407 | Release pipeline (Changesets) | 3 | PC-406 | ⬜ |
+| PC-406 | CI security hardening & DCO | 3 | PC-008 | 🚧 (workflows ready; human: branch protection + secret scanning + require DCO) |
+| PC-407 | Release pipeline (Changesets) | 3 | PC-406 | ✅ (agent; human: `release` env + npm Trusted Publisher before tag) |
 | PC-408 | Definition-of-Done audit | 3 | everything | 🚧 |
 | PC-409 | v0.1.0 release | 1 | PC-408 | 🚧 |
 
