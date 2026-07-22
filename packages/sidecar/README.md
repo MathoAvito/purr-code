@@ -27,6 +27,12 @@ Newline-delimited JSON on **stdin**; JSON events on **stdout**.
 `amplitude` is linear `[0,1]` — the Node `SidecarAudioBackend` applies the
 PC-205 perceptual→amplitude map. Use `--null` for hardware-free runs.
 
+One-shot WAV cache (FR-08 / PC-304):
+
+```bash
+purr-sidecar --export sounds/sleepy.ogg /tmp/sleepy.wav
+```
+
 ## OGG
 
 Vorbis via vendored `stb_vorbis` (same pin as miniaudio). WAV remains supported

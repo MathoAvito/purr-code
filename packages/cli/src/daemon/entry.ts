@@ -6,12 +6,14 @@
 import { Daemon } from "./Daemon.js";
 import { selectAudioBackend } from "../audio/detect.js";
 import { MpvAudioBackend } from "../audio/mpv/index.js";
+import { NativeAudioBackend } from "../audio/native/index.js";
 
 const idleMs = Number(process.env.PURRCODE_IDLE_MS ?? 1500);
 
 const selected = await selectAudioBackend({
   env: process.env,
   createMpv: () => new MpvAudioBackend({ env: process.env }),
+  createNative: () => new NativeAudioBackend({ env: process.env }),
 });
 
 const daemon = new Daemon({

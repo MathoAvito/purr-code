@@ -12,7 +12,16 @@ export type SidecarCommand =
   | { cmd: "stats" };
 
 export type SidecarProtocolEventName =
-  "ready" | "loaded" | "playing" | "volume" | "fadeout" | "stopped" | "stats" | "exiting" | "error";
+  | "ready"
+  | "loaded"
+  | "playing"
+  | "volume"
+  | "fadeout"
+  | "stopped"
+  | "stats"
+  | "exiting"
+  | "exported"
+  | "error";
 
 export type SidecarEvent = {
   t?: number;

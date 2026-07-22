@@ -39,11 +39,11 @@
 
 **As a** user with no sidecar and no mpv, **I want** the purr to still work, honestly degraded **so that** tier 3 never fails on codec support (§11.3, FR-08 WAV cache).
 
-- [ ] WAV-cache module: transcode any bundled/imported sound to canonical WAV once (via the tier-1 sidecar's decode path per FR-08), stored alongside the original in the data directory; idempotent, verified at install.
-- [ ] Adapters for `afplay` (macOS), `paplay`/`aplay` (Linux), PowerShell playback (Windows): respawn-on-exit looping (seamed — documented), hard stop, no runtime volume.
-- [ ] **Tier 3 always plays the WAV cache, never the original** — removes the `afplay`-can't-decode-OGG failure class entirely.
-- [ ] Capabilities honestly reported (no fades, seamed loop) for doctor.
-- [ ] Unit tests: WAV cache generation/idempotency; respawn loop stops cleanly on stop.
+- [x] WAV-cache module: transcode any bundled/imported sound to canonical WAV once (via the tier-1 sidecar's decode path per FR-08), stored alongside the original in the data directory; idempotent, verified at install.
+- [x] Adapters for `afplay` (macOS), `paplay`/`aplay` (Linux), PowerShell playback (Windows): respawn-on-exit looping (seamed — documented), hard stop, no runtime volume.
+- [x] **Tier 3 always plays the WAV cache, never the original** — removes the `afplay`-can't-decode-OGG failure class entirely.
+- [x] Capabilities honestly reported (no fades, seamed loop) for doctor.
+- [x] Unit tests: WAV cache generation/idempotency; respawn loop stops cleanly on stop.
 
 ## PC-305 — Default `sleepy` purr asset (2 pts, E5) — human gate on licensing
 

@@ -16,6 +16,26 @@ import {
 const binary = resolveSidecarBinaryPath();
 const hasBinary = binary !== null;
 
+/** Minimal mono PCM WAV for fast sidecar protocol tests (avoids loading sleepy.ogg). */
+function tinyWav(): Buffer {
+  const dataSize = 2;
+  const buf = Buffer.alloc(44 + dataSize);
+  buf.write("RIFF", 0);
+  buf.writeUInt32LE(36 + dataSize, 4);
+  buf.write("WAVE", 8);
+  buf.write("fmt ", 12);
+  buf.writeUInt32LE(16, 16);
+  buf.writeUInt16LE(1, 20);
+  buf.writeUInt16LE(1, 22);
+  buf.writeUInt32LE(48000, 24);
+  buf.writeUInt32LE(96000, 28);
+  buf.writeUInt16LE(2, 32);
+  buf.writeUInt16LE(16, 34);
+  buf.write("data", 36);
+  buf.writeUInt32LE(dataSize, 40);
+  return buf;
+}
+
 describe("sidecar protocol helpers (PC-301)", () => {
   it("encodes newline-delimited JSON commands", () => {
     expect(encodeSidecarCommand({ cmd: "volume", amplitude: 0.5, rampMs: 100 })).toBe(
@@ -86,7 +106,10 @@ describe.skipIf(!hasBinary)("SidecarAudioBackend (PC-301)", () => {
   });
 
   it("play/setVolume/stop apply perceptual→amplitude once", async () => {
-    const soundPath = join(process.cwd(), "sounds/sleepy.ogg");
+    const dir = await mkdtemp(join(tmpdir(), "purr-sidecar-vol-"));
+    cleanups.push(async () => rm(dir, { recursive: true, force: true }));
+    const soundPath = join(dir, "clip.wav");
+    await writeFile(soundPath, tinyWav());
     const backend = new SidecarAudioBackend({ binaryPath: binary!, useNull: true });
     const handle = await backend.play({ soundPath, volume: 40, fadeInMs: 0 });
     cleanups.push(async () => {
@@ -105,7 +128,10 @@ describe.skipIf(!hasBinary)("SidecarAudioBackend (PC-301)", () => {
   });
 
   it("play during fade-out cancels stop without killing the child", async () => {
-    const soundPath = join(process.cwd(), "sounds/sleepy.ogg");
+    const dir = await mkdtemp(join(tmpdir(), "purr-sidecar-fade-"));
+    cleanups.push(async () => rm(dir, { recursive: true, force: true }));
+    const soundPath = join(dir, "clip.wav");
+    await writeFile(soundPath, tinyWav());
     const backend = new SidecarAudioBackend({ binaryPath: binary!, useNull: true });
     const handle = await backend.play({ soundPath, volume: 40, fadeInMs: 0 });
     const stopP = backend.stop(handle, 250);

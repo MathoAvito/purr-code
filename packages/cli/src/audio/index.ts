@@ -21,6 +21,22 @@ export * from "./fake/index.js";
 export { NoneAudioBackend } from "./none/NoneAudioBackend.js";
 export { MpvAudioBackend, type MpvAudioBackendOptions } from "./mpv/index.js";
 export {
+  NativeAudioBackend,
+  defaultResolvePlayer,
+  type NativeAudioBackendOptions,
+  type NativePlayer,
+} from "./native/index.js";
+export {
+  ensureWavCache,
+  isWavBuffer,
+  isWavFile,
+  sanitizeSoundName,
+  resolveBundledSoundPath,
+  type EnsureWavCacheOptions,
+  type WavCacheResult,
+} from "./wavCache.js";
+export { resolveDataDirPath, resolveSoundsDirPath, type ResolveDataDirOptions } from "./dataDir.js";
+export {
   selectAudioBackend,
   detectMpvPresent,
   detectNativePresent,

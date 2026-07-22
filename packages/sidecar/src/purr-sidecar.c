@@ -16,7 +16,9 @@
  *   {"cmd":"quit"}                         // exit immediately
  *   {"cmd":"stats"}
  *
- * Flags: --null  use miniaudio null backend (no sound card; CI / agent runs)
+ * Flags:
+ *   --null                 use miniaudio null backend (no sound card; CI / agent)
+ *   --export <in> <out>    one-shot decode→canonical WAV (FR-08 / PC-304); no device
  *
  * Gaplessness: ma_data_source_set_looping() wraps sample-accurately.
  * Orphan safety: stdin EOF → exit.
@@ -345,11 +347,115 @@ static int handle_line(const char* line, ma_device* device) {
     return 0;
 }
 
+/* Write a canonical PCM WAV (16-bit LE) from a decoded source (PC-304 / FR-08). */
+static int export_wav(const char* in_path, const char* out_path) {
+    ma_decoder_config dcfg = ma_decoder_config_init(ma_format_s16, 0, 0);
+    ma_decoder decoder;
+    if (ma_decoder_init_file(in_path, &dcfg, &decoder) != MA_SUCCESS) {
+        fprintf(stderr, "export: decode failed: %s\n", in_path);
+        return 1;
+    }
+
+    ma_uint32 channels = decoder.outputChannels;
+    ma_uint32 sample_rate = decoder.outputSampleRate;
+    if (channels == 0 || sample_rate == 0) {
+        ma_decoder_uninit(&decoder);
+        fprintf(stderr, "export: invalid format\n");
+        return 1;
+    }
+
+    ma_uint64 frames = 0;
+    if (ma_data_source_get_length_in_pcm_frames(&decoder, &frames) != MA_SUCCESS || frames == 0) {
+        ma_decoder_uninit(&decoder);
+        fprintf(stderr, "export: length unknown\n");
+        return 1;
+    }
+
+    FILE* out = fopen(out_path, "wb");
+    if (!out) {
+        ma_decoder_uninit(&decoder);
+        fprintf(stderr, "export: cannot open %s\n", out_path);
+        return 1;
+    }
+
+    /* RIFF/WAVE header (PCM). */
+    ma_uint64 data_bytes = frames * channels * sizeof(ma_int16);
+    if (data_bytes > 0xFFFFFFFFULL - 36) {
+        fclose(out);
+        ma_decoder_uninit(&decoder);
+        fprintf(stderr, "export: file too large\n");
+        return 1;
+    }
+    ma_uint32 data_size = (ma_uint32)data_bytes;
+    ma_uint32 riff_size = 36 + data_size;
+    ma_uint16 audio_format = 1; /* PCM */
+    ma_uint16 num_channels = (ma_uint16)channels;
+    ma_uint32 byte_rate = sample_rate * channels * 2;
+    ma_uint16 block_align = (ma_uint16)(channels * 2);
+    ma_uint16 bits_per_sample = 16;
+
+    fwrite("RIFF", 1, 4, out);
+    fwrite(&riff_size, 4, 1, out);
+    fwrite("WAVE", 1, 4, out);
+    fwrite("fmt ", 1, 4, out);
+    ma_uint32 fmt_size = 16;
+    fwrite(&fmt_size, 4, 1, out);
+    fwrite(&audio_format, 2, 1, out);
+    fwrite(&num_channels, 2, 1, out);
+    fwrite(&sample_rate, 4, 1, out);
+    fwrite(&byte_rate, 4, 1, out);
+    fwrite(&block_align, 2, 1, out);
+    fwrite(&bits_per_sample, 2, 1, out);
+    fwrite("data", 1, 4, out);
+    fwrite(&data_size, 4, 1, out);
+
+    const ma_uint64 chunk = 4096;
+    ma_int16* buf = (ma_int16*)malloc((size_t)chunk * channels * sizeof(ma_int16));
+    if (!buf) {
+        fclose(out);
+        ma_decoder_uninit(&decoder);
+        return 1;
+    }
+
+    ma_uint64 remaining = frames;
+    while (remaining > 0) {
+        ma_uint64 want = remaining < chunk ? remaining : chunk;
+        ma_uint64 got = 0;
+        if (ma_data_source_read_pcm_frames(&decoder, buf, want, &got) != MA_SUCCESS || got == 0) {
+            break;
+        }
+        fwrite(buf, sizeof(ma_int16), (size_t)(got * channels), out);
+        remaining -= got;
+    }
+
+    free(buf);
+    fclose(out);
+    ma_decoder_uninit(&decoder);
+
+    if (remaining != 0) {
+        fprintf(stderr, "export: short read (%llu frames left)\n", (unsigned long long)remaining);
+        return 1;
+    }
+
+    printf("{\"event\":\"exported\",\"path\":\"%s\",\"out\":\"%s\",\"frames\":%llu,\"channels\":%u,\"sampleRate\":%u}\n",
+           in_path, out_path, (unsigned long long)frames, channels, sample_rate);
+    fflush(stdout);
+    return 0;
+}
+
 int main(int argc, char** argv) {
     g_t0 = now_ms();
     ma_bool32 use_null = MA_FALSE;
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--null") == 0) use_null = MA_TRUE;
+        if (strcmp(argv[i], "--null") == 0) {
+            use_null = MA_TRUE;
+        } else if (strcmp(argv[i], "--export") == 0) {
+            if (i + 2 >= argc) {
+                fprintf(stderr, "usage: purr-sidecar --export <in> <out.wav>\n");
+                return 2;
+            }
+            return export_wav(argv[i + 1], argv[i + 2]);
+        }
     }
 
     ma_context context;
