@@ -380,7 +380,7 @@ export class Daemon {
         const { config } = applyConfigPatch(this.config, message.config, this.configDirOptions);
         this.config = config;
         this.staleSessionMs = config.staleSessionMinutes * 60_000;
-        this.playback?.applySettings({
+        await this.playback?.applySettings({
           volume: config.volume,
           fadeInMs: config.fadeInMs,
           fadeOutMs: config.fadeOutMs,

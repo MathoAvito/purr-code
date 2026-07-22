@@ -13,18 +13,26 @@ import {
   resolveConfigFilePath,
   writeConfig,
 } from "../src/config/index.js";
-import { FakeAudioBackend } from "../src/audio/fake/index.js";
+import { FakeAudioBackend, readFakeAudioLog } from "../src/audio/fake/index.js";
 import { ControlPipeClient } from "../src/control/client.js";
 import { PROTOCOL_VERSION } from "../src/control/protocol.js";
 import { Daemon } from "../src/daemon/Daemon.js";
 import { PlaybackController } from "../src/session/PlaybackController.js";
 import { daemonIsolationOptions } from "./helpers/controlEndpoint.js";
 
+process.env.PURRCODE_FAKE_AUDIO = "1";
+
 describe("config store (PC-204)", () => {
   const cleanups: Array<() => Promise<void>> = [];
 
   afterEach(async () => {
-    while (cleanups.length) await cleanups.pop()?.();
+    while (cleanups.length) {
+      try {
+        await cleanups.pop()?.();
+      } catch {
+        /* ignore cleanup races */
+      }
+    }
   });
 
   async function tempHome(): Promise<string> {
@@ -145,5 +153,79 @@ describe("config store (PC-204)", () => {
       keepMe?: string;
     };
     expect(disk.keepMe).toBe("yes");
+  });
+
+  it("set-config volume updates a playing loop via setVolume (no restart)", async () => {
+    const home = await tempHome();
+    const runtimeDir = await mkdtemp(join(tmpdir(), "purrcode-cfg-vol-"));
+    cleanups.push(async () => rm(runtimeDir, { recursive: true, force: true }));
+    const logPath = join(runtimeDir, "fake.jsonl");
+    const audio = new FakeAudioBackend({ logPath, enabled: true });
+    const playback = new PlaybackController({
+      backend: audio,
+      fadeOutMs: 50,
+      fadeInMs: 0,
+      volume: 40,
+    });
+    const iso = daemonIsolationOptions(runtimeDir);
+    const daemon = new Daemon({
+      ...iso,
+      idleMs: 60_000,
+      audioBackend: audio,
+      playback,
+      watchdogIntervalMs: 0,
+      configDir: { home, platform: "linux", env: {} },
+      config: normalizeConfig({ ...DEFAULT_CONFIG, volume: 40 }),
+    });
+    await daemon.start();
+    cleanups.push(async () => daemon.shutdown());
+    const client = new ControlPipeClient({ path: daemon.controlPath });
+    cleanups.push(() => {
+      client.close();
+      return Promise.resolve();
+    });
+
+    await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "live" });
+    await new Promise((r) => setTimeout(r, 40));
+    expect(playback.getPhase()).toBe("playing");
+
+    const res = await client.request({
+      v: PROTOCOL_VERSION,
+      op: "set-config",
+      id: "vol",
+      config: { volume: 70 },
+    });
+    expect(res.ok).toBe(true);
+    expect(daemon.getConfig().volume).toBe(70);
+    // Still the same play session — no tear-down/restart required for volume.
+    expect(playback.getPhase()).toBe("playing");
+
+    const deadline = Date.now() + 2000;
+    let sawVolumeChange = false;
+    while (Date.now() < deadline) {
+      const events = await readFakeAudioLog(logPath);
+      const startCount = events.filter((e) => e.type === "start").length;
+      const volumeEvents = events.filter((e) => e.type === "volume-change");
+      if (startCount === 1 && volumeEvents.some((e) => e.volume === 70)) {
+        sawVolumeChange = true;
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    expect(sawVolumeChange).toBe(true);
+  });
+
+  it("PlaybackController.applySettings pushes volume to a live handle", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "purrcode-cfg-pc-"));
+    cleanups.push(async () => rm(dir, { recursive: true, force: true }));
+    const logPath = join(dir, "fake.jsonl");
+    const audio = new FakeAudioBackend({ logPath, enabled: true });
+    const playback = new PlaybackController({ backend: audio, volume: 25, fadeOutMs: 10 });
+    await playback.onActiveCount(1);
+    expect(playback.getPhase()).toBe("playing");
+    await playback.applySettings({ volume: 80 });
+    const events = await readFakeAudioLog(logPath);
+    expect(events.filter((e) => e.type === "start")).toHaveLength(1);
+    expect(events.some((e) => e.type === "volume-change" && e.volume === 80)).toBe(true);
   });
 });
