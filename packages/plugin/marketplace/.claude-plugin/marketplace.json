@@ -1,0 +1,13 @@
+{
+  "name": "purrcode",
+  "owner": {
+    "name": "PurrCode"
+  },
+  "plugins": [
+    {
+      "name": "purrcode",
+      "source": "./plugins/purrcode",
+      "description": "Claude purrs while working — continuous cat-purring during turns"
+    }
+  ]
+}

@@ -291,7 +291,7 @@ function checkInstallMode(scopes: SettingsScope[], deps: DoctorDeps): DoctorChec
       id: "install-mode",
       status: "warn",
       summary: "No PurrCode plugin or settings hooks detected",
-      fix: "Install the PurrCode plugin (preferred) or run the hooks installer when it ships (PC-402).",
+      fix: "Run `purrcode install` (or `npx purr-code install`) to register the Claude Code plugin.",
     });
   }
 

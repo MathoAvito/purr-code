@@ -14,14 +14,22 @@
     "lint:fix": "eslint . --fix && prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "e2e:fake-audio": "vitest run packages/cli/test/e2e-fake-audio.test.ts",
     "sidecar:fetch-vendor": "pnpm --filter @purrcode/sidecar fetch-vendor",
     "sidecar:build": "pnpm --filter @purrcode/sidecar build",
-    "e2e:sidecar": "vitest run packages/cli/test/e2e-sidecar.test.ts"
+    "e2e:sidecar": "vitest run packages/cli/test/e2e-sidecar.test.ts",
+    "plugin:assemble": "pnpm --filter @purrcode/plugin assemble",
+    "plugin:validate": "pnpm --filter @purrcode/plugin validate",
+    "plugin:build": "pnpm --filter @purrcode/plugin build",
+    "changeset": "changeset",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.1",
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.1.1",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.5",

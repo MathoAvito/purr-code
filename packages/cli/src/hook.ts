@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Hook entrypoint: `node dist/hook.js <start|stop|failure|session-end>`
  * Invisibility invariant: exit 0, zero bytes on stdout/stderr (PC-107 / RR-02).

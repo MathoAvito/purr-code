@@ -1,0 +1,15 @@
+# Maintainer review on sensitive paths (PRD §23.1 / PC-404).
+# GitHub CODEOWNERS: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Hook manifests (plugin + any future top-level hooks/)
+/hooks/ @MathoAvito
+/packages/plugin/**/hooks/ @MathoAvito
+
+# Release / publish workflows (human-gated)
+/.github/workflows/*release* @MathoAvito
+/.github/workflows/*publish* @MathoAvito
+
+# Bundled audio + provenance ledger
+/sounds/ @MathoAvito
+/ASSETS.md @MathoAvito
+/LICENSE @MathoAvito

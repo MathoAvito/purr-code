@@ -1,10 +1,27 @@
 # AGENTS.md — canonical agent context for PurrCode
 
-This is the single source of truth for AI coding agents (Claude Code, Cursor, OpenCode, Codex, and similar) working in this repository. `CLAUDE.md` points here; do not duplicate hard constraints into per-tool files.
+This is the single source of truth for AI coding agents (Claude Code, Cursor, OpenCode, Codex, and similar) working in this repository. `CLAUDE.md` points here; do not duplicate hard constraints into per-tool files. Human contributors: also see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## What this project is
 
-PurrCode is an open-source Claude Code addon that plays a continuous cat-purring sound while Claude is processing a turn. Architecture: **hook adapter** (transient, invisible) → **per-user player daemon** (session registry, watchdog, playback state machine) → **tiered audio backends** (bundled sidecar / mpv / native players / fake). Full spec: [docs/PurrCode-PRD-v0.4.md](docs/PurrCode-PRD-v0.4.md) — the PRD is the roadmap; amendments to it are PRs.
+PurrCode is an open-source Claude Code addon that plays a continuous cat-purring sound while Claude is processing a turn. Full spec: [docs/PurrCode-PRD-v0.4.md](docs/PurrCode-PRD-v0.4.md) — the PRD is the roadmap; amendments to it are PRs.
+
+## Architecture map
+
+```text
+Claude Code (plugin hooks, async exec form)
+        │  stdin JSON → argv start|stop|failure|session-end
+        ▼
+  hook adapter (`packages/cli` → dist/hook.js)
+        │  control pipe (UDS / named pipe)
+        ▼
+  per-user player daemon (session registry, watchdog, fades)
+        │
+        ▼
+  audio backend tiers: sidecar (1) → mpv (2) → native (3) → fake (CI)
+```
+
+Plugin package lives under `packages/plugin/marketplace/` (assembled via `pnpm plugin:build`). Persistent config / WAV cache: `${CLAUDE_PLUGIN_DATA}` when running as a plugin.
 
 ## Current state & how to pick work
 
@@ -33,17 +50,19 @@ pnpm install                 # setup (Node 20+, pnpm workspace)
 pnpm lint                    # ESLint + Prettier check
 pnpm typecheck               # tsc --noEmit, strict
 pnpm test                    # Vitest unit tests
-pnpm e2e:fake-audio          # integration suite against the fake audio backend
+PURRCODE_FAKE_AUDIO=1 pnpm e2e:fake-audio   # integration suite (fake backend)
 pnpm sidecar:fetch-vendor    # pin miniaudio + stb_vorbis into packages/sidecar/vendor/
 pnpm sidecar:build           # build host-platform purr-sidecar into packages/sidecar-<os>-<cpu>/
 pnpm e2e:sidecar             # real sidecar lifecycle (needs a built binary; skipped if absent)
+pnpm plugin:build            # assemble + validate Claude Code plugin (packages/plugin/)
+pnpm --filter purr-code build  # compile CLI / hook / daemon → packages/cli/dist
 ```
 
-MVP CLI (after `pnpm --filter purr-code build`): `purrcode on|off`, `status`, `volume`, `preview`, `doctor`. Ops notes: [docs/troubleshooting.md](docs/troubleshooting.md).
+MVP CLI (after build): `purrcode install|uninstall`, `on|off`, `status`, `volume`, `preview`, `doctor`. Ops notes: [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Verifying changes headlessly
 
-Set `PURRCODE_FAKE_AUDIO=1` to use the fake audio backend (story PC-101): it implements the `AudioBackend` interface by writing timestamped playback events (start/volume/fade/stop) to a JSONL log instead of a sound card. All loop/fade/refcount/watchdog logic must be verifiable this way — no speakers, no audio hardware, deterministic in CI. Perceptual audio QA (seams, pops, fatigue) is human-only; never claim to have verified it.
+Set `PURRCODE_FAKE_AUDIO=1` (as in the Commands block above) to use the fake audio backend (story PC-101): it implements the `AudioBackend` interface by writing timestamped playback events (start/volume/fade/stop) to a JSONL log instead of a sound card. Vitest runs TypeScript tests directly — you do **not** need `pnpm --filter purr-code build` before `pnpm test` / `pnpm e2e:fake-audio`. Build is required for the real CLI binary, plugin assemble, and Claude Code install smokes. Perceptual audio QA (seams, pops, fatigue) is human-only; never claim to have verified it.
 
 ## Hard constraints (violations are P0)
 
@@ -60,5 +79,5 @@ Set `PURRCODE_FAKE_AUDIO=1` to use the fake audio backend (story PC-101): it imp
 
 - **One branch per sprint.** Each sprint gets a single branch off `main`, named `sprint-N-<short-slug>` (e.g. `sprint-1-walking-skeleton`, `sprint-2-reliability`). All stories in that sprint land on that branch; merge via one PR when the sprint is ready. Never commit sprint work directly to `main`. Commits still reference the story ID (e.g. `feat(daemon): session registry state machine (PC-105)`).
 - TypeScript strict, Node 20+, pnpm. Conventional-commit style messages referencing the story ID.
-- When a story is complete: tick its checkboxes in the sprint file and update the board in `START-HERE.md` in the same commit.
+- When a story is complete: tick its checkboxes in the sprint file and update the board in `docs/planning/START-HERE.md` in the same commit.
 - Scope discipline: PRD §5 non-goals are enforced. If a change drifts toward them, stop and say so instead of building it.

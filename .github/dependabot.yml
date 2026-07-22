@@ -1,0 +1,29 @@
+# Keep Action SHA pins and npm deps current (PRD §23.3 / PC-406).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "ci"
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore"
+    groups:
+      eslint-prettier:
+        patterns:
+          - "eslint*"
+          - "prettier"
+          - "typescript-eslint"
+      vitest-types:
+        patterns:
+          - "vitest"
+          - "@types/*"

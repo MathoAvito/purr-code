@@ -1,0 +1,60 @@
+name: Bug report
+description: Something is broken or surprising — include doctor output
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping debug the cat. Please run `purrcode doctor` before filing.
+  - type: textarea
+    id: doctor
+    attributes:
+      label: "purrcode doctor output"
+      description: Paste the full doctor report (required).
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os_version
+    attributes:
+      label: OS version
+      placeholder: e.g. Ubuntu 24.04, macOS 15.1, Windows 11
+    validations:
+      required: true
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Audio backend tier (from `purrcode status` / doctor)
+      options:
+        - "1 — sidecar"
+        - "2 — mpv"
+        - "3 — native (afplay/paplay/aplay/PowerShell)"
+        - fake / unknown
+        - not installed / doctor failed
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Expected vs actual. Do not paste prompt/transcript contents.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true

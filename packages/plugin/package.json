@@ -1,0 +1,13 @@
+{
+  "name": "@purrcode/plugin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Claude Code plugin package for PurrCode (assembled layout)",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "assemble": "node ./scripts/assemble.mjs",
+    "validate": "node ./scripts/validate.mjs",
+    "build": "pnpm --filter purr-code build && node ./scripts/assemble.mjs && node ./scripts/validate.mjs"
+  }
+}

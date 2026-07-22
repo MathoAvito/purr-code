@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Daemon process entry (PC-104 / PC-302). Invoked as `node …/daemon/entry.js`.
  * Honors PURRCODE_RUNTIME_DIR, PURRCODE_IDLE_MS, and PURRCODE_FAKE_AUDIO.

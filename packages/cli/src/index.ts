@@ -206,3 +206,48 @@ export {
   isDebugLogEnabled,
 } from "./log/index.js";
 export type { DebugLogFields } from "./log/index.js";
+
+export {
+  isPluginContext,
+  pluginDataFromEnv,
+  pluginRootFromEnv,
+  preparePluginData,
+  validateHooksManifest,
+} from "./plugin/index.js";
+export type {
+  HooksManifestIssue,
+  PreparePluginDataOptions,
+  PreparePluginDataResult,
+  ValidateHooksManifestOptions,
+} from "./plugin/index.js";
+
+export {
+  createClaudePluginOps,
+  runInstall,
+  runUninstall,
+  parseUninstallArgs,
+  PLUGIN_ID,
+  MARKETPLACE_NAME,
+  PLUGIN_NAME,
+  expectedPluginDataDir,
+  findCachedPluginRoot,
+  isMarketplaceDir,
+  resolveMarketplacePath,
+  resolveMarketplaceSource,
+  removeStableMarketplace,
+  stableMarketplaceDir,
+  syncStableMarketplace,
+} from "./install/index.js";
+export type {
+  ClaudePluginOps,
+  ClaudeProbeResult,
+  InstallOptions,
+  InstallResult,
+  MarketplaceSource,
+  SyncStableMarketplaceOptions,
+  UninstallFlags,
+  UninstallOptions,
+  UninstallResult,
+  ResolveMarketplaceOptions,
+  RunClaudeOptions,
+} from "./install/index.js";

@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose a change — must address PRD non-goals
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        PurrCode is intentionally narrow. Read [PRD §5 non-goals](https://github.com/MathoAvito/purr-code/blob/main/docs/PurrCode-PRD-v0.4.md) before proposing expansions.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Concrete behavior change (CLI, hooks, doctor, docs, …).
+    validations:
+      required: true
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals check (required)
+      description: |
+        Explicitly state how this request does **not** expand into PRD §5 non-goals
+        (general music player, notifications, cloud sync, telemetry, prompt access, AI-generated audio, …).
+        If it does require a PRD amendment, say so and link a proposed amendment.
+      placeholder: "This stays within turn-bound purr playback because…"
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope acknowledgment
+      options:
+        - label: I have read PRD §5 non-goals and believe this request is in scope (or I am proposing a PRD amendment).
+          required: true

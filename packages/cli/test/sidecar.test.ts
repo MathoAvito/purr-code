@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -62,6 +62,48 @@ describe("sidecar protocol helpers (PC-301)", () => {
       "@purrcode/sidecar-win32-x64",
     );
     expect(sidecarPackageName({ platform: "linux", arch: "arm64" })).toBeNull();
+  });
+
+  it("resolves plugin-bundled binaries from vendor/sidecar/<os>-<cpu>/", async () => {
+    const pluginRoot = await mkdtemp(join(tmpdir(), "purr-vendor-"));
+    try {
+      const targetDir = join(pluginRoot, "vendor", "sidecar", "darwin-arm64");
+      await mkdir(targetDir, { recursive: true });
+      const bin = join(targetDir, "purr-sidecar");
+      await writeFile(bin, "#!/bin/sh\n", { mode: 0o755 });
+      const resolved = resolveSidecarBinaryPath({
+        env: { CLAUDE_PLUGIN_ROOT: pluginRoot },
+        platform: "darwin",
+        arch: "arm64",
+        requireResolve: () => {
+          throw new Error("optionalDependency absent in plugin context");
+        },
+      });
+      expect(resolved).toBe(bin);
+    } finally {
+      await rm(pluginRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("falls back to the legacy flat vendor/sidecar/ layout", async () => {
+    const pluginRoot = await mkdtemp(join(tmpdir(), "purr-vendor-flat-"));
+    try {
+      const vendorDir = join(pluginRoot, "vendor", "sidecar");
+      await mkdir(vendorDir, { recursive: true });
+      const bin = join(vendorDir, "purr-sidecar");
+      await writeFile(bin, "#!/bin/sh\n", { mode: 0o755 });
+      const resolved = resolveSidecarBinaryPath({
+        env: { CLAUDE_PLUGIN_ROOT: pluginRoot },
+        platform: "darwin",
+        arch: "arm64",
+        requireResolve: () => {
+          throw new Error("optionalDependency absent in plugin context");
+        },
+      });
+      expect(resolved).toBe(bin);
+    } finally {
+      await rm(pluginRoot, { recursive: true, force: true });
+    }
   });
 
   it("detect is unavailable when override binary is missing", async () => {

@@ -5,7 +5,8 @@ import prettier from "eslint-config-prettier";
 export default tseslint.config(
   {
     // Spike folders are throwaway by definition and excluded from quality gates.
-    ignores: ["spikes/**", "**/dist/**", "**/node_modules/**"],
+    // Plugin assemble/validate scripts are plain Node ESM (not in the TS project).
+    ignores: ["spikes/**", "**/dist/**", "**/node_modules/**", "packages/plugin/scripts/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

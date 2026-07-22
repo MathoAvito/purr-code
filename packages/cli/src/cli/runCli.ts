@@ -29,6 +29,10 @@ export type RunCliOptions = {
   selectBackend?: (opts: SelectAudioBackendOptions) => Promise<SelectedAudioBackend>;
   /** Extra doctor deps (PC-307 fixture tests). */
   doctorDeps?: Partial<DoctorDeps>;
+  /** Extra install deps (PC-402 fixture tests). */
+  installDeps?: import("../install/install.js").InstallOptions;
+  /** Extra uninstall deps (PC-403 fixture tests). */
+  uninstallDeps?: import("../install/uninstall.js").UninstallOptions;
 };
 
 export type RunCliResult = { exitCode: number };
@@ -36,6 +40,8 @@ export type RunCliResult = { exitCode: number };
 const HELP = `PurrCode — Claude Code purrs while working
 
 Usage:
+  purrcode install
+  purrcode uninstall [--keep-data] [--purge]
   purrcode on|off|mute|unmute
   purrcode status
   purrcode volume <0-100>
@@ -45,6 +51,8 @@ Usage:
   purrcode help
 
 Tips:
+  install registers the Claude Code plugin (never touches settings.json).
+  uninstall removes the plugin, daemon, and runtime (use --keep-data to retain config).
   off during a turn fades the purr out immediately.
   preview plays ~10 seconds without needing a Claude session
   (uses volume ≥ 50 so it is audible; turn default 20 is very quiet).
@@ -104,6 +112,42 @@ export async function runCli(options: RunCliOptions = {}): Promise<RunCliResult>
           ...(options.configDir !== undefined ? { configDir: options.configDir } : {}),
           ...(options.doctorDeps !== undefined ? { deps: options.doctorDeps } : {}),
         });
+      case "install": {
+        const installDeps = options.installDeps ?? {};
+        const result = await (
+          await import("../install/install.js")
+        ).runInstall({
+          env,
+          stdout: installDeps.stdout ?? out,
+          stderr: installDeps.stderr ?? err,
+          ...installDeps,
+        });
+        return { exitCode: result.exitCode };
+      }
+      case "uninstall": {
+        const parsed = (await import("../install/uninstall.js")).parseUninstallArgs(argv.slice(1));
+        if (!parsed.ok) {
+          err(style.err(parsed.error ?? "Invalid uninstall arguments", env));
+          err("Usage: purrcode uninstall [--keep-data] [--purge]");
+          return { exitCode: 1 };
+        }
+        const uninstallDeps = options.uninstallDeps ?? {};
+        const keepData = parsed.keepData ?? uninstallDeps.keepData;
+        const purge = parsed.purge ?? uninstallDeps.purge;
+        const removeMarketplace = parsed.removeMarketplace ?? uninstallDeps.removeMarketplace;
+        const result = await (
+          await import("../install/uninstall.js")
+        ).runUninstall({
+          ...uninstallDeps,
+          env: uninstallDeps.env ?? env,
+          stdout: uninstallDeps.stdout ?? out,
+          stderr: uninstallDeps.stderr ?? err,
+          ...(keepData !== undefined ? { keepData } : {}),
+          ...(purge !== undefined ? { purge } : {}),
+          ...(removeMarketplace !== undefined ? { removeMarketplace } : {}),
+        });
+        return { exitCode: result.exitCode };
+      }
       default:
         err(style.err(`Unknown command: ${cmd}`, env));
         err("Run `purrcode help` for the list of commands.");

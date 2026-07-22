@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    // Shipped artifact — no source maps (they'd double dist in the tarball
+    // and in every per-user plugin copy; sources live on GitHub).
+    "sourceMap": false
   },
   "include": ["src/**/*.ts"]
 }
