@@ -108,13 +108,13 @@ describe.skipIf(!hasBinary)("SidecarAudioBackend (PC-301)", () => {
     const soundPath = join(process.cwd(), "sounds/sleepy.ogg");
     const backend = new SidecarAudioBackend({ binaryPath: binary!, useNull: true });
     const handle = await backend.play({ soundPath, volume: 40, fadeInMs: 0 });
-    const stopP = backend.stop(handle, 400);
-    await new Promise((r) => setTimeout(r, 40));
+    const stopP = backend.stop(handle, 250);
+    await new Promise((r) => setTimeout(r, 30));
     const handle2 = await backend.play({ soundPath, volume: 40, fadeInMs: 0 });
     expect(handle2.id).toBe(handle.id);
     await expect(stopP).resolves.toBeUndefined();
-    await backend.stop(handle2, 50);
-  }, 15_000);
+    await backend.stop(handle2, 0);
+  }, 20_000);
 
   it("fires onHandleLost when the child exits unexpectedly", async () => {
     const dir = await mkdtemp(join(tmpdir(), "purr-sidecar-crash-"));

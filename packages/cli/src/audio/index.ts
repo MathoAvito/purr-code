@@ -18,6 +18,17 @@ export {
 
 export * from "./fake/index.js";
 
+export { NoneAudioBackend } from "./none/NoneAudioBackend.js";
+export {
+  selectAudioBackend,
+  detectMpvPresent,
+  detectNativePresent,
+  isOnPath,
+  type BackendProbe,
+  type SelectAudioBackendOptions,
+  type SelectedAudioBackend,
+} from "./detect.js";
+
 export {
   SidecarAudioBackend,
   PURRCODE_SIDECAR_BIN_ENV,

@@ -21,10 +21,10 @@
 
 **As the** daemon, **I want** ordered backend detection **so that** every machine gets the best available experience and degradation is honest (§11.3).
 
-- [ ] Detection order: fake (env var) → tier-1 sidecar → mpv → tier-3 native → none; result cached per daemon lifetime, re-detected on daemon restart.
-- [ ] `BackendCapabilities` (loop, fade, runtime volume) recorded and exposed via `status`/`doctor`.
-- [ ] "None available" is a defined state: daemon stays healthy, hooks stay silent, doctor explains.
-- [ ] Unit tests with mocked binary presence for each detection branch.
+- [x] Detection order: fake (env var) → tier-1 sidecar → mpv → tier-3 native → none; result cached per daemon lifetime, re-detected on daemon restart.
+- [x] `BackendCapabilities` (loop, fade, runtime volume) recorded and exposed via `status`/`doctor`.
+- [x] "None available" is a defined state: daemon stays healthy, hooks stay silent, doctor explains.
+- [x] Unit tests with mocked binary presence for each detection branch.
 
 ## PC-303 — Tier-2 mpv adapter (3 pts, E5)
 

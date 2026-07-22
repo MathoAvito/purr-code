@@ -11,7 +11,8 @@ import type { ControlRequest } from "../control/protocol.js";
 import { SessionRegistry } from "../session/SessionRegistry.js";
 import { PlaybackController } from "../session/PlaybackController.js";
 import { loadRegistrySnapshot, writeRegistrySnapshot } from "../session/snapshot.js";
-import type { AudioBackend } from "../audio/types.js";
+import type { AudioBackend, BackendCapabilities } from "../audio/types.js";
+import type { BackendProbe } from "../audio/detect.js";
 import type { ClassifyOptions } from "../process/liveness.js";
 import {
   applyConfigPatch,
@@ -36,6 +37,10 @@ export type DaemonOptions = {
   onIdleExit?: (() => void) | undefined;
   /** When set, drives fade/play from session refcount (PC-105). */
   audioBackend?: AudioBackend | undefined;
+  /** Selected backend capabilities (PC-302); exposed via status. */
+  backendCapabilities?: BackendCapabilities | undefined;
+  /** Detection probes from selectAudioBackend (PC-302 / doctor). */
+  backendProbes?: BackendProbe[] | undefined;
   registry?: SessionRegistry | undefined;
   playback?: PlaybackController | undefined;
   /**
@@ -75,6 +80,8 @@ export class Daemon {
   private readonly userOnMessage: ControlMessageHandler | undefined;
   private readonly registry: SessionRegistry;
   private readonly playback: PlaybackController | null;
+  private readonly backendCapabilities: BackendCapabilities | null;
+  private readonly backendProbes: BackendProbe[];
   private readonly watchdogIntervalMs: number;
   private staleSessionMs: number;
   private config: PurrCodeConfig;
@@ -129,6 +136,8 @@ export class Daemon {
             soundPath: `fake://${this.config.sound}`,
           })
         : null);
+    this.backendCapabilities = options.backendCapabilities ?? null;
+    this.backendProbes = options.backendProbes ?? [];
     this.watchdogIntervalMs =
       options.watchdogIntervalMs === undefined
         ? DEFAULT_WATCHDOG_INTERVAL_MS
@@ -428,6 +437,8 @@ export class Daemon {
             playbackSessions: this.registry.playbackCount(),
             phase: this.playback?.getPhase() ?? "idle",
             enabled: this.config.enabled,
+            backend: this.backendCapabilities,
+            backendProbes: this.backendProbes,
           },
         };
       }

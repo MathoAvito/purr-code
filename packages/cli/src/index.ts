@@ -56,6 +56,18 @@ export type {
   SidecarEvent,
   SidecarProtocolEventName,
 } from "./audio/sidecar/index.js";
+export { NoneAudioBackend } from "./audio/none/NoneAudioBackend.js";
+export {
+  selectAudioBackend,
+  detectMpvPresent,
+  detectNativePresent,
+  isOnPath,
+} from "./audio/detect.js";
+export type {
+  BackendProbe,
+  SelectAudioBackendOptions,
+  SelectedAudioBackend,
+} from "./audio/detect.js";
 export {
   applyVolumeForTier,
   clampPerceptualVolume,
