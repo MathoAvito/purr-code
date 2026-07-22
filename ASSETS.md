@@ -40,7 +40,7 @@ Suggested site credit line:
 - [x] Confirmed [licenses page](https://bigsoundbank.com/licenses.html) allows share / adapt / commercial use without permission  
 - [x] Confirmed attribution is **optional** (courtesy credit added above)  
 - [x] Gapless loop edit landed  
-- [ ] PC-309 listen pass (headphones/speakers)
+- [x] PC-309 listen pass (headphones + speakers) — Linux 2026-07-22; macOS/Windows listen deferred
 
 ---
 

@@ -29,12 +29,17 @@ Workflow skills (implement story / spike / sprint review) live under [`.cursor/s
 ## Commands
 
 ```bash
-pnpm install          # setup (Node 20+, pnpm workspace)
-pnpm lint             # ESLint + Prettier check
-pnpm typecheck        # tsc --noEmit, strict
-pnpm test             # Vitest unit tests
-pnpm e2e:fake-audio   # integration suite against the fake audio backend
+pnpm install                 # setup (Node 20+, pnpm workspace)
+pnpm lint                    # ESLint + Prettier check
+pnpm typecheck               # tsc --noEmit, strict
+pnpm test                    # Vitest unit tests
+pnpm e2e:fake-audio          # integration suite against the fake audio backend
+pnpm sidecar:fetch-vendor    # pin miniaudio + stb_vorbis into packages/sidecar/vendor/
+pnpm sidecar:build           # build host-platform purr-sidecar into packages/sidecar-<os>-<cpu>/
+pnpm e2e:sidecar             # real sidecar lifecycle (needs a built binary; skipped if absent)
 ```
+
+MVP CLI (after `pnpm --filter purr-code build`): `purrcode on|off`, `status`, `volume`, `preview`, `doctor`. Ops notes: [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Verifying changes headlessly
 

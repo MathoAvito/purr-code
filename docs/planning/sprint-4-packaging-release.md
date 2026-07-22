@@ -2,7 +2,7 @@
 
 **Goal:** ship. Plugin install/uninstall meets the §8 stories, the §22 Definition of Done is checked line by line, and v0.1.0 is on npm with provenance.
 
-**Human gates this sprint:** branch protection / GitHub settings (PC-405), licensing sign-off (in PC-408), release approval (PC-409).
+**Human gates this sprint:** branch protection / GitHub settings (**PC-406**), licensing sign-off (in **PC-408**), release approval (**PC-409**). (PC-405 is agent-facing `AGENTS.md` / `CLAUDE.md` polish — not a GitHub settings gate.)
 
 ---
 

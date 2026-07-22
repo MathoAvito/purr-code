@@ -5,7 +5,7 @@
 **Date prepared:** 2026-07-22  
 **Goal (sprint file):** the cat becomes audible — tier-1 sidecar, honest degradation, MVP CLI (`on/off`, `status`, `volume`, `preview`, `doctor`).
 
-**Agent recommendation:** **Merge PR #19** — CI matrix green; PC-309 human listen pass accepted on Linux. Do **not** start Sprint 4 until this package is accepted / PR merged. Windows spike debt remains unpaid (carry-forward from Sprint 0).
+**Status:** **Merged** to `main` 2026-07-22 ([PR #19](https://github.com/MathoAvito/purr-code/pull/19), merge `ceb00a9`). Sprint 4 may start. Windows spike debt remains unpaid (carry-forward from Sprint 0).
 
 ---
 
@@ -100,12 +100,12 @@ Sprint goal: *cat is audible; CLI works against live daemon.*
 ## Open items for the human gate
 
 - [x] PC-309 listen pass (Linux) — **accepted 2026-07-22**
-- [ ] **Merge [PR #19](https://github.com/MathoAvito/purr-code/pull/19)** when ready
+- [x] **Merge [PR #19](https://github.com/MathoAvito/purr-code/pull/19)** — merged 2026-07-22 (`ceb00a9`)
 - [ ] Optional carry-forward: macOS/Windows sleepy listen; timed 15-minute fatigue; tier-3 ear check
 - [ ] Windows spike rerun (Sprint 0) — still unpaid
 
 ---
 
-## Agent recommendation
+## Agent recommendation (pre-merge)
 
-**Merge.** Rationale: all Sprint 3 acceptance checkboxes are ticked; CI green on the full matrix including sidecar builds; human confirmed gapless loop and multi-output playback for `sleepy`. Remaining OS listen and Windows spike are documented carry-forwards, not Sprint 3 blockers.
+**Merge** — accepted. All Sprint 3 acceptance checkboxes were ticked; CI green on the full matrix including sidecar builds; human confirmed gapless loop and multi-output playback for `sleepy`. Remaining OS listen and Windows spike are documented carry-forwards.
