@@ -42,6 +42,21 @@ export type {
   SidecarEventName,
 } from "./audio/fake/index.js";
 export {
+  SidecarAudioBackend,
+  PURRCODE_SIDECAR_BIN_ENV,
+  PURRCODE_SIDECAR_NULL_ENV,
+  encodeSidecarCommand,
+  parseSidecarEventLine,
+  resolveSidecarBinaryPath,
+  sidecarPackageName,
+} from "./audio/sidecar/index.js";
+export type {
+  SidecarAudioBackendOptions,
+  SidecarCommand,
+  SidecarEvent,
+  SidecarProtocolEventName,
+} from "./audio/sidecar/index.js";
+export {
   applyVolumeForTier,
   clampPerceptualVolume,
   interpolatePerceptualVolume,

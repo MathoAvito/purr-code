@@ -2,3 +2,10 @@ node_modules/
 dist/
 *.tsbuildinfo
 .DS_Store
+
+# Sidecar vendor headers (~4 MB) — fetched by packages/sidecar/scripts/fetch-vendor.sh
+packages/sidecar/vendor/
+
+# Built tier-1 binaries (CI artifacts / local `sidecar build`); checksums may be committed
+packages/sidecar-*/bin/
+packages/sidecar-*/SHA256SUMS

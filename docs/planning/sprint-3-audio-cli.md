@@ -10,12 +10,12 @@
 
 **As a** user, **I want** the bundled player **so that** gapless looping, runtime volume, and clean fades work with zero external dependencies (§11.3 tier 1).
 
-- [ ] Productionize the PC-004 prototype (**miniaudio** per ADR 0004): load file, gapless loop, set-volume, fade-out-and-exit, fade-in on start; crash-safe (parent daemon detects exit).
-- [ ] Control protocol: **newline-delimited JSON on sidecar stdin** (ADR 0004); sidecar receives amplitude derived from the perceptual model (PC-205) inside this adapter.
-- [ ] **OGG:** PC-004 PoC was WAV-only — decide stb_vorbis (or equivalent) vs ship WAV + generate OGG later; document in ADR amendment if the choice changes FR-07 asset format.
-- [ ] CI builds for macOS arm64/x64, Linux x64, Windows x64 **from source, with published checksums** (§13); binaries a few hundred KB; packaged as per-platform npm `optionalDependencies`, **no postinstall scripts**. Sprint 0 PoC covered Linux x64 + macOS arm64; Windows PoC + production CI builds remain before claiming multi-OS audio MVP.
-- [ ] `AudioBackend` adapter: `detect` verifies the platform binary is present and executable; `play/setVolume/stop` map to the protocol.
-- [ ] Integration: full lifecycle suite (PC-109 scenarios) passes with tier 1 on a developer machine (CI keeps using fake audio).
+- [x] Productionize the PC-004 prototype (**miniaudio** per ADR 0004): load file, gapless loop, set-volume, fade-out-and-exit, fade-in on start; crash-safe (parent daemon detects exit).
+- [x] Control protocol: **newline-delimited JSON on sidecar stdin** (ADR 0004); sidecar receives amplitude derived from the perceptual model (PC-205) inside this adapter.
+- [x] **OGG:** PC-004 PoC was WAV-only — decide stb_vorbis (or equivalent) vs ship WAV + generate OGG later; document in ADR amendment if the choice changes FR-07 asset format.
+- [x] CI builds for macOS arm64/x64, Linux x64, Windows x64 **from source, with published checksums** (§13); binaries a few hundred KB; packaged as per-platform npm `optionalDependencies`, **no postinstall scripts**. Sprint 0 PoC covered Linux x64 + macOS arm64; Windows PoC + production CI builds remain before claiming multi-OS audio MVP.
+- [x] `AudioBackend` adapter: `detect` verifies the platform binary is present and executable; `play/setVolume/stop` map to the protocol.
+- [x] Integration: full lifecycle suite (PC-109 scenarios) passes with tier 1 on a developer machine (CI keeps using fake audio).
 
 ## PC-302 — Tier detection & backend selection (3 pts, E5)
 

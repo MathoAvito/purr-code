@@ -1,0 +1,11 @@
+{
+  "name": "@purrcode/sidecar",
+  "version": "0.0.0",
+  "private": true,
+  "description": "PurrCode tier-1 audio sidecar sources and build scripts (PC-301)",
+  "license": "MIT",
+  "scripts": {
+    "fetch-vendor": "bash scripts/fetch-vendor.sh",
+    "build": "bash scripts/build.sh"
+  }
+}

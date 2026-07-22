@@ -33,7 +33,22 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@26.1.1)(vite@8.1.5(@types/node@26.1.1))
 
-  packages/cli: {}
+  packages/cli:
+    optionalDependencies:
+      '@purrcode/sidecar-darwin-arm64':
+        specifier: workspace:*
+        version: link:../sidecar-darwin-arm64
+      '@purrcode/sidecar-darwin-x64':
+        specifier: workspace:*
+        version: link:../sidecar-darwin-x64
+      '@purrcode/sidecar-linux-x64':
+        specifier: workspace:*
+        version: link:../sidecar-linux-x64
+      '@purrcode/sidecar-win32-x64':
+        specifier: workspace:*
+        version: link:../sidecar-win32-x64
+
+  packages/sidecar: {}
 
   packages/sidecar-darwin-arm64: {}
 

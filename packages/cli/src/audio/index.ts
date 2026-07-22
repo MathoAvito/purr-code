@@ -17,3 +17,21 @@ export {
 } from "./perceptual.js";
 
 export * from "./fake/index.js";
+
+export {
+  SidecarAudioBackend,
+  PURRCODE_SIDECAR_BIN_ENV,
+  PURRCODE_SIDECAR_NULL_ENV,
+  encodeSidecarCommand,
+  parseSidecarEventLine,
+  isExecutableFile,
+  resolveSidecarBinaryPath,
+  sidecarPackageName,
+} from "./sidecar/index.js";
+export type {
+  SidecarAudioBackendOptions,
+  SidecarCommand,
+  SidecarEvent,
+  SidecarProtocolEventName,
+  SidecarPlatform,
+} from "./sidecar/index.js";

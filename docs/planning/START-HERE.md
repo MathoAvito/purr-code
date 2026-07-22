@@ -35,9 +35,9 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 **Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).  
 **Sprint 2 closed:** reliability merged ([PR #17](https://github.com/MathoAvito/purr-code/pull/17)).
 
-- **In progress:** Sprint 3 — real audio, CLI & doctor on branch `sprint-3-audio-cli`. **Next code story: PC-301** (tier-1 sidecar).
-- **PC-305:** `sleepy` CC0 source + [`ASSETS.md`](../../ASSETS.md) landed (Joseph SARDIN / BigSoundBank). Still owed: gapless loop cut + PC-309 listen pass.
-- **Open PR (unrelated):** live set-config volume — [PR #18](https://github.com/MathoAvito/purr-code/pull/18).
+- **In progress:** Sprint 3 — real audio, CLI & doctor on branch `sprint-3-audio-cli` ([PR #19](https://github.com/MathoAvito/purr-code/pull/19)). **Next code story: PC-302** (tier detection).
+- **PC-305:** `sleepy` CC0 source + [`ASSETS.md`](../../ASSETS.md) landed (Joseph Sardin / BigSoundBank). Still owed: gapless loop cut + PC-309 listen pass.
+- **Merged:** live set-config volume — [PR #18](https://github.com/MathoAvito/purr-code/pull/18).
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
 
 ---
@@ -91,7 +91,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 
 | Story | Title | Pts | Depends on | Status |
 |---|---|---|---|---|
-| PC-301 | Tier-1 sidecar: production build | 8 | PC-004, PC-205 | ⬜ |
+| PC-301 | Tier-1 sidecar: production build | 8 | PC-004, PC-205 | ✅ |
 | PC-302 | Tier detection & selection | 3 | PC-301 | ⬜ |
 | PC-303 | Tier-2 mpv adapter | 3 | PC-302 | ⬜ |
 | PC-304 | Tier-3 adapter + WAV cache | 5 | PC-302 | ⬜ |
