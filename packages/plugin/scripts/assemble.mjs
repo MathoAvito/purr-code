@@ -37,7 +37,8 @@ writeFileSync(pluginJsonPath, `${JSON.stringify(pluginJson, null, 2)}\n`);
 
 const distOut = join(pluginRoot, "dist");
 rmSync(distOut, { recursive: true, force: true });
-cpSync(cliDist, distOut, { recursive: true });
+// Source maps stay out of the shipped plugin tree (tarball + per-user copies).
+cpSync(cliDist, distOut, { recursive: true, filter: (src) => !src.endsWith(".map") });
 
 const soundsOut = join(pluginRoot, "sounds");
 mkdirSync(soundsOut, { recursive: true });
