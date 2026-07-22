@@ -54,6 +54,16 @@ describe("resolveRuntimeDirPath", () => {
       }),
     ).toThrow(RuntimeDirError);
   });
+
+  it("honors PURRCODE_RUNTIME_DIR over platform defaults", () => {
+    expect(
+      resolveRuntimeDirPath({
+        platform: "linux",
+        env: { PURRCODE_RUNTIME_DIR: "/tmp/purr-override", XDG_RUNTIME_DIR: "/run/user/1" },
+        uid: undefined,
+      }),
+    ).toBe("/tmp/purr-override");
+  });
 });
 
 describe("ensureRuntimeDir", () => {

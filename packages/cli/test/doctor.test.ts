@@ -44,7 +44,12 @@ describe("purrcode doctor (PC-307)", () => {
       backendCapabilities: caps,
       playback: new PlaybackController({ backend: audio, fadeOutMs: 40, fadeInMs: 0 }),
       watchdogIntervalMs: 0,
-      env: { ...process.env, PURRCODE_FAKE_AUDIO: "1", PURRCODE_RUNTIME_DIR: runtimeDir },
+      env: {
+        ...process.env,
+        ...(iso.env ?? {}),
+        PURRCODE_FAKE_AUDIO: "1",
+        PURRCODE_RUNTIME_DIR: runtimeDir,
+      },
     });
     await daemon.start();
     cleanups.push(async () => daemon.shutdown());
@@ -58,8 +63,20 @@ describe("purrcode doctor (PC-307)", () => {
   }
 
   function baseDeps(home: string, overrides: Record<string, unknown> = {}) {
+    const overrideEnv =
+      overrides.env && typeof overrides.env === "object"
+        ? (overrides.env as NodeJS.ProcessEnv)
+        : undefined;
+    const { env: _ignored, ...rest } = overrides;
     return {
-      env: { ...process.env, CI: undefined, CLAUDE_CODE_REMOTE: undefined } as NodeJS.ProcessEnv,
+      env: {
+        ...process.env,
+        CI: undefined,
+        CLAUDE_CODE_REMOTE: undefined,
+        PURRCODE_RUNTIME_DIR: undefined,
+        ...overrideEnv,
+      } as NodeJS.ProcessEnv,
+      // Linux path layout in fixtures; PURRCODE_RUNTIME_DIR overrides resolution on all OSes.
       platform: "linux" as const,
       home,
       settingsScopes: [] as { label: string; path: string }[],
@@ -76,7 +93,7 @@ describe("purrcode doctor (PC-307)", () => {
         };
       },
       checkRuntimeOwnership: () => Promise.resolve({ ok: true, detail: "ok" }),
-      ...overrides,
+      ...rest,
     };
   }
 
@@ -99,7 +116,8 @@ describe("purrcode doctor (PC-307)", () => {
         ensureDaemon,
       }),
     });
-    expect(res.exitCode).toBe(0);
+    const failed = lines.filter((l) => l.startsWith("x  "));
+    expect(res.exitCode, `doctor failed checks:\n${failed.join("\n") || lines.join("\n")}`).toBe(0);
     expect(lines[0]).toBe("PurrCode Doctor");
     expect(lines.join("\n")).toContain("The cat appears healthy.");
     expect(lines.join("\n")).toMatch(/ok .*Claude Code detected/);

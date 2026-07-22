@@ -28,6 +28,10 @@ export function resolveRuntimeDirPath(options: ResolveRuntimeDirOptions = {}): s
   const platform = options.platform ?? process.platform;
   const env = options.env ?? process.env;
 
+  // Test / operator override (daemon entry + spawn already honor this).
+  const override = env.PURRCODE_RUNTIME_DIR?.trim();
+  if (override) return override;
+
   if (platform === "win32") {
     const localAppData = env.LOCALAPPDATA?.trim() || join(homedir(), "AppData", "Local");
     return join(localAppData, "PurrCode", "runtime");

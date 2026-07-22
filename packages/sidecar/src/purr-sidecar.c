@@ -32,6 +32,11 @@
 #define MA_NO_MP3
 #define MA_NO_FLAC
 
+/* stb_vorbis uses alloca(); declare it before the amalgamation (macOS Clang C99). */
+#if !defined(_WIN32)
+#include <alloca.h>
+#endif
+
 #define STB_VORBIS_HEADER_ONLY
 #include "../vendor/stb_vorbis.c"
 
