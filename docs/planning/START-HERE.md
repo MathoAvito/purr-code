@@ -109,7 +109,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-402 | `npx purr-code install` | 5 | PC-401 | ✅ (Linux smoke; macOS/Win human) |
 | PC-403 | `purrcode uninstall` | 3 | PC-402 | ✅ |
 | PC-404 | Community health files | 3 | — | ✅ |
-| PC-405 | AGENTS.md + CLAUDE.md | 2 | PC-404 | ⬜ |
+| PC-405 | AGENTS.md + CLAUDE.md | 2 | PC-404 | ✅ |
 | PC-406 | CI security hardening & DCO | 3 | PC-008 | 🚧 |
 | PC-407 | Release pipeline (Changesets) | 3 | PC-406 | ⬜ |
 | PC-408 | Definition-of-Done audit | 3 | everything | 🚧 |

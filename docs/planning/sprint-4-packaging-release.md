@@ -48,9 +48,9 @@
 
 **As a** coding agent, **I want** canonical repo context **so that** agent contributions verify their own changes correctly (§23.5).
 
-- [ ] `AGENTS.md`: exact build/lint/test/e2e commands with flags; architecture map (hook adapter → daemon → backend tiers); hard constraints (no new runtime deps without a linked issue, no network code anywhere, never modify release workflows or `sounds/` licensing files, all child processes in exec form); headless verification via `PURRCODE_FAKE_AUDIO=1`.
-- [ ] `CLAUDE.md`: one line pointing to `AGENTS.md`.
-- [ ] Verified by pointing a fresh coding agent at the repo with a trivial task; friction fixed.
+- [x] `AGENTS.md`: exact build/lint/test/e2e commands with flags; architecture map (hook adapter → daemon → backend tiers); hard constraints (no new runtime deps without a linked issue, no network code anywhere, never modify release workflows or `sounds/` licensing files, all child processes in exec form); headless verification via `PURRCODE_FAKE_AUDIO=1`.
+- [x] `CLAUDE.md`: one line pointing to `AGENTS.md`.
+- [x] Verified by pointing a fresh coding agent at the repo with a trivial task; friction fixed.
 
 ## PC-406 — CI security hardening & DCO (3 pts, E8) — human gate for repo settings
 
