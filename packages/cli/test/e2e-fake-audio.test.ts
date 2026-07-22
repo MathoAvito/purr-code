@@ -153,12 +153,11 @@ describe("e2e fake-audio (PC-109)", () => {
     await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "x" });
     await sleep(40);
     await client.send({ v: PROTOCOL_VERSION, op: "stop", sessionId: "x" });
-    await sleep(250);
-
-    const events = await readFakeAudioLog(logPath);
-    assertContainsSequence(
-      events.filter((e) => ["start", "fade-start", "fade-cancel", "stop"].includes(e.type)),
+    // Poll: fixed 250ms sleep raced the second fade-out on Windows CI.
+    await waitForLifecycle(
+      logPath,
       ["start", "fade-start", "fade-cancel", "start", "fade-start", "stop"],
+      3000,
     );
   });
 
