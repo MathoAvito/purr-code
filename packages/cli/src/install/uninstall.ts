@@ -17,6 +17,7 @@ import {
   expectedPluginDataDir,
   findCachedPluginRoot,
 } from "./paths.js";
+import { removeStableMarketplace } from "./stableMarketplace.js";
 
 export type UninstallFlags = {
   keepData?: boolean;
@@ -144,6 +145,19 @@ export async function runUninstall(options: UninstallOptions = {}): Promise<Unin
       const msg = e instanceof Error ? e.message : String(e);
       err(style.warn(`⚠ Marketplace remove skipped: ${msg}`, env));
     }
+  }
+
+  // 3b. Stable marketplace copy (registration artifact, not user data — always removed)
+  try {
+    const stableRemoved = await removeStableMarketplace({ env, home });
+    if (stableRemoved) {
+      removed.push(`marketplace-files:${stableRemoved}`);
+      out(style.ok("✓ Removed marketplace files", env));
+      out(style.dim(`  ${stableRemoved}`, env));
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    err(style.warn(`⚠ Marketplace files cleanup incomplete: ${msg}`, env));
   }
 
   // 4. Plugin data / imported audio

@@ -233,12 +233,18 @@ export {
   findCachedPluginRoot,
   isMarketplaceDir,
   resolveMarketplacePath,
+  resolveMarketplaceSource,
+  removeStableMarketplace,
+  stableMarketplaceDir,
+  syncStableMarketplace,
 } from "./install/index.js";
 export type {
   ClaudePluginOps,
   ClaudeProbeResult,
   InstallOptions,
   InstallResult,
+  MarketplaceSource,
+  SyncStableMarketplaceOptions,
   UninstallFlags,
   UninstallOptions,
   UninstallResult,

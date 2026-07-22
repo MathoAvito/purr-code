@@ -6,7 +6,12 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { runCli } from "../src/cli/runCli.js";
-import { parseUninstallArgs, runUninstall, type ClaudePluginOps } from "../src/install/index.js";
+import {
+  parseUninstallArgs,
+  runUninstall,
+  stableMarketplaceDir,
+  type ClaudePluginOps,
+} from "../src/install/index.js";
 
 describe("uninstall (PC-403)", () => {
   const cleanups: Array<() => Promise<void>> = [];
@@ -94,6 +99,33 @@ describe("uninstall (PC-403)", () => {
     expect(existsSync(pluginData)).toBe(false);
     expect(existsSync(runtimeDir)).toBe(false);
     expect(lines.some((l) => l.includes("Removed plugin"))).toBe(true);
+  });
+
+  it("removes the stable marketplace copy", async () => {
+    const home = await tempHome();
+    const env = { NO_COLOR: "1", HOME: home, PURRCODE_RUNTIME_DIR: join(home, "runtime") };
+    const stable = stableMarketplaceDir({ env, home });
+    await mkdir(join(stable, ".claude-plugin"), { recursive: true });
+    await writeFile(join(stable, ".claude-plugin", "marketplace.json"), "{}\n");
+
+    const state = {
+      installed: [] as string[],
+      markets: [] as string[],
+      uninstalls: [] as Array<{ id: string; keepData?: boolean }>,
+      marketRemoves: [] as string[],
+    };
+    const result = await runUninstall({
+      home,
+      env,
+      claude: mockClaude(state),
+      stopDaemon: () => Promise.resolve([]),
+      stdout: () => undefined,
+      stderr: () => undefined,
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(existsSync(stable)).toBe(false);
+    expect(result.removed).toContain(`marketplace-files:${stable}`);
   });
 
   it("--keep-data retains plugin data; --purge removes imported/", async () => {

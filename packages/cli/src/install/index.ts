@@ -20,5 +20,13 @@ export {
   findCachedPluginRoot,
   isMarketplaceDir,
   resolveMarketplacePath,
+  resolveMarketplaceSource,
+  type MarketplaceSource,
   type ResolveMarketplaceOptions,
 } from "./paths.js";
+export {
+  removeStableMarketplace,
+  stableMarketplaceDir,
+  syncStableMarketplace,
+  type SyncStableMarketplaceOptions,
+} from "./stableMarketplace.js";

@@ -14,8 +14,10 @@ import {
   MARKETPLACE_NAME,
   expectedPluginDataDir,
   findCachedPluginRoot,
-  resolveMarketplacePath,
+  resolveMarketplaceSource,
+  type MarketplaceSource,
 } from "./paths.js";
+import { syncStableMarketplace } from "./stableMarketplace.js";
 
 export type InstallOptions = {
   env?: NodeJS.ProcessEnv;
@@ -24,8 +26,10 @@ export type InstallOptions = {
   stderr?: (line: string) => void;
   /** Inject Claude plugin ops (tests). */
   claude?: ClaudePluginOps;
-  /** Inject marketplace path (tests). */
+  /** Inject marketplace path (tests). Registered as-is, like the env override. */
   marketplacePath?: string;
+  /** Inject a full marketplace source incl. kind (tests). */
+  marketplaceSource?: MarketplaceSource;
   /** Inject backend selection for playback verify (tests). */
   selectBackend?: (opts: SelectAudioBackendOptions) => Promise<SelectedAudioBackend>;
   /** Override sidecar for WAV cache prep. */
@@ -68,12 +72,22 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
 
   let marketplacePath: string;
   try {
-    marketplacePath = resolveMarketplacePath({
-      env,
-      ...(options.marketplacePath !== undefined
-        ? { marketplacePath: options.marketplacePath }
-        : {}),
-    });
+    const source =
+      options.marketplaceSource ??
+      resolveMarketplaceSource({
+        env,
+        ...(options.marketplacePath !== undefined
+          ? { marketplacePath: options.marketplacePath }
+          : {}),
+      });
+    marketplacePath = source.path;
+    if (source.kind === "packaged") {
+      // node_modules / npx cache is ephemeral; register a stable per-user copy
+      // so `claude plugin marketplace update` keeps a live source.
+      marketplacePath = await syncStableMarketplace({ sourcePath: source.path, env, home });
+      out(style.ok("✓ Copied plugin files to a stable location", env));
+      out(style.dim(`  ${marketplacePath}`, env));
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     err(style.err(`✗ ${msg}`, env));

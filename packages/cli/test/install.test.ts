@@ -5,9 +5,17 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { existsSync } from "node:fs";
+
 import { FakeAudioBackend } from "../src/audio/fake/index.js";
 import { runCli } from "../src/cli/runCli.js";
-import { createClaudePluginOps, runInstall, type ClaudePluginOps } from "../src/install/index.js";
+import {
+  createClaudePluginOps,
+  runInstall,
+  stableMarketplaceDir,
+  syncStableMarketplace,
+  type ClaudePluginOps,
+} from "../src/install/index.js";
 import { isWavFile } from "../src/audio/wavCache.js";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -201,6 +209,62 @@ describe("install (PC-402)", () => {
     expect(state.installs).toEqual([]);
     expect(state.marketAdds).toEqual([]);
     expect(lines.some((l) => l.includes("already installed"))).toBe(true);
+  });
+
+  it("copies a packaged marketplace to the stable dir and registers that path", async () => {
+    const home = await tempHome();
+    const packagedPath = await fixtureMarketplace(home);
+    const env = { NO_COLOR: "1", HOME: home, PURRCODE_FAKE_AUDIO: "1" };
+    const state = {
+      installed: [] as string[],
+      markets: [] as string[],
+      installs: [] as string[],
+      marketAdds: [] as string[],
+    };
+
+    const result = await runInstall({
+      home,
+      env,
+      marketplaceSource: { path: packagedPath, kind: "packaged" },
+      claude: mockClaude(state),
+      sidecarBin: null,
+      selectBackend: async () => {
+        const backend = new FakeAudioBackend({
+          enabled: true,
+          logPath: join(home, "fake.jsonl"),
+        });
+        return {
+          backend,
+          capabilities: await backend.detect(),
+          probes: [{ tier: "fake", name: "fake", present: true }],
+        };
+      },
+      stdout: () => undefined,
+      stderr: () => undefined,
+    });
+
+    const stable = stableMarketplaceDir({ env, home });
+    expect(result.exitCode).toBe(0);
+    expect(result.marketplacePath).toBe(stable);
+    expect(state.marketAdds).toEqual([stable]);
+    expect(existsSync(join(stable, ".claude-plugin", "marketplace.json"))).toBe(true);
+    expect(existsSync(join(stable, "plugins", "purrcode", "hooks", "hooks.json"))).toBe(true);
+  });
+
+  it("syncStableMarketplace replaces a previous copy", async () => {
+    const home = await tempHome();
+    const packagedPath = await fixtureMarketplace(home);
+    const env = { HOME: home };
+
+    const first = await syncStableMarketplace({ sourcePath: packagedPath, env, home });
+    await writeFile(join(first, "stale-marker.txt"), "old\n");
+
+    const second = await syncStableMarketplace({ sourcePath: packagedPath, env, home });
+    expect(second).toBe(first);
+    expect(existsSync(join(second, "stale-marker.txt"))).toBe(false);
+    expect(existsSync(join(second, "plugins", "purrcode", "hooks", "hooks.json"))).toBe(true);
+    // Re-syncing from the stable dir itself is a no-op, not a self-copy.
+    await expect(syncStableMarketplace({ sourcePath: second, env, home })).resolves.toBe(second);
   });
 
   it("fails clearly when Claude Code is missing", async () => {
