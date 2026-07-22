@@ -60,12 +60,12 @@
 
 **As a** user, **I want** to control the purr without editing JSON (FR-09, §8 configuration story).
 
-- [ ] `purrcode on|off`: flips `enabled` in config *and* messages the daemon (off during playback fades out immediately). Optional aliases `mute`/`unmute`.
-- [ ] `purrcode volume <0-100>`: validates, persists, applies to the **currently playing** loop via the control pipe.
-- [ ] `purrcode status`: daemon health, active/paused session count, playback state, backend tier + capabilities, selected sound, volume.
-- [ ] `purrcode preview [name]`: plays a few seconds through the active real backend (bypasses the fake env var), works without any Claude session.
-- [ ] UX per §16: playful-but-informative, errors explain what happened and how to fix it, `NO_COLOR` respected, no meaning carried by emoji/color alone.
-- [ ] Command-level tests against a live daemon with the fake backend (except preview's real-backend path, covered in manual QA).
+- [x] `purrcode on|off`: flips `enabled` in config *and* messages the daemon (off during playback fades out immediately). Optional aliases `mute`/`unmute`.
+- [x] `purrcode volume <0-100>`: validates, persists, applies to the **currently playing** loop via the control pipe.
+- [x] `purrcode status`: daemon health, active/paused session count, playback state, backend tier + capabilities, selected sound, volume.
+- [x] `purrcode preview [name]`: plays a few seconds through the active real backend (bypasses the fake env var), works without any Claude session.
+- [x] UX per §16: playful-but-informative, errors explain what happened and how to fix it, `NO_COLOR` respected, no meaning carried by emoji/color alone.
+- [x] Command-level tests against a live daemon with the fake backend (except preview's real-backend path, covered in manual QA).
 
 ## PC-307 — `purrcode doctor` (3 pts, E6)
 

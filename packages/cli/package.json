@@ -17,6 +17,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "bin": {
+    "purrcode": "./dist/cli.js",
     "purrcode-hook": "./dist/hook.js",
     "purrcode-daemon": "./dist/daemon/entry.js"
   },
