@@ -41,6 +41,11 @@ jobs:
       - run: pnpm typecheck
 
       - run: pnpm test
+        if: matrix.os != 'ubuntu-latest'
+
+      # Coverage variant on one OS only; report lands in the job log.
+      - run: pnpm test:coverage
+        if: matrix.os == 'ubuntu-latest'
 
       - run: pnpm e2e:fake-audio
         env:
