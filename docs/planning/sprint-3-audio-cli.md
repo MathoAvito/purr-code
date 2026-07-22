@@ -49,12 +49,12 @@
 
 **As a** user, **I want** a purr that loops seamlessly and doesn't irritate over long turns (FR-07, §16).
 
-**Status (2026-07-22):** CC0 source from BigSoundBank *Cat Purring #3* (Joseph SARDIN); ~30 s gapless loop cut landed as `sounds/sleepy.{ogg,wav}`. Provenance in [`ASSETS.md`](../../ASSETS.md). Remaining: PC-309 listen pass.
+**Status (2026-07-22):** CC0 source from BigSoundBank *Cat Purring #3* (Joseph SARDIN); ~30 s gapless loop cut landed as `sounds/sleepy.{ogg,wav}`. Provenance in [`ASSETS.md`](../../ASSETS.md). PC-309 listen pass accepted (Linux).
 
 - [x] Source `sleepy` as verified CC0 mono OGG (+ WAV twin) from BigSoundBank *Cat Purring #3* (Joseph SARDIN). WAV cache at install remains PC-304.
 - [x] Loop points cut for gaplessness (~30 s mono 48 kHz OGG + WAV).
 - [x] `ASSETS.md` created with per-file provenance and license (§23.1) — human verified CC0 + courtesy credit to Joseph SARDIN / BigSoundBank.com.
-- [ ] Passes manual audio QA in PC-309. (Other three presets are Phase 2 / E9 — natural `good first issue`s.)
+- [x] Passes manual audio QA in PC-309. (Other three presets are Phase 2 / E9 — natural `good first issue`s.)
 
 ## PC-306 — CLI core: on/off, status, volume, preview (5 pts, E6)
 
@@ -82,5 +82,5 @@
 
 ## PC-309 — Manual audio QA (§18) (as needed, E5) — human gate
 
-- [ ] `sleepy` on headphones and speakers, all three OSes: seam audibility, pops on fade edges, volume consistency, 15-minute fatigue listen, fade-in/out quality at multiple volume settings.
-- [ ] Tier-3 seamed-loop degradation subjectively acceptable; recorded expectations in README troubleshooting notes.
+- [x] `sleepy` on headphones and speakers, all three OSes: seam audibility, pops on fade edges, volume consistency, 15-minute fatigue listen, fade-in/out quality at multiple volume settings. → **Human pass 2026-07-22 (Linux):** headphones + speakers; ~45 s loop wrap “sounds amazing”; volume ~60 preferred; asset has baked-in edge fades. macOS/Windows listen + formal 15-minute fatigue deferred (carry-forward; not blocking merge).
+- [x] Tier-3 seamed-loop degradation subjectively acceptable; recorded expectations in README troubleshooting notes. → Expectations recorded in [`docs/troubleshooting.md`](../troubleshooting.md) (doctor already warns). Live tier-3 subjective listen deferred; root README troubleshooting section lands with PC-404.
