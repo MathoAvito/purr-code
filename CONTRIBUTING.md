@@ -59,31 +59,34 @@ Headless / CI verification uses the fake audio backend (`PURRCODE_FAKE_AUDIO=1`)
 - Fill out the PR template (tests, licensing, AI disclosure).
 - Keep PRs reviewable; unverified bulk submissions may be closed without extended triage.
 
-### Release procedure (reproducible dry-run / PC-407)
+### Release procedure (release branches / PC-407)
 
-Publish is **tags on `main` only**, via `.github/workflows/release.yml` behind the protected GitHub Environment `release`. PR workflows can never publish.
+Publish is **tags only**, via `.github/workflows/release.yml` behind the protected GitHub Environment `release`. PR workflows can never publish, and nothing publishes without three deliberate human steps: merging the release PR, pushing the tag, and approving the `release` deployment.
+
+Day-to-day development stays trunk-based (sprint branches → PR → `main`). Each release gets a short-lived **release branch**:
 
 1. Land user-facing work with Changesets on `main` (via the sprint PR).
-2. Locally on `main`:
+2. Cut the release branch and apply the pending changesets:
 
    ```bash
    git checkout main && git pull
+   git checkout -b release/vX.Y.Z
    pnpm install
    pnpm version-packages          # applies .changeset → package.json + CHANGELOG
-   git add -A && git commit -m "chore(release): version packages"
-   git push origin main
+   git add -A && git commit -s -m "chore(release): vX.Y.Z"
    ```
 
-3. Dry-run (no tag / no publish):
+3. Dry-run on the release branch (no tag / no publish):
 
    ```bash
    pnpm plugin:build
    pnpm --filter purr-code publish --dry-run --no-git-checks
    ```
 
-4. Human release (PC-409): create annotated tag `vX.Y.Z` on the version commit on `main`, push the tag. The Release workflow builds sidecars from source, publishes npm with provenance, and attaches checksums to the GitHub Release.
-
-5. One-time human setup: GitHub Environment `release` (deploy from `main` only + required reviewers); npm Trusted Publisher for workflow `release.yml` / environment `release`.
+4. Open a PR from `release/vX.Y.Z` into `main`. Reviewing this PR — version bumps, changelogs, dry-run output — **is** the release review. Merge when green; delete the branch.
+5. Human release (PC-409): create an annotated tag `vX.Y.Z` on the merge commit on `main`, push the tag, then approve the `release` environment deployment when prompted. The workflow verifies tag ↔ package versions, builds sidecars from source, publishes npm with provenance, and attaches checksums to the GitHub Release.
+6. Backports: only when an already-released major needs a fix, create a maintenance branch `vN.x` from the latest `vN.*` tag, cherry-pick, and run the same version → PR → tag → approve flow from that branch. Do not create maintenance branches ahead of need.
+7. One-time human setup: GitHub Environment `release` (tag rule `v*` + required reviewers); npm Trusted Publisher for workflow `release.yml` / environment `release`.
 
 ### DCO (Developer Certificate of Origin)
 
