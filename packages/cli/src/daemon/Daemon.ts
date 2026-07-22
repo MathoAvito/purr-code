@@ -408,7 +408,7 @@ export class Daemon {
         this.config = config;
         await this.playback?.applySettings({ volume: config.volume });
       } else if (message.op === "preview") {
-        await this.runPreview(message.sound);
+        await this.runPreview(message.sound, message.durationMs);
       } else if (message.op === "start") {
         this.registry.start({
           sessionId: message.sessionId,
@@ -483,7 +483,7 @@ export class Daemon {
   }
 
   /** Play selected (or named) sound for a few seconds via the daemon backend (PC-306). */
-  private async runPreview(soundName?: string): Promise<void> {
+  private async runPreview(soundName?: string, durationMs = 10_000): Promise<void> {
     const backend = this.bootOptions.audioBackend;
     if (!backend) return;
     await this.stopPreview();
@@ -496,9 +496,10 @@ export class Daemon {
       fadeInMs: 0,
     });
     this.previewHandle = handle;
+    const ms = Number.isFinite(durationMs) ? Math.max(100, Math.min(120_000, durationMs)) : 10_000;
     this.previewTimer = setTimeout(() => {
       void this.stopPreview();
-    }, 3000);
+    }, ms);
   }
 
   private async stopPreview(): Promise<void> {

@@ -46,7 +46,7 @@ Usage:
 
 Tips:
   off during a turn fades the purr out immediately.
-  preview plays a few seconds without needing a Claude session
+  preview plays ~10 seconds without needing a Claude session
   (uses volume ≥ 50 so it is audible; turn default 20 is very quiet).
   doctor explains why the cat is silent.
 `;
@@ -90,7 +90,7 @@ export async function runCli(options: RunCliOptions = {}): Promise<RunCliResult>
       case "pspsps":
         return await previewSound(cmd === "pspsps" ? undefined : argv[1], {
           ...ctx,
-          previewMs: options.previewMs ?? 3000,
+          previewMs: options.previewMs ?? 10_000,
           selectBackend: options.selectBackend ?? selectAudioBackend,
         });
       case "doctor":
@@ -255,12 +255,14 @@ async function previewSound(
           op: "preview",
           id: randomUUID(),
           sound,
+          durationMs: ctx.previewMs,
         }),
       );
       if (res.ok) {
+        const secs = Math.round(ctx.previewMs / 1000);
         ctx.out(
           style.ok(
-            `Previewing "${sound}" for a few seconds (daemon; config volume ${cfg.volume}, preview plays at ≥${PREVIEW_VOLUME_FLOOR})…`,
+            `Previewing "${sound}" for ~${secs}s (daemon; config volume ${cfg.volume}, preview plays at ≥${PREVIEW_VOLUME_FLOOR})…`,
             ctx.env,
           ),
         );

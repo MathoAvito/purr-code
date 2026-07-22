@@ -41,6 +41,8 @@ export type PreviewMessage = ControlMessageBase & {
   op: "preview";
   id: string;
   sound?: string;
+  /** How long the daemon should play before auto-stop (ms). */
+  durationMs?: number;
 };
 export type SetConfigMessage = ControlMessageBase & {
   op: "set-config";
@@ -195,6 +197,15 @@ function validateOp(
       const msg: PreviewMessage = { v: PROTOCOL_VERSION, op: "preview", id };
       const sound = asNonEmptyString(raw.sound);
       if (sound) msg.sound = sound;
+      if (raw.durationMs !== undefined) {
+        if (typeof raw.durationMs !== "number" || !Number.isFinite(raw.durationMs)) {
+          throw new Error("preview durationMs must be a number");
+        }
+        if (raw.durationMs < 100 || raw.durationMs > 120_000) {
+          throw new Error("preview durationMs must be 100–120000");
+        }
+        msg.durationMs = Math.floor(raw.durationMs);
+      }
       return msg;
     }
     case "set-config": {
