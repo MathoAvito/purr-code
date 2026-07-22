@@ -49,10 +49,10 @@
 
 **As a** user, **I want** a purr that loops seamlessly and doesn't irritate over long turns (FR-07, §16).
 
-**Status (2026-07-22):** source files landed as `sounds/sleepy.{ogg,wav}` from BigSoundBank *Cat Purring #3* (CC0, Joseph SARDIN). Provenance ledger in root [`ASSETS.md`](../../ASSETS.md). Remaining: gapless loop cut + PC-309 listen pass.
+**Status (2026-07-22):** CC0 source from BigSoundBank *Cat Purring #3* (Joseph SARDIN); ~30 s gapless loop cut landed as `sounds/sleepy.{ogg,wav}`. Provenance in [`ASSETS.md`](../../ASSETS.md). Remaining: PC-309 listen pass.
 
 - [x] Source `sleepy` as verified CC0 mono OGG (+ WAV twin) from BigSoundBank *Cat Purring #3* (Joseph SARDIN). WAV cache at install remains PC-304.
-- [ ] Loop points cut for gaplessness (edit still owed before PC-309).
+- [x] Loop points cut for gaplessness (~30 s mono 48 kHz OGG + WAV).
 - [x] `ASSETS.md` created with per-file provenance and license (§23.1) — human verified CC0 + courtesy credit to Joseph SARDIN / BigSoundBank.com.
 - [ ] Passes manual audio QA in PC-309. (Other three presets are Phase 2 / E9 — natural `good first issue`s.)
 
