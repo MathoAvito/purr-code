@@ -32,8 +32,12 @@
 #define MA_NO_MP3
 #define MA_NO_FLAC
 
-/* stb_vorbis uses alloca(); declare it before the amalgamation (macOS Clang C99). */
-#if !defined(_WIN32)
+/* stb_vorbis uses alloca(); _POSIX_C_SOURCE can hide the libc declaration on macOS. */
+#if defined(__GNUC__) || defined(__clang__)
+#ifndef alloca
+#define alloca __builtin_alloca
+#endif
+#elif !defined(_WIN32)
 #include <alloca.h>
 #endif
 

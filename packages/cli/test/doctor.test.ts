@@ -63,18 +63,16 @@ describe("purrcode doctor (PC-307)", () => {
   }
 
   function baseDeps(home: string, overrides: Record<string, unknown> = {}) {
-    const overrideEnv =
-      overrides.env && typeof overrides.env === "object"
-        ? (overrides.env as NodeJS.ProcessEnv)
-        : undefined;
-    const { env: _ignored, ...rest } = overrides;
+    const { env: envOverride, ...rest } = overrides;
     return {
       env: {
         ...process.env,
         CI: undefined,
         CLAUDE_CODE_REMOTE: undefined,
         PURRCODE_RUNTIME_DIR: undefined,
-        ...overrideEnv,
+        ...(envOverride && typeof envOverride === "object"
+          ? (envOverride as NodeJS.ProcessEnv)
+          : {}),
       } as NodeJS.ProcessEnv,
       // Linux path layout in fixtures; PURRCODE_RUNTIME_DIR overrides resolution on all OSes.
       platform: "linux" as const,
