@@ -46,7 +46,8 @@ Usage:
 
 Tips:
   off during a turn fades the purr out immediately.
-  preview plays a few seconds without needing a Claude session.
+  preview plays a few seconds without needing a Claude session
+  (uses volume ≥ 50 so it is audible; turn default 20 is very quiet).
   doctor explains why the cat is silent.
 `;
 
@@ -231,6 +232,9 @@ async function showStatus(ctx: Ctx): Promise<RunCliResult> {
   return { exitCode: 0 };
 }
 
+/** Preview uses at least this perceptual level so QA isn't silent at default 20. */
+const PREVIEW_VOLUME_FLOOR = 50;
+
 async function previewSound(
   name: string | undefined,
   ctx: Ctx & {
@@ -238,7 +242,9 @@ async function previewSound(
     selectBackend: NonNullable<RunCliOptions["selectBackend"]>;
   },
 ): Promise<RunCliResult> {
-  const sound = name && name.length > 0 ? name : loadConfig({ ...ctx.configDir }).config.sound;
+  const cfg = loadConfig({ ...ctx.configDir }).config;
+  const sound = name && name.length > 0 ? name : cfg.sound;
+  const previewVolume = Math.max(cfg.volume, PREVIEW_VOLUME_FLOOR);
 
   // Prefer daemon preview when the daemon is not in fake-audio mode (real backends).
   if (!isFakeAudioEnabled(ctx.env)) {
@@ -252,7 +258,24 @@ async function previewSound(
         }),
       );
       if (res.ok) {
-        ctx.out(style.ok(`Previewing "${sound}" for a few seconds…`, ctx.env));
+        ctx.out(
+          style.ok(
+            `Previewing "${sound}" for a few seconds (daemon; config volume ${cfg.volume}, preview plays at ≥${PREVIEW_VOLUME_FLOOR})…`,
+            ctx.env,
+          ),
+        );
+        if (cfg.volume < PREVIEW_VOLUME_FLOOR) {
+          ctx.out(
+            style.dim(
+              `Tip: default volume ${cfg.volume} is very quiet for turns (−48 dB at 20). Preview temporarily uses ${PREVIEW_VOLUME_FLOOR}. For turns: purrcode volume 50`,
+              ctx.env,
+            ),
+          );
+        }
+        // Stay alive for the daemon's preview window so the process doesn't look
+        // "done" before audio has a chance to play.
+        await new Promise((r) => setTimeout(r, ctx.previewMs));
+        ctx.out(style.dim("Preview done.", ctx.env));
         return { exitCode: 0 };
       }
     } catch {
@@ -276,13 +299,13 @@ async function previewSound(
   const soundPath = resolveBundledSoundPath(sound).preferred;
   ctx.out(
     style.ok(
-      `Previewing "${sound}" via ${selected.capabilities.name} (tier ${selected.capabilities.tier})…`,
+      `Previewing "${sound}" via ${selected.capabilities.name} (tier ${selected.capabilities.tier}) at volume ${previewVolume}…`,
       ctx.env,
     ),
   );
   const handle = await selected.backend.play({
     soundPath,
-    volume: loadConfig({ ...ctx.configDir }).config.volume,
+    volume: previewVolume,
     fadeInMs: 0,
   });
   await new Promise((r) => setTimeout(r, ctx.previewMs));
