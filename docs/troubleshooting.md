@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Short operational notes until the root `README.md` lands (Sprint 4 / PC-404). Also surfaced by `purrcode doctor`.
+Operational notes also linked from the root [`README.md`](../README.md). Surfaced by `purrcode doctor`.
 
 ## Silent cat
 

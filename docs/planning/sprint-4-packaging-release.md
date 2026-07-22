@@ -38,11 +38,11 @@
 
 **As a** first-time contributor (human or agent), **I want** the §23.1 file set **so that** contributing has a defined surface.
 
-- [ ] `README.md`: install, uninstall, architecture sketch, privacy statement, troubleshooting, badges (CI, npm; Scorecard badge slot).
-- [ ] `CONTRIBUTING.md`: dev setup (`pnpm install`, `pnpm test`, `pnpm e2e:fake-audio`), testing hooks against local Claude Code, PR expectations, DCO instructions, AI-assisted contribution policy (§23.5: disclosure checkbox, submitter accountability, fast-close for untested bulk submissions, no agent-contributed audio, no agent DCO sign-off), BDFL governance note (§23.6), scope-discipline pointer to PRD §5.
-- [ ] `CODE_OF_CONDUCT.md` (Contributor Covenant, named enforcement contact), `SECURITY.md` (GitHub Security Advisories, 7-day acknowledgment, no public PoC pre-fix).
-- [ ] Issue templates: bug report (requires `doctor` output + OS/tier), feature request (must address non-goals). PR template: test checklist, licensing checklist, AI-disclosure checkbox. (Sound-submission template is Phase 2 / E9.)
-- [ ] `CODEOWNERS`: maintainer review on `hooks/`, release workflows, `sounds/`.
+- [x] `README.md`: install, uninstall, architecture sketch, privacy statement, troubleshooting, badges (CI, npm; Scorecard badge slot).
+- [x] `CONTRIBUTING.md`: dev setup (`pnpm install`, `pnpm test`, `pnpm e2e:fake-audio`), testing hooks against local Claude Code, PR expectations, DCO instructions, AI-assisted contribution policy (§23.5: disclosure checkbox, submitter accountability, fast-close for untested bulk submissions, no agent-contributed audio, no agent DCO sign-off), BDFL governance note (§23.6), scope-discipline pointer to PRD §5.
+- [x] `CODE_OF_CONDUCT.md` (Contributor Covenant, named enforcement contact), `SECURITY.md` (GitHub Security Advisories, 7-day acknowledgment, no public PoC pre-fix).
+- [x] Issue templates: bug report (requires `doctor` output + OS/tier), feature request (must address non-goals). PR template: test checklist, licensing checklist, AI-disclosure checkbox. (Sound-submission template is Phase 2 / E9.)
+- [x] `CODEOWNERS`: maintainer review on `hooks/`, release workflows, `sounds/`.
 
 ## PC-405 — AGENTS.md + CLAUDE.md (2 pts, E8)
 
