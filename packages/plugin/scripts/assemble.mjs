@@ -67,6 +67,12 @@ if (os && cpu && !(os === "linux" && cpu !== "x64") && !(os === "win32" && cpu !
   }
 }
 
+// Ship a copy inside the npm `purr-code` package for `purrcode install` (PC-402).
+const cliMarketplace = join(repoRoot, "packages", "cli", "plugin-marketplace");
+rmSync(cliMarketplace, { recursive: true, force: true });
+cpSync(join(pluginPkg, "marketplace"), cliMarketplace, { recursive: true });
+
 console.log(`assemble: plugin ready at ${pluginRoot}`);
 console.log(`assemble: version ${pluginJson.version}`);
 console.log(`assemble: dist/hook.js + sounds/sleepy + license metadata`);
+console.log(`assemble: mirrored marketplace → ${cliMarketplace}`);

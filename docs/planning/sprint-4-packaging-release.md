@@ -19,11 +19,11 @@
 
 **As a** new user, **I want** one idempotent command **so that** installation matches the §14 experience.
 
-- [ ] Detects Claude Code (version-checked); registers the plugin via the PC-005-documented flow; installs default purr; verifies audio playback and reports the detected tier.
-- [ ] Idempotent: re-running detects the existing install and reports rather than duplicating (RR-03, §8).
-- [ ] Reports what was installed and where; failure output explains cause + fix; suggests `preview` and `volume` next steps per §14.
-- [ ] Works via `npx` and global install; **the installed hooks themselves never depend on PATH or npx** (§13).
-- [ ] Integration test with a mocked plugin-registration layer; manual verification on the three OSes.
+- [x] Detects Claude Code (version-checked); registers the plugin via the PC-005-documented flow; installs default purr; verifies audio playback and reports the detected tier.
+- [x] Idempotent: re-running detects the existing install and reports rather than duplicating (RR-03, §8).
+- [x] Reports what was installed and where; failure output explains cause + fix; suggests `preview` and `volume` next steps per §14.
+- [x] Works via `npx` and global install; **the installed hooks themselves never depend on PATH or npx** (§13).
+- [x] Integration test with a mocked plugin-registration layer; manual verification on the three OSes. *(Linux 2026-07-22 real `purrcode install` + idempotent re-run OK. macOS/Windows manual still human.)*
 
 ## PC-403 — `purrcode uninstall` (3 pts, E7)
 

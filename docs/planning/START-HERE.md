@@ -106,7 +106,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | Story | Title | Pts | Depends on | Status |
 |---|---|---|---|---|
 | PC-401 | Plugin package | 5 | PC-005, PC-301–307 | ✅ (Linux smoke; macOS/Win E2E human) |
-| PC-402 | `npx purr-code install` | 5 | PC-401 | ⬜ |
+| PC-402 | `npx purr-code install` | 5 | PC-401 | ✅ (Linux smoke; macOS/Win human) |
 | PC-403 | `purrcode uninstall` | 3 | PC-402 | ⬜ |
 | PC-404 | Community health files | 3 | — | ⬜ |
 | PC-405 | AGENTS.md + CLAUDE.md | 2 | PC-404 | ⬜ |

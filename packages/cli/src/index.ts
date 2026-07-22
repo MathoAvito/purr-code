@@ -220,3 +220,23 @@ export type {
   PreparePluginDataResult,
   ValidateHooksManifestOptions,
 } from "./plugin/index.js";
+
+export {
+  createClaudePluginOps,
+  runInstall,
+  PLUGIN_ID,
+  MARKETPLACE_NAME,
+  PLUGIN_NAME,
+  expectedPluginDataDir,
+  findCachedPluginRoot,
+  isMarketplaceDir,
+  resolveMarketplacePath,
+} from "./install/index.js";
+export type {
+  ClaudePluginOps,
+  ClaudeProbeResult,
+  InstallOptions,
+  InstallResult,
+  ResolveMarketplaceOptions,
+  RunClaudeOptions,
+} from "./install/index.js";
