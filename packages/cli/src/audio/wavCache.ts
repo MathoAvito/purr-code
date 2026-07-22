@@ -179,14 +179,38 @@ export async function ensureWavCache(options: EnsureWavCacheOptions): Promise<Wa
   );
 }
 
-/** Resolve bundled `sounds/<name>.{ogg,wav}` relative to the repo root (dev/monorepo). */
+export type ResolveBundledSoundOptions = {
+  /** Explicit sounds tree root (repo root or plugin root). */
+  root?: string;
+  /** @deprecated Prefer `root`. Accepted for backward compatibility. */
+  repoRoot?: string;
+  env?: NodeJS.ProcessEnv;
+  /** Override `CLAUDE_PLUGIN_ROOT` (tests). */
+  pluginRoot?: string;
+};
+
+/**
+ * Resolve bundled `sounds/<name>.{ogg,wav}`.
+ *
+ * Order: explicit root → `CLAUDE_PLUGIN_ROOT` → monorepo/plugin-relative walk
+ * from this module (`../../../../` lands at repo root in monorepo, or plugin
+ * root when running from an assembled plugin `dist/`).
+ */
 export function resolveBundledSoundPath(
   soundName: string,
-  repoRoot?: string,
-): { ogg: string; wav: string; preferred: string } {
-  const root = repoRoot ?? join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
+  rootOrOptions?: string | ResolveBundledSoundOptions,
+): { ogg: string; wav: string; preferred: string; root: string } {
+  const opts: ResolveBundledSoundOptions =
+    typeof rootOrOptions === "string" ? { root: rootOrOptions } : (rootOrOptions ?? {});
+  const env = opts.env ?? process.env;
+  const pluginRoot = opts.pluginRoot ?? (env.CLAUDE_PLUGIN_ROOT?.trim() || undefined);
+  const root =
+    opts.root ??
+    opts.repoRoot ??
+    pluginRoot ??
+    join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
   const name = sanitizeSoundName(soundName);
   const ogg = join(root, "sounds", `${name}.ogg`);
   const wav = join(root, "sounds", `${name}.wav`);
-  return { ogg, wav, preferred: ogg };
+  return { ogg, wav, preferred: ogg, root };
 }

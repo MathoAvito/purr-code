@@ -9,3 +9,9 @@ packages/sidecar/vendor/
 # Built tier-1 binaries (CI artifacts / local `sidecar build`); checksums may be committed
 packages/sidecar-*/bin/
 packages/sidecar-*/SHA256SUMS
+
+# Assembled plugin tree (PC-401) — regenerate via `pnpm plugin:build`
+packages/plugin/marketplace/plugins/purrcode/dist/
+packages/plugin/marketplace/plugins/purrcode/sounds/sleepy.ogg
+packages/plugin/marketplace/plugins/purrcode/sounds/sleepy.wav
+packages/plugin/marketplace/plugins/purrcode/vendor/

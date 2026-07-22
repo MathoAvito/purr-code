@@ -77,6 +77,13 @@ export function resolveSidecarBinaryPath(
     // optionalDependency absent on this platform / not built yet
   }
 
+  // Plugin-bundled binary: ${CLAUDE_PLUGIN_ROOT}/vendor/sidecar/<bin>
+  const pluginRoot = env.CLAUDE_PLUGIN_ROOT?.trim();
+  if (pluginRoot) {
+    const pluginCandidate = join(pluginRoot, "vendor", "sidecar", binName);
+    if (isExecutableFile(pluginCandidate, platform)) return pluginCandidate;
+  }
+
   // Monorepo / workspace fallback when optionalDeps aren't linked with a bin yet.
   try {
     const here = dirname(fileURLToPath(import.meta.url));

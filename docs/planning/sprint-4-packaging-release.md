@@ -10,10 +10,10 @@
 
 **As a** user, **I want** PurrCode as a Claude Code plugin **so that** my `settings.json` is never touched (FR-01, §15).
 
-- [ ] Plugin layout with `hooks/hooks.json` exactly per §15: **exec form mandatory** (`command: "node"`, `args` with `${CLAUDE_PLUGIN_ROOT}/dist/hook.js`) — string-form is forbidden (ADR 0002/0006: breaks ppid = Claude and refcounting). `async: true`, `timeout: 5`, no `matcher` fields, all four events.
-- [ ] Hook adapter, daemon, CLI bundled into the plugin's `dist/`; persistent state (config, sounds, WAV cache) in `${CLAUDE_PLUGIN_DATA}` so it survives plugin updates (per PC-005 findings).
-- [ ] `sleepy` + license metadata bundled; WAV cache generated at install.
-- [ ] Validated end-to-end against a real Claude Code on all three OSes: prompt → purr → stop → silence, zero transcript artifacts.
+- [x] Plugin layout with `hooks/hooks.json` exactly per §15: **exec form mandatory** (`command: "node"`, `args` with `${CLAUDE_PLUGIN_ROOT}/dist/hook.js`) — string-form is forbidden (ADR 0002/0006: breaks ppid = Claude and refcounting). `async: true`, `timeout: 5`, no `matcher` fields, all four events.
+- [x] Hook adapter, daemon, CLI bundled into the plugin's `dist/`; persistent state (config, sounds, WAV cache) in `${CLAUDE_PLUGIN_DATA}` so it survives plugin updates (per PC-005 findings).
+- [x] `sleepy` + license metadata bundled; WAV cache generated at install.
+- [ ] Validated end-to-end against a real Claude Code on all three OSes: prompt → purr → stop → silence, zero transcript artifacts. *(Linux 2026-07-22: `claude plugin validate` + marketplace install + headless turn → zero transcript artifacts, `settings.json` untouched, `preparePluginData` WAV cache under `${CLAUDE_PLUGIN_DATA}`. macOS/Windows + perceptual prompt→purr→stop still human.)*
 
 ## PC-402 — `npx purr-code install` (5 pts, E7)
 

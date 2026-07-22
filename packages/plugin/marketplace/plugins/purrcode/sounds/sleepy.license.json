@@ -1,0 +1,13 @@
+{
+  "preset": "sleepy",
+  "files": ["sleepy.ogg", "sleepy.wav"],
+  "title": "Cat Purring #3",
+  "soundNumber": 1010,
+  "author": "Joseph SARDIN",
+  "source": "https://bigsoundbank.com/cat-purring-3-s1010.html",
+  "sourceSite": "BigSoundBank.com",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "courtesyCredit": "Additional sounds: Joseph SARDIN - BigSoundBank.com",
+  "notes": "Default MVP purr (FR-07). Mono 48 kHz ~30 s gapless loop. See ASSETS.md in the PurrCode repository."
+}

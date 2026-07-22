@@ -33,6 +33,7 @@ export {
   sanitizeSoundName,
   resolveBundledSoundPath,
   type EnsureWavCacheOptions,
+  type ResolveBundledSoundOptions,
   type WavCacheResult,
 } from "./wavCache.js";
 export { resolveDataDirPath, resolveSoundsDirPath, type ResolveDataDirOptions } from "./dataDir.js";

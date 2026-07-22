@@ -1,6 +1,8 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 
+import { pluginDataFromEnv } from "../plugin/env.js";
+
 export type ResolveConfigDirOptions = {
   platform?: NodeJS.Platform;
   env?: NodeJS.ProcessEnv;
@@ -11,15 +13,22 @@ export type ResolveConfigDirOptions = {
 /**
  * Per-user config directory (PC-204 / FR-06) — not the runtime/socket dir.
  *
+ * When `CLAUDE_PLUGIN_DATA` is set (plugin context), config lives there so it
+ * survives plugin updates (FR-01 / PC-401).
+ *
  * | Platform | Location |
  * |---|---|
+ * | Plugin | `${CLAUDE_PLUGIN_DATA}` |
  * | Linux | `$XDG_CONFIG_HOME/purrcode` or `~/.config/purrcode` |
  * | macOS | `~/Library/Application Support/PurrCode` |
  * | Windows | `%LOCALAPPDATA%\PurrCode` |
  */
 export function resolveConfigDirPath(options: ResolveConfigDirOptions = {}): string {
-  const platform = options.platform ?? process.platform;
   const env = options.env ?? process.env;
+  const pluginData = pluginDataFromEnv(env);
+  if (pluginData) return pluginData;
+
+  const platform = options.platform ?? process.platform;
   const home = options.home ?? homedir();
 
   if (platform === "win32") {

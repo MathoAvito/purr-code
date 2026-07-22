@@ -17,7 +17,10 @@
     "e2e:fake-audio": "vitest run packages/cli/test/e2e-fake-audio.test.ts",
     "sidecar:fetch-vendor": "pnpm --filter @purrcode/sidecar fetch-vendor",
     "sidecar:build": "pnpm --filter @purrcode/sidecar build",
-    "e2e:sidecar": "vitest run packages/cli/test/e2e-sidecar.test.ts"
+    "e2e:sidecar": "vitest run packages/cli/test/e2e-sidecar.test.ts",
+    "plugin:assemble": "pnpm --filter @purrcode/plugin assemble",
+    "plugin:validate": "pnpm --filter @purrcode/plugin validate",
+    "plugin:build": "pnpm --filter @purrcode/plugin build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
