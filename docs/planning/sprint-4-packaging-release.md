@@ -29,10 +29,10 @@
 
 **As a** user, **I want** clean removal **so that** nothing unrelated changes (§8 uninstall story).
 
-- [ ] Disables/removes the plugin; stops the daemon (fade first), removes runtime state, socket, pidfile.
-- [ ] **Plugin data** (`${CLAUDE_PLUGIN_DATA}`) is deleted by default; retain with **`--keep-data`** (ADR 0005). User-imported audio retained unless `--purge` (mechanism ships now even though import UI is Phase 2) — clarify interaction: `--keep-data` keeps plugin data; `--purge` removes imported audio when that surface exists.
-- [ ] Idempotent; reports exactly what was removed.
-- [ ] Test: install → use → uninstall leaves no PurrCode process, hook, or runtime residue (config/data only with `--keep-data` / without `--purge` as specified).
+- [x] Disables/removes the plugin; stops the daemon (fade first), removes runtime state, socket, pidfile.
+- [x] **Plugin data** (`${CLAUDE_PLUGIN_DATA}`) is deleted by default; retain with **`--keep-data`** (ADR 0005). User-imported audio retained unless `--purge` (mechanism ships now even though import UI is Phase 2) — clarify interaction: `--keep-data` keeps plugin data; `--purge` removes imported audio when that surface exists.
+- [x] Idempotent; reports exactly what was removed.
+- [x] Test: install → use → uninstall leaves no PurrCode process, hook, or runtime residue (config/data only with `--keep-data` / without `--purge` as specified).
 
 ## PC-404 — Community health files (3 pts, E8)
 

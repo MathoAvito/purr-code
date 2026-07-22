@@ -12,8 +12,10 @@ export type ClaudePluginOps = {
   probeClaude: () => Promise<ClaudeProbeResult>;
   marketplaceList: () => Promise<string[]>;
   marketplaceAdd: (sourcePath: string) => Promise<void>;
+  marketplaceRemove: (name: string) => Promise<void>;
   pluginList: () => Promise<string[]>;
   pluginInstall: (pluginId: string) => Promise<void>;
+  pluginUninstall: (pluginId: string, opts?: { keepData?: boolean }) => Promise<void>;
 };
 
 export type RunClaudeOptions = {
@@ -75,6 +77,10 @@ export function createClaudePluginOps(options: RunClaudeOptions = {}): ClaudePlu
       await run(["plugin", "marketplace", "add", sourcePath]);
     },
 
+    async marketplaceRemove(name: string) {
+      await run(["plugin", "marketplace", "remove", name]);
+    },
+
     async pluginList() {
       const { stdout } = await run(["plugin", "list"]);
       // Prefer exact plugin@marketplace tokens when present.
@@ -89,6 +95,12 @@ export function createClaudePluginOps(options: RunClaudeOptions = {}): ClaudePlu
 
     async pluginInstall(pluginId: string) {
       await run(["plugin", "install", pluginId, "--scope", "user"]);
+    },
+
+    async pluginUninstall(pluginId: string, opts: { keepData?: boolean } = {}) {
+      const args = ["plugin", "uninstall", pluginId, "--scope", "user"];
+      if (opts.keepData) args.push("--keep-data");
+      await run(args);
     },
   };
 }

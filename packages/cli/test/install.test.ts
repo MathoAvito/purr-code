@@ -90,12 +90,14 @@ describe("install (PC-402)", () => {
         state.markets.push("purrcode");
         return Promise.resolve();
       },
+      marketplaceRemove: () => Promise.resolve(),
       pluginList: () => Promise.resolve([...state.installed]),
       pluginInstall: (id) => {
         state.installs.push(id);
         state.installed.push(id);
         return Promise.resolve();
       },
+      pluginUninstall: () => Promise.resolve(),
     };
   }
 
@@ -213,8 +215,10 @@ describe("install (PC-402)", () => {
           Promise.resolve({ present: false as const, detail: "`claude` not found on PATH" }),
         marketplaceList: () => Promise.resolve([]),
         marketplaceAdd: () => Promise.resolve(),
+        marketplaceRemove: () => Promise.resolve(),
         pluginList: () => Promise.resolve([]),
         pluginInstall: () => Promise.resolve(),
+        pluginUninstall: () => Promise.resolve(),
       },
       stdout: () => undefined,
       stderr: (l) => errLines.push(l),

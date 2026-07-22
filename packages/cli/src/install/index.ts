@@ -6,6 +6,13 @@ export {
 } from "./claudePlugin.js";
 export { runInstall, type InstallOptions, type InstallResult } from "./install.js";
 export {
+  runUninstall,
+  parseUninstallArgs,
+  type UninstallFlags,
+  type UninstallOptions,
+  type UninstallResult,
+} from "./uninstall.js";
+export {
   PLUGIN_ID,
   MARKETPLACE_NAME,
   PLUGIN_NAME,

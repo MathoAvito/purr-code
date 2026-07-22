@@ -224,6 +224,8 @@ export type {
 export {
   createClaudePluginOps,
   runInstall,
+  runUninstall,
+  parseUninstallArgs,
   PLUGIN_ID,
   MARKETPLACE_NAME,
   PLUGIN_NAME,
@@ -237,6 +239,9 @@ export type {
   ClaudeProbeResult,
   InstallOptions,
   InstallResult,
+  UninstallFlags,
+  UninstallOptions,
+  UninstallResult,
   ResolveMarketplaceOptions,
   RunClaudeOptions,
 } from "./install/index.js";
