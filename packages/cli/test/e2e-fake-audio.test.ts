@@ -269,12 +269,9 @@ describe("e2e fake-audio (PC-109)", () => {
         await client.send(msg);
       },
     });
-    await sleep(100);
+    // client.send only waits for the write — poll for daemon + fade completion
+    // (Windows CI raced a fixed 100ms sleep against the ~50ms fake fade).
+    await waitForLifecycle(logPath, ["start", "fade-start", "stop"]);
     expect(daemon.sessionCount).toBe(0);
-    const events = await readFakeAudioLog(logPath);
-    assertContainsSequence(
-      events.filter((e) => ["start", "fade-start", "stop"].includes(e.type)),
-      ["start", "fade-start", "stop"],
-    );
   });
 });
