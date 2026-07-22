@@ -57,6 +57,8 @@ export type {
   SidecarProtocolEventName,
 } from "./audio/sidecar/index.js";
 export { NoneAudioBackend } from "./audio/none/NoneAudioBackend.js";
+export { MpvAudioBackend } from "./audio/mpv/index.js";
+export type { MpvAudioBackendOptions } from "./audio/mpv/index.js";
 export {
   selectAudioBackend,
   detectMpvPresent,

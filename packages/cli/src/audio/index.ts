@@ -19,6 +19,7 @@ export {
 export * from "./fake/index.js";
 
 export { NoneAudioBackend } from "./none/NoneAudioBackend.js";
+export { MpvAudioBackend, type MpvAudioBackendOptions } from "./mpv/index.js";
 export {
   selectAudioBackend,
   detectMpvPresent,

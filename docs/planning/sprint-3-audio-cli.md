@@ -30,10 +30,10 @@
 
 **As a** user with mpv installed but no working sidecar, **I want** full-quality playback via mpv's IPC socket (§11.3 tier 2).
 
-- [ ] Detect mpv on PATH (detection only — hook commands themselves never rely on PATH); spawn with `--input-ipc-server`, loop, no video, no OSD.
-- [ ] Volume/fades via IPC `volume` property; **pass the perceptual 0–100 value through — mpv applies its own curve; no double-mapping** (FR-06).
-- [ ] Fade-out implemented as a volume ramp then quit; fade-cancel supported.
-- [ ] Integration test behind an `mpv`-present guard (runs where installed, skipped elsewhere).
+- [x] Detect mpv on PATH (detection only — hook commands themselves never rely on PATH); spawn with `--input-ipc-server`, loop, no video, no OSD.
+- [x] Volume/fades via IPC `volume` property; **pass the perceptual 0–100 value through — mpv applies its own curve; no double-mapping** (FR-06).
+- [x] Fade-out implemented as a volume ramp then quit; fade-cancel supported.
+- [x] Integration test behind an `mpv`-present guard (runs where installed, skipped elsewhere).
 
 ## PC-304 — Tier-3 degraded adapter + canonical WAV cache (5 pts, E5)
 
