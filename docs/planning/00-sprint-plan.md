@@ -21,7 +21,7 @@
 | 0 | Technical spikes + scaffolding | PRD Phase 0 exit criteria met; go/no-go decision | 29 |
 | 1 | Walking skeleton (hooks → daemon → fake audio) | Purr lifecycle works end-to-end with fake audio in CI | 30 |
 | 2 | Reliability & reconciliation | All RR-01…RR-05 behaviors pass integration suite | 27 |
-| 3 | Real audio + CLI + doctor | Audible purr on 3 OSes; full CLI surface for MVP | 30 |
+| 3 | Real audio + CLI + doctor | Audible purr + full CLI/doctor; sidecar CI on 3 OSes (human listen: Linux; other OS carry-forward) | 30 |
 | 4 | Plugin packaging, OSS surface, release | **v0.1.0 published**; §22 Definition of Done met | 28 |
 
 Phases 2 (v0.5.0 beta) and 3 (v1.0.0) are captured at **epic level only** in [01-epics.md](01-epics.md); they get story breakdown after the MVP retro.

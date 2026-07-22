@@ -33,11 +33,12 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 
 **Sprint 0 closed:** go with platform-debt accepted ([reviews/sprint-0-review.md](reviews/sprint-0-review.md)).  
 **Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).  
-**Sprint 2 closed:** reliability merged ([PR #17](https://github.com/MathoAvito/purr-code/pull/17)).
+**Sprint 2 closed:** reliability merged ([PR #17](https://github.com/MathoAvito/purr-code/pull/17)).  
+**Sprint 3 closed:** real audio, CLI & doctor merged ([PR #19](https://github.com/MathoAvito/purr-code/pull/19)); review [reviews/sprint-3-review.md](reviews/sprint-3-review.md).
 
-- **Sprint 3 ready to merge:** branch `sprint-3-audio-cli` ([PR #19](https://github.com/MathoAvito/purr-code/pull/19)); review package [reviews/sprint-3-review.md](reviews/sprint-3-review.md). Human PC-309 listen pass accepted (Linux).
-- **Merged:** live set-config volume — [PR #18](https://github.com/MathoAvito/purr-code/pull/18).
-- **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)); optional macOS/Windows sleepy listen + formal 15-minute fatigue (carry-forward from PC-309).
+- **Start next:** Sprint 4 — packaging, OSS surface & v0.1.0. Branch `sprint-4-packaging-release` off up-to-date `main`; first story **PC-401** (plugin package). Details: [sprint-4-packaging-release.md](sprint-4-packaging-release.md).
+- **Ops notes:** [docs/troubleshooting.md](../troubleshooting.md) (volume defaults, backend tiers, preview vs turn).
+- **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)); optional macOS/Windows sleepy listen + formal 15-minute fatigue (PC-309 carry-forward).
 
 ---
 
@@ -98,7 +99,7 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-306 | CLI: on/off, status, volume, preview | 5 | PC-204, PC-302 | ✅ |
 | PC-307 | `purrcode doctor` | 3 | PC-306 | ✅ |
 | PC-308 | Failure-mode sweep | 1 | PC-307 | ✅ |
-| PC-309 | Manual audio QA | — | PC-301, PC-305 | ✅ Linux pass; other OS listen deferred |
+| PC-309 | Manual audio QA | — | PC-301, PC-305 | ✅ (Linux; other OS listen deferred) |
 
 ### Sprint 4 — Packaging, OSS & release ([sprint-4-packaging-release.md](sprint-4-packaging-release.md))
 
