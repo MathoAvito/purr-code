@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "description": "PurrCode tier-1 audio sidecar binary for win32/x64 (PC-301)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MathoAvito/purr-code.git",
+    "directory": "packages/sidecar-win32-x64"
+  },
+  "homepage": "https://github.com/MathoAvito/purr-code#readme",
+  "bugs": "https://github.com/MathoAvito/purr-code/issues",
   "os": [
     "win32"
   ],

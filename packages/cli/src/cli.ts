@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * User-facing CLI entry: `purrcode <command>` (PC-306).
  */

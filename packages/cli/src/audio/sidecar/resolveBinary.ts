@@ -77,11 +77,16 @@ export function resolveSidecarBinaryPath(
     // optionalDependency absent on this platform / not built yet
   }
 
-  // Plugin-bundled binary: ${CLAUDE_PLUGIN_ROOT}/vendor/sidecar/<bin>
+  // Plugin-bundled binary: ${CLAUDE_PLUGIN_ROOT}/vendor/sidecar/<os>-<cpu>/<bin>
+  // (per-platform since the plugin tree ships binaries for every target).
+  // Legacy flat vendor/sidecar/<bin> kept for plugins assembled before that.
   const pluginRoot = env.CLAUDE_PLUGIN_ROOT?.trim();
   if (pluginRoot) {
-    const pluginCandidate = join(pluginRoot, "vendor", "sidecar", binName);
-    if (isExecutableFile(pluginCandidate, platform)) return pluginCandidate;
+    const vendorDir = join(pluginRoot, "vendor", "sidecar");
+    const target = pkg.replace("@purrcode/sidecar-", "");
+    for (const candidate of [join(vendorDir, target, binName), join(vendorDir, binName)]) {
+      if (isExecutableFile(candidate, platform)) return candidate;
+    }
   }
 
   // Monorepo / workspace fallback when optionalDeps aren't linked with a bin yet.

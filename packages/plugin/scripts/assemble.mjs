@@ -45,26 +45,21 @@ cpSync(join(soundsSrc, "sleepy.ogg"), join(soundsOut, "sleepy.ogg"));
 cpSync(join(soundsSrc, "sleepy.wav"), join(soundsOut, "sleepy.wav"));
 // license metadata is committed under sounds/; keep it if present
 
-// Host-platform sidecar → vendor/sidecar/ (optional; tiers 2/3 still work without it)
-const platform = process.platform;
-const arch = process.arch;
-const os =
-  platform === "linux"
-    ? "linux"
-    : platform === "darwin"
-      ? "darwin"
-      : platform === "win32"
-        ? "win32"
-        : null;
-const cpu = arch === "x64" || arch === "arm64" ? arch : null;
-if (os && cpu && !(os === "linux" && cpu !== "x64") && !(os === "win32" && cpu !== "x64")) {
-  const binName = platform === "win32" ? "purr-sidecar.exe" : "purr-sidecar";
-  const sidecarBin = join(repoRoot, "packages", `sidecar-${os}-${cpu}`, "bin", binName);
-  if (existsSync(sidecarBin)) {
-    const vendorDir = join(pluginRoot, "vendor", "sidecar");
-    mkdirSync(vendorDir, { recursive: true });
-    cpSync(sidecarBin, join(vendorDir, binName));
-  }
+// Sidecar binaries → vendor/sidecar/<os>-<cpu>/ for every built target, so the
+// assembled plugin works on all platforms regardless of the machine that packs
+// it (optional; tiers 2/3 still work without any).
+const SIDECAR_TARGETS = ["linux-x64", "darwin-arm64", "darwin-x64", "win32-x64"];
+const vendorRoot = join(pluginRoot, "vendor", "sidecar");
+rmSync(vendorRoot, { recursive: true, force: true });
+const bundledTargets = [];
+for (const target of SIDECAR_TARGETS) {
+  const binName = target.startsWith("win32") ? "purr-sidecar.exe" : "purr-sidecar";
+  const sidecarBin = join(repoRoot, "packages", `sidecar-${target}`, "bin", binName);
+  if (!existsSync(sidecarBin)) continue;
+  const targetDir = join(vendorRoot, target);
+  mkdirSync(targetDir, { recursive: true });
+  cpSync(sidecarBin, join(targetDir, binName));
+  bundledTargets.push(target);
 }
 
 // Ship a copy inside the npm `purr-code` package for `purrcode install` (PC-402).
@@ -75,4 +70,5 @@ cpSync(join(pluginPkg, "marketplace"), cliMarketplace, { recursive: true });
 console.log(`assemble: plugin ready at ${pluginRoot}`);
 console.log(`assemble: version ${pluginJson.version}`);
 console.log(`assemble: dist/hook.js + sounds/sleepy + license metadata`);
+console.log(`assemble: sidecar targets bundled: ${bundledTargets.join(", ") || "none"}`);
 console.log(`assemble: mirrored marketplace → ${cliMarketplace}`);

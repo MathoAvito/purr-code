@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -195,14 +194,5 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
 }
 
 function resolvePluginRoot(home: string, marketplacePath: string): string {
-  const cached = findCachedPluginRoot(home);
-  if (cached) return cached;
-  const sourcePlugin = join(marketplacePath, "plugins", "purrcode");
-  if (
-    existsSync(join(sourcePlugin, "dist", "hook.js")) ||
-    existsSync(join(sourcePlugin, "sounds"))
-  ) {
-    return sourcePlugin;
-  }
-  return sourcePlugin;
+  return findCachedPluginRoot(home) ?? join(marketplacePath, "plugins", "purrcode");
 }
