@@ -78,7 +78,7 @@
 
 ## PC-308 — Documented failure-mode sweep (1 pt, E6)
 
-- [ ] Manually induce each §20 operational risk reachable at this stage (hook resolution failure, missing backend, unowned runtime dir, suspended owner) and confirm doctor identifies it; file gaps as bugs.
+- [x] Manually induce each §20 operational risk reachable at this stage (hook resolution failure, missing backend, unowned runtime dir, suspended owner) and confirm doctor identifies it; file gaps as bugs. → Automated fixtures in `packages/cli/test/failure-mode-sweep.test.ts`; gaps + optional human checklist in [reviews/pc-308-failure-mode-sweep.md](reviews/pc-308-failure-mode-sweep.md).
 
 ## PC-309 — Manual audio QA (§18) (as needed, E5) — human gate
 

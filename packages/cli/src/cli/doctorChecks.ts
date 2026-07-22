@@ -51,6 +51,7 @@ export async function collectDoctorChecks(deps: DoctorDeps): Promise<DoctorRepor
   checks.push(...checkSettingsValidity(scopes));
   checks.push(...checkDisableAllHooks(scopes));
   checks.push(...checkInstallMode(scopes, deps));
+  checks.push(...checkHookResolution(scopes));
   checks.push(checkSuppression(deps.env));
   checks.push(await checkBackend(deps));
   checks.push(await checkConfigWritable(deps));
@@ -310,6 +311,67 @@ function checkInstallMode(scopes: SettingsScope[], deps: DoctorDeps): DoctorChec
   }
 
   return checks;
+}
+
+/** §20: hook command fails to resolve → transcript errors. */
+function checkHookResolution(scopes: SettingsScope[]): DoctorCheck[] {
+  const problems: string[] = [];
+  for (const scope of scopes) {
+    const parsed = readJsonFile(scope.path);
+    if (!parsed.ok || typeof parsed.value !== "object" || parsed.value === null) continue;
+    const hooks = (parsed.value as { hooks?: unknown }).hooks;
+    if (typeof hooks !== "object" || hooks === null) continue;
+    for (const groups of Object.values(hooks as Record<string, unknown>)) {
+      if (!Array.isArray(groups)) continue;
+      for (const group of groups) {
+        if (typeof group !== "object" || group === null) continue;
+        const list = (group as { hooks?: unknown }).hooks;
+        if (!Array.isArray(list)) continue;
+        for (const h of list) {
+          if (typeof h !== "object" || h === null) continue;
+          const hook = h as Record<string, unknown>;
+          const blob = JSON.stringify(hook);
+          if (!PURR_HOOK_HINT.test(blob)) continue;
+          const command = typeof hook.command === "string" ? hook.command : "";
+          if (command === "npx" || /\bnpx\b/.test(command)) {
+            problems.push(`${scope.label}: uses npx (forbidden on hook path)`);
+          }
+          // String-form without args array is fragile (shell / PATH).
+          if (command.includes(" ") && !Array.isArray(hook.args)) {
+            problems.push(`${scope.label}: string-form hook command (prefer exec form)`);
+          }
+          const args = Array.isArray(hook.args) ? hook.args : [];
+          for (const arg of args) {
+            if (typeof arg !== "string") continue;
+            if (arg.includes("${CLAUDE_PLUGIN_ROOT}")) continue; // resolved by Claude at runtime
+            if (arg.startsWith("/") || /^[A-Za-z]:[\\/]/.test(arg)) {
+              if (!existsSync(arg)) {
+                problems.push(`${scope.label}: missing hook path ${arg}`);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (problems.length === 0) {
+    return [
+      {
+        id: "hook-resolution",
+        status: "ok",
+        summary: "Purr hook commands look resolvable (or none configured)",
+      },
+    ];
+  }
+  return [
+    {
+      id: "hook-resolution",
+      status: "fail",
+      summary: `Hook resolution problems: ${problems.slice(0, 3).join("; ")}${problems.length > 3 ? "…" : ""}`,
+      fix: "Use exec-form hooks with absolute paths or ${CLAUDE_PLUGIN_ROOT}; never npx/PATH. Fix or reinstall PurrCode hooks.",
+    },
+  ];
 }
 
 function checkSuppression(env: NodeJS.ProcessEnv): DoctorCheck {
