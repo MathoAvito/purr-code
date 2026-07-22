@@ -7,8 +7,11 @@ on:
     branches: [main]
   pull_request:
 
+# pull-requests:read — the action lists PR commits via the API on pull_request
+# events. PR comments stay disabled so write access is never needed.
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   gitleaks:
@@ -23,3 +26,4 @@ jobs:
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
