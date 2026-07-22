@@ -35,7 +35,7 @@ Repo-wide agent context (architecture, commands, hard constraints) lives in `AGE
 **Sprint 1 closed:** walking skeleton merged ([PR #15](https://github.com/MathoAvito/purr-code/pull/15)).  
 **Sprint 2 closed:** reliability merged ([PR #17](https://github.com/MathoAvito/purr-code/pull/17)).
 
-- **In progress:** Sprint 3 — real audio, CLI & doctor on branch `sprint-3-audio-cli` ([PR #19](https://github.com/MathoAvito/purr-code/pull/19)). **Next code story: PC-307** (`purrcode doctor`).
+- **In progress:** Sprint 3 — real audio, CLI & doctor on branch `sprint-3-audio-cli` ([PR #19](https://github.com/MathoAvito/purr-code/pull/19)). **Next code story: PC-308** (failure-mode sweep).
 - **PC-305:** `sleepy` CC0 source + [`ASSETS.md`](../../ASSETS.md) landed (Joseph Sardin / BigSoundBank). Still owed: gapless loop cut + PC-309 listen pass.
 - **Merged:** live set-config volume — [PR #18](https://github.com/MathoAvito/purr-code/pull/18).
 - **Still open (human):** **Windows** spike rerun (macOS closed — [macos-rerun-20260719.md](reviews/macos-rerun-20260719.md)).
@@ -97,8 +97,8 @@ Status legend: ⬜ todo · 🔵 in progress · ✅ done · ⛔ blocked · 🚧 h
 | PC-304 | Tier-3 adapter + WAV cache | 5 | PC-302 | ✅ |
 | PC-305 | Default `sleepy` purr asset | 2 | — | 🚧 source+ASSETS.md landed; loop cut + QA owed |
 | PC-306 | CLI: on/off, status, volume, preview | 5 | PC-204, PC-302 | ✅ |
-| PC-307 | `purrcode doctor` | 3 | PC-306 | 🔵 |
-| PC-308 | Failure-mode sweep | 1 | PC-307 | ⬜ |
+| PC-307 | `purrcode doctor` | 3 | PC-306 | ✅ |
+| PC-308 | Failure-mode sweep | 1 | PC-307 | 🔵 |
 | PC-309 | Manual audio QA | — | PC-301, PC-305 | 🚧 |
 
 ### Sprint 4 — Packaging, OSS & release ([sprint-4-packaging-release.md](sprint-4-packaging-release.md))

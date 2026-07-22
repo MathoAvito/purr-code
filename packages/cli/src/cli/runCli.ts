@@ -13,6 +13,7 @@ import {
 import { isFakeAudioEnabled } from "../audio/fake/index.js";
 import { resolveBundledSoundPath } from "../audio/wavCache.js";
 import { style } from "./style.js";
+import type { DoctorDeps } from "./doctorChecks.js";
 
 export type RunCliOptions = {
   argv?: string[];
@@ -26,6 +27,8 @@ export type RunCliOptions = {
   previewMs?: number;
   /** Inject backend selection for preview (tests / fake-bypass). */
   selectBackend?: (opts: SelectAudioBackendOptions) => Promise<SelectedAudioBackend>;
+  /** Extra doctor deps (PC-307 fixture tests). */
+  doctorDeps?: Partial<DoctorDeps>;
 };
 
 export type RunCliResult = { exitCode: number };
@@ -38,11 +41,13 @@ Usage:
   purrcode volume <0-100>
   purrcode preview [name]
   purrcode pspsps
+  purrcode doctor
   purrcode help
 
 Tips:
   off during a turn fades the purr out immediately.
   preview plays a few seconds without needing a Claude session.
+  doctor explains why the cat is silent.
 `;
 
 /**
@@ -86,6 +91,17 @@ export async function runCli(options: RunCliOptions = {}): Promise<RunCliResult>
           ...ctx,
           previewMs: options.previewMs ?? 3000,
           selectBackend: options.selectBackend ?? selectAudioBackend,
+        });
+      case "doctor":
+        return await (
+          await import("./doctor.js")
+        ).runDoctor({
+          env,
+          out,
+          err,
+          ensure,
+          ...(options.configDir !== undefined ? { configDir: options.configDir } : {}),
+          ...(options.doctorDeps !== undefined ? { deps: options.doctorDeps } : {}),
         });
       default:
         err(style.err(`Unknown command: ${cmd}`, env));

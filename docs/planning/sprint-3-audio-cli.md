@@ -71,10 +71,10 @@
 
 **As a** user with a silent cat, **I want** one command that finds the problem (FR-10).
 
-- [ ] Checks: Claude Code installed + version; installation mode + hook presence/duplication; plugin/settings validity; **`disableAllHooks` in any settings scope**; `CI`/`CLAUDE_CODE_REMOTE` suppression state; backend tier + capabilities; config/runtime dir writability + runtime-dir ownership; daemon health, socket reachability, registry validity, paused sessions; selected-sound integrity (file + WAV cache); platform support.
-- [ ] Output format per the FR-10 example, ending with a one-line verdict ("The cat appears healthy.").
-- [ ] Each failed check prints a concrete fix suggestion; exit code reflects health (0 healthy, 1 problems) for scriptability.
-- [ ] Tests: fixture-driven scenarios for each failure class the checks can detect.
+- [x] Checks: Claude Code installed + version; installation mode + hook presence/duplication; plugin/settings validity; **`disableAllHooks` in any settings scope**; `CI`/`CLAUDE_CODE_REMOTE` suppression state; backend tier + capabilities; config/runtime dir writability + runtime-dir ownership; daemon health, socket reachability, registry validity, paused sessions; selected-sound integrity (file + WAV cache); platform support.
+- [x] Output format per the FR-10 example, ending with a one-line verdict ("The cat appears healthy.").
+- [x] Each failed check prints a concrete fix suggestion; exit code reflects health (0 healthy, 1 problems) for scriptability.
+- [x] Tests: fixture-driven scenarios for each failure class the checks can detect.
 
 ## PC-308 — Documented failure-mode sweep (1 pt, E6)
 
