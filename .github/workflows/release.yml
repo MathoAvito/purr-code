@@ -97,6 +97,22 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
+      # Fail fast if the tag was pushed before `changeset version` was merged:
+      # a version/tag mismatch on the registry cannot be republished.
+      - name: Verify tag matches package versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          for pkg in cli sidecar-linux-x64 sidecar-darwin-arm64 sidecar-darwin-x64 sidecar-win32-x64; do
+            v="$(node -p "require('./packages/${pkg}/package.json').version")"
+            if [[ "v${v}" != "${tag}" ]]; then
+              echo "::error::packages/${pkg} is v${v} but the tag is ${tag} — merge the 'changeset version' PR before tagging"
+              exit 1
+            fi
+          done
+          echo "All package versions match ${tag}"
+
       - run: pnpm install --frozen-lockfile
 
       - name: Download sidecar artifacts
