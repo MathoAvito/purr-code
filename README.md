@@ -13,17 +13,23 @@ PurrCode is an open-source [Claude Code](https://code.claude.com) addon that pla
 Requires [Node.js 20+](https://nodejs.org/) and [Claude Code](https://code.claude.com) on your `PATH`.
 
 ```bash
-npx purr-code install
-# or: npm i -g purr-code && purrcode install
+npm install -g purr-code
+purrcode install
 ```
 
 This registers PurrCode as a **Claude Code plugin**. Your `settings.json` hooks are never edited on the default path.
+
+Then **restart Claude Code** (or start a new session) so the purr hooks load.
+
+Prefer no global install? `npx purr-code install` works too — but then prefix every
+later command with `npx` as well (`npx purr-code preview`): npx runs from its cache
+and puts no `purrcode` command on your `PATH`.
 
 Then try:
 
 ```bash
 purrcode preview
-purrcode volume 15
+purrcode volume 30
 ```
 
 ## Uninstall
