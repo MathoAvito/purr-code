@@ -5,10 +5,10 @@
   "fixed": [
     [
       "purr-code",
-      "@purrcode/sidecar-linux-x64",
-      "@purrcode/sidecar-darwin-arm64",
-      "@purrcode/sidecar-darwin-x64",
-      "@purrcode/sidecar-win32-x64"
+      "@purr-code/sidecar-linux-x64",
+      "@purr-code/sidecar-darwin-arm64",
+      "@purr-code/sidecar-darwin-x64",
+      "@purr-code/sidecar-win32-x64"
     ]
   ],
   "linked": [],

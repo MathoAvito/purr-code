@@ -1,6 +1,7 @@
 # 0007 — Package name & trademark hygiene (`purr-code`)
 
-- **Status:** Accepted — **PC-010 confirmed 2026-07-20**
+- **Status:** Accepted — **PC-010 confirmed 2026-07-20**; **amended 2026-07-23**
+  (sidecar scope)
 - **Date:** 2026-07-18 (confirmed 2026-07-20)
 - **Story:** PC-007 / PC-010
 - **PRD refs:** §21 Q5 / §20 row 12
@@ -54,9 +55,19 @@ name **`purrcode`** (via `package.json` `bin`). Rationale:
 - Install front door becomes `npx purr-code …` / `npm i -g purr-code` (package
   name); after install, CLI commands stay `purrcode …` (binary name).
 - Workspace package `packages/cli` publishes as `purr-code`; optionalDependencies
-  sidecars may keep scoped `@purrcode/sidecar-*` (scoped names are separate from
+  sidecars may keep scoped `@purr-code/sidecar-*` (scoped names are separate from
   the blocked unscoped `purrcode`).
 - LICENSE copyright line: `Copyright (c) 2026-present Matho Avito and contributors`
   (Vue/Prettier-style; DCO contributors covered without rewriting LICENSE yearly).
 - Not legal advice: a formal clearance search (USPTO TESS + EUIPO + counsel)
   remains optional pre-v1.0 if the project grows commercially.
+
+## Amendment — 2026-07-23: sidecar scope is `@purr-code`
+
+At npm org creation time the org name `purrcode` was **unavailable**; only
+`purr-code` could be registered. Since an npm org name *is* its scope, the
+sidecar packages were renamed `@purrcode/sidecar-*` → **`@purr-code/sidecar-*`**
+before first publish (nothing was ever published under `@purrcode`). This also
+makes the scope consistent with the unscoped CLI package name `purr-code`.
+Internal, never-published workspace packages (`@purrcode/plugin`,
+`@purrcode/sidecar`) keep the old scope — it never reaches a registry.

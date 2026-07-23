@@ -8,6 +8,7 @@ import {
 } from "../audio/detect.js";
 import { preparePluginData } from "../plugin/prepareData.js";
 import { style } from "../cli/style.js";
+import { startCatSpinner, type CatSpinner } from "../cli/spinner.js";
 import { createClaudePluginOps, type ClaudePluginOps } from "./claudePlugin.js";
 import {
   PLUGIN_ID,
@@ -34,6 +35,8 @@ export type InstallOptions = {
   selectBackend?: (opts: SelectAudioBackendOptions) => Promise<SelectedAudioBackend>;
   /** Override sidecar for WAV cache prep. */
   sidecarBin?: string | null;
+  /** Inject spinner factory (tests). */
+  spinner?: (label: string) => CatSpinner;
 };
 
 export type InstallResult = {
@@ -58,6 +61,10 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
   const err = options.stderr ?? ((line: string) => process.stderr.write(`${line}\n`));
   const claude = options.claude ?? createClaudePluginOps({ env });
   const selectBackend = options.selectBackend ?? selectAudioBackend;
+  // Animate only for a real interactive stdout; injected streams stay clean.
+  const spin =
+    options.spinner ??
+    ((label: string) => startCatSpinner(label, options.stdout ? { env, enabled: false } : { env }));
 
   out(style.bold("🐈 Installing PurrCode", env));
   out("");
@@ -84,7 +91,12 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
     if (source.kind === "packaged") {
       // node_modules / npx cache is ephemeral; register a stable per-user copy
       // so `claude plugin marketplace update` keeps a live source.
-      marketplacePath = await syncStableMarketplace({ sourcePath: source.path, env, home });
+      const spinner = spin("Copying plugin files…");
+      try {
+        marketplacePath = await syncStableMarketplace({ sourcePath: source.path, env, home });
+      } finally {
+        spinner.stop();
+      }
       out(style.ok("✓ Copied plugin files to a stable location", env));
       out(style.dim(`  ${marketplacePath}`, env));
     }
@@ -149,6 +161,7 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
   const pluginRoot = resolvePluginRoot(home, marketplacePath);
 
   let preparedOk = false;
+  const prepSpinner = spin("Installing sounds…");
   try {
     await preparePluginData({
       env: {
@@ -158,10 +171,12 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
       },
       ...(options.sidecarBin !== undefined ? { sidecarBin: options.sidecarBin } : {}),
     });
+    prepSpinner.stop();
     preparedOk = true;
     out(style.ok("✓ Installed default purr (sleepy) + WAV cache", env));
     out(style.dim(`  data: ${pluginData}`, env));
   } catch (e) {
+    prepSpinner.stop();
     const msg = e instanceof Error ? e.message : String(e);
     err(style.warn(`⚠ Could not prepare plugin data: ${msg}`, env));
     err(style.dim("  Audio may still work via bundled sounds; try `purrcode doctor`.", env));
@@ -169,6 +184,7 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
 
   let tier: string | number | undefined;
   let backendName: string | undefined;
+  const verifySpinner = spin("Verifying audio playback…");
   try {
     const selected = await selectBackend({
       env: {
@@ -177,10 +193,12 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
         CLAUDE_PLUGIN_ROOT: pluginRoot,
       },
     });
+    verifySpinner.stop();
     tier = selected.capabilities.tier;
     backendName = selected.capabilities.name;
     out(style.ok(`✓ Verified audio playback (tier ${tier}: ${backendName})`, env));
   } catch (e) {
+    verifySpinner.stop();
     const msg = e instanceof Error ? e.message : String(e);
     err(style.warn(`⚠ Audio verification incomplete: ${msg}`, env));
     err(style.dim("  Fix: install mpv or build the sidecar; run `purrcode doctor`.", env));

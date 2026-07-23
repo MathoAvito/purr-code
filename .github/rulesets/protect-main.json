@@ -1,0 +1,47 @@
+{
+  "name": "protect-main",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
+  },
+  "bypass_actors": [],
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true,
+        "allowed_merge_methods": ["merge"]
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          { "context": "ubuntu-latest", "integration_id": 15368 },
+          { "context": "macos-latest", "integration_id": 15368 },
+          { "context": "windows-latest", "integration_id": 15368 },
+          { "context": "sidecar-linux-x64", "integration_id": 15368 },
+          { "context": "sidecar-darwin-arm64", "integration_id": 15368 },
+          { "context": "sidecar-darwin-x64", "integration_id": 15368 },
+          { "context": "sidecar-win32-x64", "integration_id": 15368 },
+          { "context": "signed-off-by", "integration_id": 15368 },
+          { "context": "require-changeset", "integration_id": 15368 },
+          { "context": "no-pull-request-target", "integration_id": 15368 },
+          { "context": "gitleaks", "integration_id": 15368 }
+        ]
+      }
+    }
+  ]
+}
