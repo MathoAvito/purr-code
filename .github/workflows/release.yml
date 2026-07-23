@@ -154,12 +154,22 @@ jobs:
         run: |
           set -euo pipefail
           tag="${GITHUB_REF_NAME}"
+          # Per-version changelog section (changesets writes "## <version>" headings).
+          changelog="$(awk -v ver="${tag#v}" '
+            $0 == "## " ver { grab = 1; next }
+            grab && /^## /  { exit }
+            grab            { print }
+          ' packages/cli/CHANGELOG.md)"
           notes="$(mktemp)"
           {
             echo "## PurrCode ${tag}"
             echo
             echo "npm: \`purr-code\` + platform sidecar optionalDependencies (provenance attached)."
             echo
+            if [ -n "$changelog" ]; then
+              echo "$changelog"
+              echo
+            fi
             echo "### Sidecar checksums"
             echo
             for target in linux-x64 darwin-arm64 darwin-x64 win32-x64; do
