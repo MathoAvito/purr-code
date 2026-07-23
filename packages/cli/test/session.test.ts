@@ -93,7 +93,7 @@ describe("PlaybackController state machine", () => {
 
     // Poll instead of a fixed sleep: the 200ms fade + log flush can exceed a
     // fixed wait on loaded CI runners (flaked on windows-latest).
-    const expected = ["start", "fade-start", "fade-cancel", "start", "fade-start", "stop"];
+    const expected = ["start", "fade-start", "fade-cancel", "start", "fade-start", "stop"] as const;
     const readFiltered = async () =>
       (await readFakeAudioLog(logPath)).filter((e) =>
         ["start", "fade-start", "fade-cancel", "stop"].includes(e.type),
