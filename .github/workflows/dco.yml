@@ -14,7 +14,7 @@ jobs:
     name: signed-off-by
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -22,3 +22,6 @@ jobs:
       - uses: christophebedard/dco-check@ec8bfc43106afe98b323ace9133650df10497e12 # 0.5.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Bots cannot certify the DCO; exempt Dependabot's version bumps.
+          args: --exclude-emails 49699333+dependabot[bot]@users.noreply.github.com

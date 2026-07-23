@@ -90,13 +90,21 @@ describe("PlaybackController state machine", () => {
     await stopPromise;
 
     await pb.onActiveCount(0);
-    await new Promise((r) => setTimeout(r, 250));
 
-    const events = await readFakeAudioLog(logPath);
-    assertExactSequence(
-      events.filter((e) => ["start", "fade-start", "fade-cancel", "stop"].includes(e.type)),
-      ["start", "fade-start", "fade-cancel", "start", "fade-start", "stop"],
-    );
+    // Poll instead of a fixed sleep: the 200ms fade + log flush can exceed a
+    // fixed wait on loaded CI runners (flaked on windows-latest).
+    const expected = ["start", "fade-start", "fade-cancel", "start", "fade-start", "stop"];
+    const readFiltered = async () =>
+      (await readFakeAudioLog(logPath)).filter((e) =>
+        ["start", "fade-start", "fade-cancel", "stop"].includes(e.type),
+      );
+    const deadline = Date.now() + 4000;
+    let events = await readFiltered();
+    while (events.length < expected.length && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 25));
+      events = await readFiltered();
+    }
+    assertExactSequence(events, expected);
   });
 
   it("two sessions: stop one keeps playing; final stop fades", async () => {
