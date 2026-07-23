@@ -93,7 +93,9 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          # npm >= 11.5.1 (Node 24) required for OIDC Trusted Publishing;
+          # Node 20's npm 10 falls back to token auth -> ENEEDAUTH.
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
