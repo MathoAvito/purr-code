@@ -42,9 +42,9 @@
     "purrcode-daemon": "./dist/daemon/entry.js"
   },
   "optionalDependencies": {
-    "@purrcode/sidecar-linux-x64": "workspace:*",
-    "@purrcode/sidecar-darwin-arm64": "workspace:*",
-    "@purrcode/sidecar-darwin-x64": "workspace:*",
-    "@purrcode/sidecar-win32-x64": "workspace:*"
+    "@purr-code/sidecar-linux-x64": "workspace:*",
+    "@purr-code/sidecar-darwin-arm64": "workspace:*",
+    "@purr-code/sidecar-darwin-x64": "workspace:*",
+    "@purr-code/sidecar-win32-x64": "workspace:*"
   }
 }

@@ -1,4 +1,4 @@
-# `@purrcode/sidecar-darwin-arm64`
+# `@purr-code/sidecar-darwin-arm64`
 
 Prebuilt tier-1 audio sidecar for **darwin/arm64** (PC-301 / ADR 0004).
 

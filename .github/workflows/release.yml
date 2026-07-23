@@ -145,7 +145,7 @@ jobs:
           NPM_TOKEN: ""
         run: |
           set -euo pipefail
-          pnpm --filter "@purrcode/sidecar-*" publish --access public --no-git-checks
+          pnpm --filter "@purr-code/sidecar-*" publish --access public --no-git-checks
           pnpm --filter purr-code publish --access public --no-git-checks
 
       - name: GitHub Release with checksums

@@ -53,13 +53,13 @@ describe("sidecar protocol helpers (PC-301)", () => {
 
   it("maps platform to optionalDependency package names", () => {
     expect(sidecarPackageName({ platform: "linux", arch: "x64" })).toBe(
-      "@purrcode/sidecar-linux-x64",
+      "@purr-code/sidecar-linux-x64",
     );
     expect(sidecarPackageName({ platform: "darwin", arch: "arm64" })).toBe(
-      "@purrcode/sidecar-darwin-arm64",
+      "@purr-code/sidecar-darwin-arm64",
     );
     expect(sidecarPackageName({ platform: "win32", arch: "x64" })).toBe(
-      "@purrcode/sidecar-win32-x64",
+      "@purr-code/sidecar-win32-x64",
     );
     expect(sidecarPackageName({ platform: "linux", arch: "arm64" })).toBeNull();
   });

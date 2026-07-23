@@ -1,4 +1,4 @@
-# `@purrcode/sidecar-win32-x64`
+# `@purr-code/sidecar-win32-x64`
 
 Prebuilt tier-1 audio sidecar for **win32/x64** (PC-301 / ADR 0004).
 

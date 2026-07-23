@@ -41,16 +41,16 @@ importers:
 
   packages/cli:
     optionalDependencies:
-      '@purrcode/sidecar-darwin-arm64':
+      '@purr-code/sidecar-darwin-arm64':
         specifier: workspace:*
         version: link:../sidecar-darwin-arm64
-      '@purrcode/sidecar-darwin-x64':
+      '@purr-code/sidecar-darwin-x64':
         specifier: workspace:*
         version: link:../sidecar-darwin-x64
-      '@purrcode/sidecar-linux-x64':
+      '@purr-code/sidecar-linux-x64':
         specifier: workspace:*
         version: link:../sidecar-linux-x64
-      '@purrcode/sidecar-win32-x64':
+      '@purr-code/sidecar-win32-x64':
         specifier: workspace:*
         version: link:../sidecar-win32-x64
 

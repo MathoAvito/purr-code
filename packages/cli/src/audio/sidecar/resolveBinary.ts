@@ -8,7 +8,7 @@ export type SidecarPlatform = {
   arch: string;
 };
 
-/** Map Node platform/arch → `@purrcode/sidecar-<os>-<cpu>` package name. */
+/** Map Node platform/arch → `@purr-code/sidecar-<os>-<cpu>` package name. */
 export function sidecarPackageName(
   platform: SidecarPlatform = {
     platform: process.platform,
@@ -31,7 +31,7 @@ export function sidecarPackageName(
   if (os === "linux" && cpu !== "x64") return null;
   if (os === "win32" && cpu !== "x64") return null;
 
-  return `@purrcode/sidecar-${os}-${cpu}`;
+  return `@purr-code/sidecar-${os}-${cpu}`;
 }
 
 function binaryFileName(platform: NodeJS.Platform = process.platform): string {
@@ -83,7 +83,7 @@ export function resolveSidecarBinaryPath(
   const pluginRoot = env.CLAUDE_PLUGIN_ROOT?.trim();
   if (pluginRoot) {
     const vendorDir = join(pluginRoot, "vendor", "sidecar");
-    const target = pkg.replace("@purrcode/sidecar-", "");
+    const target = pkg.replace("@purr-code/sidecar-", "");
     for (const candidate of [join(vendorDir, target, binName), join(vendorDir, binName)]) {
       if (isExecutableFile(candidate, platform)) return candidate;
     }
