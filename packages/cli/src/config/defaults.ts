@@ -17,7 +17,7 @@ export const DEFAULT_CONFIG: Readonly<PurrCodeConfig> = Object.freeze({
   schemaVersion: CONFIG_SCHEMA_VERSION,
   enabled: true,
   sound: "sleepy",
-  volume: 20,
+  volume: 60,
   fadeInMs: 400,
   fadeOutMs: 600,
   staleSessionMinutes: 10,

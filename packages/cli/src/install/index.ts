@@ -4,7 +4,7 @@ export {
   type ClaudeProbeResult,
   type RunClaudeOptions,
 } from "./claudePlugin.js";
-export { runInstall, type InstallOptions, type InstallResult } from "./install.js";
+export { runInstall, detectCliHint, type InstallOptions, type InstallResult } from "./install.js";
 export {
   runUninstall,
   parseUninstallArgs,

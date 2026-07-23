@@ -488,7 +488,7 @@ export class Daemon {
     if (!backend) return;
     await this.stopPreview();
     const sound = soundName && soundName.length > 0 ? soundName : this.config.sound;
-    // Preview floors volume so default 20 (−48 dB linear) is not inaudible on QA.
+    // Preview floors volume so very low user configs are not inaudible on QA.
     const previewVolume = Math.max(this.config.volume, 50);
     const handle = await backend.play({
       soundPath: resolveDaemonSoundPath(sound, this.configDirOptions.env),

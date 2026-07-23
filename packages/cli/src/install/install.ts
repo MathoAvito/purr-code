@@ -37,7 +37,18 @@ export type InstallOptions = {
   sidecarBin?: string | null;
   /** Inject spinner factory (tests). */
   spinner?: (label: string) => CatSpinner;
+  /** Override the printed command prefix (tests). */
+  cliHint?: string;
 };
+
+/**
+ * How the user should invoke follow-up commands. Under `npx purr-code …` no
+ * `purrcode` binary lands on PATH (npx runs from its cache), so printing bare
+ * `purrcode` commands would fail for exactly those users.
+ */
+export function detectCliHint(argv1: string | undefined = process.argv[1]): string {
+  return argv1 && /[\\/]_npx[\\/]/.test(argv1) ? "npx purr-code" : "purrcode";
+}
 
 export type InstallResult = {
   exitCode: number;
@@ -204,13 +215,22 @@ export async function runInstall(options: InstallOptions = {}): Promise<InstallR
     err(style.dim("  Fix: install mpv or build the sidecar; run `purrcode doctor`.", env));
   }
 
+  const hint = options.cliHint ?? detectCliHint();
   out("");
-  out("Claude will now purr while working.");
+  out(style.bold("⟳ Restart Claude Code (or start a new session) to load the purr hooks.", env));
   out("");
-  out(style.dim("Try it:            purrcode preview", env));
-  out(style.dim("Adjust volume:     purrcode volume 15", env));
+  out("Claude will then purr while working.");
+  out("");
+  out(style.dim(`Try it:            ${hint} preview`, env));
+  out(style.dim(`Adjust volume:     ${hint} volume 30`, env));
   if (!preparedOk) {
-    out(style.dim("Diagnose:          purrcode doctor", env));
+    out(style.dim(`Diagnose:          ${hint} doctor`, env));
+  }
+  if (hint !== "purrcode") {
+    out("");
+    out(
+      style.dim("Tip: `npm install -g purr-code` gives you a permanent `purrcode` command.", env),
+    );
   }
 
   return {

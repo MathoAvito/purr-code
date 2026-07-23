@@ -11,6 +11,7 @@ import { FakeAudioBackend } from "../src/audio/fake/index.js";
 import { runCli } from "../src/cli/runCli.js";
 import {
   createClaudePluginOps,
+  detectCliHint,
   runInstall,
   stableMarketplaceDir,
   syncStableMarketplace,
@@ -109,6 +110,53 @@ describe("install (PC-402)", () => {
     };
   }
 
+  it("detectCliHint maps npx cache paths to `npx purr-code`", () => {
+    expect(detectCliHint("/home/u/.npm/_npx/abc123/node_modules/purr-code/dist/cli.js")).toBe(
+      "npx purr-code",
+    );
+    expect(detectCliHint("C:\\Users\\u\\AppData\\Local\\npm-cache\\_npx\\x\\cli.js")).toBe(
+      "npx purr-code",
+    );
+    expect(detectCliHint("/usr/local/bin/purrcode")).toBe("purrcode");
+    expect(detectCliHint(undefined)).toBe("purrcode");
+  });
+
+  it("prints npx-prefixed follow-ups and a global-install tip for npx users", async () => {
+    const home = await tempHome();
+    const marketplacePath = await fixtureMarketplace(home);
+    const state = {
+      installed: [] as string[],
+      markets: [] as string[],
+      installs: [] as string[],
+      marketAdds: [] as string[],
+    };
+    const lines: string[] = [];
+    const result = await runInstall({
+      home,
+      env: { NO_COLOR: "1", HOME: home, PURRCODE_FAKE_AUDIO: "1" },
+      marketplacePath,
+      claude: mockClaude(state),
+      sidecarBin: null,
+      cliHint: "npx purr-code",
+      selectBackend: async () => {
+        const backend = new FakeAudioBackend({
+          enabled: true,
+          logPath: join(home, "fake.jsonl"),
+        });
+        return {
+          backend,
+          capabilities: await backend.detect(),
+          probes: [{ tier: "fake", name: "fake", present: true }],
+        };
+      },
+      stdout: (l) => lines.push(l),
+      stderr: () => {},
+    });
+    expect(result.exitCode).toBe(0);
+    expect(lines.some((l) => l.includes("npx purr-code preview"))).toBe(true);
+    expect(lines.some((l) => l.includes("npm install -g purr-code"))).toBe(true);
+  });
+
   it("installs plugin via mocked registration layer and prepares WAV cache", async () => {
     const home = await tempHome();
     const marketplacePath = await fixtureMarketplace(home);
@@ -152,6 +200,7 @@ describe("install (PC-402)", () => {
     expect(lines.some((l) => l.includes("tier"))).toBe(true);
     expect(lines.some((l) => l.includes("purrcode preview"))).toBe(true);
     expect(lines.some((l) => l.includes("purrcode volume"))).toBe(true);
+    expect(lines.some((l) => l.includes("Restart Claude Code"))).toBe(true);
 
     const wav = join(
       home,
