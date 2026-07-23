@@ -8,6 +8,7 @@ import { perceptualToLinearAmplitude } from "../src/audio/perceptual.js";
 import {
   SidecarAudioBackend,
   encodeSidecarCommand,
+  isExecutableFile,
   parseSidecarEventLine,
   resolveSidecarBinaryPath,
   sidecarPackageName,
@@ -49,6 +50,21 @@ describe("sidecar protocol helpers (PC-301)", () => {
       backend: "Null",
     });
     expect(parseSidecarEventLine("not-json")).toBeNull();
+  });
+
+  it("self-heals a non-executable binary (artifact/npm strips +x)", async () => {
+    if (process.platform === "win32") return;
+    const { chmod, stat } = await import("node:fs/promises");
+    const dir = await mkdtemp(join(tmpdir(), "purr-chmod-"));
+    try {
+      const bin = join(dir, "purr-sidecar");
+      await writeFile(bin, "#!/bin/sh\n");
+      await chmod(bin, 0o644); // as shipped by npm / GitHub artifacts
+      expect(isExecutableFile(bin, "linux")).toBe(true);
+      expect((await stat(bin)).mode & 0o111).not.toBe(0);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it("maps platform to optionalDependency package names", () => {
