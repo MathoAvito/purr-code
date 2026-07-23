@@ -134,6 +134,9 @@ jobs:
             mkdir -p "$dst/bin"
             cp -a "$src"/. "$dst"/
             test -f "$dst/SHA256SUMS"
+            # upload/download-artifact drops POSIX perms; restore the exec bit
+            # so the published package + vendored copy are runnable (mode 644 -> 755).
+            if [ "$target" != "win32-x64" ]; then chmod 0755 "$dst/bin/purr-sidecar"; fi
           done
 
       - name: Build CLI + plugin marketplace

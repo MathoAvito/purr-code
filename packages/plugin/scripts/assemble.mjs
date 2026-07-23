@@ -6,7 +6,15 @@
  * - copy host-platform sidecar binary → plugin vendor/sidecar/
  * - sync plugin.json version from packages/cli/package.json
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -59,7 +67,10 @@ for (const target of SIDECAR_TARGETS) {
   if (!existsSync(sidecarBin)) continue;
   const targetDir = join(vendorRoot, target);
   mkdirSync(targetDir, { recursive: true });
-  cpSync(sidecarBin, join(targetDir, binName));
+  const vendored = join(targetDir, binName);
+  cpSync(sidecarBin, vendored);
+  // Ensure the exec bit survives (source may be artifact-restored w/o it).
+  if (!target.startsWith("win32")) chmodSync(vendored, 0o755);
   bundledTargets.push(target);
 }
 

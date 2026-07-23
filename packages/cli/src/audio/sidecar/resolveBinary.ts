@@ -1,4 +1,4 @@
-import { accessSync, constants } from "node:fs";
+import { accessSync, chmodSync, constants, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -120,8 +120,20 @@ export function isExecutableFile(
       accessSync(path, constants.R_OK);
       return true;
     }
-    accessSync(path, constants.X_OK);
-    return true;
+    try {
+      accessSync(path, constants.X_OK);
+      return true;
+    } catch {
+      // Bundled/npm sidecars can arrive without the exec bit: GitHub Actions
+      // artifacts drop POSIX permissions on upload/download, so both the
+      // published npm package and the plugin vendor tree ship mode 644.
+      // Self-heal by adding +x, then retry. Not executing the binary — just
+      // repairing its mode — so detect() stays presence-only.
+      accessSync(path, constants.R_OK);
+      chmodSync(path, statSync(path).mode | 0o111);
+      accessSync(path, constants.X_OK);
+      return true;
+    }
   } catch {
     return false;
   }
