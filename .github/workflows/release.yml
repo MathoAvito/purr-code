@@ -162,6 +162,21 @@ jobs:
             grab && /^## /  { exit }
             grab            { print }
           ' packages/cli/CHANGELOG.md)"
+          # Release asset basenames must be unique: stage per-target names
+          # (four bin/purr-sidecar + four SHA256SUMS collided in v0.1.0).
+          # Verify each binary against its CI-generated manifest before staging.
+          mkdir -p release-assets
+          for target in linux-x64 darwin-arm64 darwin-x64 win32-x64; do
+            (cd "packages/sidecar-${target}" && sha256sum -c SHA256SUMS)
+            src="packages/sidecar-${target}/bin/purr-sidecar"
+            dest="release-assets/purr-sidecar-${target}"
+            if [ ! -f "$src" ]; then
+              src="${src}.exe"
+              dest="${dest}.exe"
+            fi
+            cp "$src" "$dest"
+          done
+          (cd release-assets && sha256sum purr-sidecar-* > SHA256SUMS.txt)
           notes="$(mktemp)"
           {
             echo "## PurrCode ${tag}"
@@ -172,24 +187,13 @@ jobs:
               echo "$changelog"
               echo
             fi
-            echo "### Sidecar checksums"
+            echo "### Sidecar checksums (SHA-256)"
             echo
-            for target in linux-x64 darwin-arm64 darwin-x64 win32-x64; do
-              echo "#### ${target}"
-              echo '```'
-              cat "packages/sidecar-${target}/SHA256SUMS"
-              echo '```'
-              echo
-            done
+            echo '```'
+            cat release-assets/SHA256SUMS.txt
+            echo '```'
           } >"$notes"
           gh release create "$tag" \
             --title "$tag" \
             --notes-file "$notes" \
-            packages/sidecar-linux-x64/SHA256SUMS \
-            packages/sidecar-darwin-arm64/SHA256SUMS \
-            packages/sidecar-darwin-x64/SHA256SUMS \
-            packages/sidecar-win32-x64/SHA256SUMS \
-            packages/sidecar-linux-x64/bin/* \
-            packages/sidecar-darwin-arm64/bin/* \
-            packages/sidecar-darwin-x64/bin/* \
-            packages/sidecar-win32-x64/bin/*
+            release-assets/*
