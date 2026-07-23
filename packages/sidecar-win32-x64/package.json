@@ -1,6 +1,6 @@
 {
   "name": "@purr-code/sidecar-win32-x64",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "PurrCode tier-1 audio sidecar binary for win32/x64 (PC-301)",
   "license": "MIT",
   "repository": {
