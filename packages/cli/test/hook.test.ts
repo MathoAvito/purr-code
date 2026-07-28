@@ -47,6 +47,20 @@ describe("hook adapter (PC-107)", () => {
     });
   });
 
+  it("maps a tool-use heartbeat to a session-scoped heartbeat message (no pid)", async () => {
+    const sent: ControlRequest[] = [];
+    await runHook({
+      event: "heartbeat",
+      stdin: JSON.stringify({ session_id: "s2", hook_event_name: "PreToolUse" }),
+      env: {},
+      send: (m) => {
+        sent.push(m);
+        return Promise.resolve();
+      },
+    });
+    expect(sent[0]).toEqual({ v: PROTOCOL_VERSION, op: "heartbeat", sessionId: "s2" });
+  });
+
   it("fail-silent on malformed stdin, send failure, and spawn failure", async () => {
     await runHook({
       event: "stop",

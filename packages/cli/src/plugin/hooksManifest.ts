@@ -4,13 +4,24 @@
 
 export type HooksManifestIssue = { path: string; message: string };
 
-const REQUIRED_EVENTS = ["UserPromptSubmit", "Stop", "StopFailure", "SessionEnd"] as const;
+const REQUIRED_EVENTS = [
+  "UserPromptSubmit",
+  "Stop",
+  "StopFailure",
+  "SessionEnd",
+  // Tool-use heartbeats keep an active turn alive so the abandoned-turn
+  // timeout only fires on genuinely idle (e.g. Esc-interrupted) turns (ADR 0008).
+  "PreToolUse",
+  "PostToolUse",
+] as const;
 
 const EVENT_ARG: Record<(typeof REQUIRED_EVENTS)[number], string> = {
   UserPromptSubmit: "start",
   Stop: "stop",
   StopFailure: "failure",
   SessionEnd: "session-end",
+  PreToolUse: "heartbeat",
+  PostToolUse: "heartbeat",
 };
 
 export type ValidateHooksManifestOptions = {

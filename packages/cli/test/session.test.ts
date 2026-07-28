@@ -43,6 +43,46 @@ describe("SessionRegistry", () => {
     expect(reg.get("a")!.lastSeenAt).toBe(2);
     expect(reg.get("a")!.startedAt).toBe(1);
   });
+
+  it("idle sessions drop out of the playback refcount (ADR 0008)", () => {
+    const reg = new SessionRegistry({ now: () => 1000 });
+    reg.start({ sessionId: "a" });
+    reg.start({ sessionId: "b" });
+    expect(reg.playbackCount()).toBe(2);
+
+    expect(reg.setIdle("a", true)).toBe(true);
+    expect(reg.playbackCount()).toBe(1);
+    // Idempotent: setting the same flag again reports no change.
+    expect(reg.setIdle("a", true)).toBe(false);
+    expect(reg.setIdle("missing", true)).toBe(false);
+  });
+
+  it("touch resurrects an idle session and refreshes lastSeenAt", () => {
+    let t = 1000;
+    const reg = new SessionRegistry({ now: () => t });
+    reg.start({ sessionId: "a" });
+    reg.setIdle("a", true);
+    expect(reg.get("a")!.idle).toBe(true);
+
+    t = 2000;
+    // touch returns true only when it clears an idle flag.
+    expect(reg.touch("a")).toBe(true);
+    expect(reg.get("a")!.idle).toBeUndefined();
+    expect(reg.get("a")!.lastSeenAt).toBe(2000);
+    expect(reg.playbackCount()).toBe(1);
+    // A second touch on an already-active session is not a resurrection.
+    expect(reg.touch("a")).toBe(false);
+    expect(reg.touch("missing")).toBe(false);
+  });
+
+  it("a fresh start clears a prior idle flag", () => {
+    const reg = new SessionRegistry({ now: () => 1000 });
+    reg.start({ sessionId: "a" });
+    reg.setIdle("a", true);
+    reg.start({ sessionId: "a" });
+    expect(reg.get("a")!.idle).toBeUndefined();
+    expect(reg.playbackCount()).toBe(1);
+  });
 });
 
 describe("PlaybackController state machine", () => {

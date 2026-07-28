@@ -65,6 +65,11 @@ export type DaemonOptions = {
    * (`staleSessionMinutes` × 60s) or 10 minutes. Set `0` to disable TTL GC.
    */
   staleSessionMs?: number | undefined;
+  /**
+   * Abandoned-turn playback-release timeout in ms (ADR 0008). Default from
+   * config (`abandonedTurnSeconds` × 1000) or 90 s. Set `0` to disable.
+   */
+  abandonedTurnMs?: number | undefined;
   /** Config directory resolution overrides (PC-204 tests). */
   configDir?: ResolveConfigDirOptions | undefined;
   /** Inject initial config (tests); skips disk load when set. */
@@ -87,6 +92,7 @@ export class Daemon {
   private readonly backendProbes: BackendProbe[];
   private readonly watchdogIntervalMs: number;
   private staleSessionMs: number;
+  private abandonedTurnMs: number;
   private config: PurrCodeConfig;
   private readonly configDirOptions: ResolveConfigDirOptions;
   private readonly watchdogClassify: WatchdogClassify | undefined;
@@ -152,6 +158,10 @@ export class Daemon {
       options.staleSessionMs === undefined
         ? this.config.staleSessionMinutes * 60_000
         : options.staleSessionMs;
+    this.abandonedTurnMs =
+      options.abandonedTurnMs === undefined
+        ? this.config.abandonedTurnSeconds * 1000
+        : options.abandonedTurnMs;
     this.watchdogClassify = options.watchdogClassify;
     this.watchdogClassifyOptions = options.watchdogClassifyOptions;
   }
@@ -326,6 +336,7 @@ export class Daemon {
     return reconcileRegistry(this.registry, {
       now: this.now,
       staleSessionMs: this.staleSessionMs,
+      abandonedTurnMs: this.abandonedTurnMs,
       platform: this.bootOptions.platform ?? process.platform,
       ...(this.watchdogClassify !== undefined ? { classify: this.watchdogClassify } : {}),
       ...(this.watchdogClassifyOptions !== undefined
@@ -396,6 +407,7 @@ export class Daemon {
         const { config } = applyConfigPatch(this.config, message.config, this.configDirOptions);
         this.config = config;
         this.staleSessionMs = config.staleSessionMinutes * 60_000;
+        this.abandonedTurnMs = config.abandonedTurnSeconds * 1000;
         await this.playback?.applySettings({
           volume: config.volume,
           fadeInMs: config.fadeInMs,
@@ -415,6 +427,11 @@ export class Daemon {
           ...(message.claudePid !== undefined ? { claudePid: message.claudePid } : {}),
           ...(message.starttime !== undefined ? { starttime: message.starttime } : {}),
         });
+      } else if (message.op === "heartbeat") {
+        // Tool-use heartbeat (PreToolUse / PostToolUse): the turn is still live.
+        // Refresh lastSeenAt and clear any abandoned-turn `idle` flag. Never
+        // creates a session — only an active turn's own tools reach here.
+        this.registry.touch(message.sessionId);
       } else if (
         message.op === "stop" ||
         message.op === "failure" ||
@@ -430,6 +447,7 @@ export class Daemon {
       if (
         reconciled.changed ||
         message.op === "start" ||
+        message.op === "heartbeat" ||
         message.op === "stop" ||
         message.op === "failure" ||
         message.op === "session-end" ||

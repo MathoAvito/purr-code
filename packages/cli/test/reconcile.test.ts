@@ -56,6 +56,79 @@ describe("reconcileRegistry (PC-203)", () => {
   });
 });
 
+describe("reconcileRegistry abandoned-turn release (ADR 0008)", () => {
+  it("idles a live session past abandonedTurnMs but keeps the record", async () => {
+    const now = 100_000;
+    const reg = new SessionRegistry({ now: () => now });
+    reg.start({ sessionId: "abandoned" });
+    reg.start({ sessionId: "fresh" });
+    reg.get("abandoned")!.lastSeenAt = now - 91_000; // no event for 91s
+
+    const result = await reconcileRegistry(reg, {
+      now: () => now,
+      // Long stale TTL so only the abandoned-turn timeout fires here.
+      staleSessionMs: 600_000,
+      abandonedTurnMs: 90_000,
+      platform: "linux",
+    });
+
+    expect(result.idled).toEqual(["abandoned"]);
+    expect(result.staleRemoved).toEqual([]);
+    // Record is kept for later resurrection; only playback drops.
+    expect(reg.get("abandoned")).toBeDefined();
+    expect(reg.get("abandoned")!.idle).toBe(true);
+    expect(reg.playbackCount()).toBe(1);
+
+    // Idempotent: a second pass does not re-report the same idle session.
+    const again = await reconcileRegistry(reg, {
+      now: () => now,
+      staleSessionMs: 600_000,
+      abandonedTurnMs: 90_000,
+      platform: "linux",
+    });
+    expect(again.idled).toEqual([]);
+  });
+
+  it("does not idle a suspended session (owned by the watchdog + stale TTL)", async () => {
+    const now = 100_000;
+    const reg = new SessionRegistry({ now: () => now });
+    reg.start({ sessionId: "suspended" });
+    reg.setPaused("suspended", true);
+    reg.get("suspended")!.lastSeenAt = now - 91_000;
+
+    const result = await reconcileRegistry(reg, {
+      now: () => now,
+      staleSessionMs: 600_000,
+      abandonedTurnMs: 90_000,
+      platform: "linux",
+    });
+
+    expect(result.idled).toEqual([]);
+    expect(reg.get("suspended")!.idle).toBeUndefined();
+  });
+
+  it("a heartbeat before the timeout keeps a session out of idle", async () => {
+    let now = 100_000;
+    const reg = new SessionRegistry({ now: () => now });
+    reg.start({ sessionId: "busy" });
+
+    // Heartbeat at +60s refreshes lastSeenAt.
+    now = 160_000;
+    reg.touch("busy");
+
+    // At +120s from start (but only +60s from the heartbeat) it is still fresh.
+    now = 220_000;
+    const result = await reconcileRegistry(reg, {
+      now: () => now,
+      staleSessionMs: 600_000,
+      abandonedTurnMs: 90_000,
+      platform: "linux",
+    });
+    expect(result.idled).toEqual([]);
+    expect(reg.playbackCount()).toBe(1);
+  });
+});
+
 describe("Daemon reconciliation (PC-203)", () => {
   const cleanups: Array<() => Promise<void>> = [];
 
@@ -188,6 +261,59 @@ describe("Daemon reconciliation (PC-203)", () => {
     await daemon.runWatchdogOnce();
     await waitForLifecycle(logPath, ["start", "fade-start"], 2000);
     expect(daemon.sessionCount).toBe(0);
+  });
+
+  it("abandoned turn (Esc) fades out via the watchdog, and a heartbeat resumes it", async () => {
+    const runtimeDir = await mkdtemp(join(tmpdir(), "purrcode-abandoned-"));
+    cleanups.push(async () => rm(runtimeDir, { recursive: true, force: true }));
+    const logPath = join(runtimeDir, "fake.jsonl");
+    const audio = new FakeAudioBackend({ logPath, enabled: true });
+    const playback = new PlaybackController({ backend: audio, fadeOutMs: 50, fadeInMs: 0 });
+    const iso = daemonIsolationOptions(runtimeDir);
+
+    let now = 1000;
+    const daemon = new Daemon({
+      ...iso,
+      idleMs: 60_000,
+      audioBackend: audio,
+      playback,
+      watchdogIntervalMs: 0,
+      // Stale GC far away so the abandoned-turn timeout is what fires.
+      staleSessionMs: 600_000,
+      abandonedTurnMs: 5_000,
+      now: () => now,
+      watchdogClassify: () => "running",
+    });
+    await daemon.start();
+    cleanups.push(async () => daemon.shutdown());
+    const client = new ControlPipeClient({ path: daemon.controlPath });
+    cleanups.push(() => {
+      client.close();
+      return Promise.resolve();
+    });
+
+    await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "esc" });
+    await waitForLifecycle(logPath, ["start"], 2000);
+
+    // Esc: no further events. Advance past the abandoned-turn timeout.
+    now = 10_000;
+    await daemon.runWatchdogOnce();
+    await waitForLifecycle(logPath, ["start", "fade-start"], 2000);
+    // Record is kept (still alive, could resume) but playback is released.
+    expect(daemon.getSessionRegistry().get("esc")).toBeDefined();
+    expect(daemon.getSessionRegistry().playbackCount()).toBe(0);
+
+    // A tool heartbeat (or a new prompt) resurrects the turn → purr resumes.
+    await client.send({ v: PROTOCOL_VERSION, op: "heartbeat", sessionId: "esc" });
+    const deadline = Date.now() + 2000;
+    while (Date.now() < deadline && daemon.getSessionRegistry().playbackCount() !== 1) {
+      await sleep(10);
+    }
+    expect(daemon.getSessionRegistry().get("esc")!.idle).toBeUndefined();
+    expect(daemon.getSessionRegistry().playbackCount()).toBe(1);
+    // Resume evidence: the fade was cancelled or a fresh play started after it.
+    const events = await readFakeAudioLog(logPath);
+    expect(events.some((e) => e.type === "fade-cancel" || e.type === "start")).toBe(true);
   });
 
   it("boot re-validates snapshot sessions before playback resumes", async () => {

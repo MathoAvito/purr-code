@@ -5,7 +5,13 @@ export const PROTOCOL_VERSION = 1 as const;
 /** Max bytes for a single NDJSON line (untrusted input — §13). */
 export const MAX_MESSAGE_BYTES = 64 * 1024;
 
-export const FIRE_AND_FORGET_OPS = ["start", "stop", "failure", "session-end"] as const;
+export const FIRE_AND_FORGET_OPS = [
+  "start",
+  "heartbeat",
+  "stop",
+  "failure",
+  "session-end",
+] as const;
 export const REQUEST_OPS = ["status", "volume", "preview", "set-config", "shutdown"] as const;
 export const ALL_OPS = [...FIRE_AND_FORGET_OPS, ...REQUEST_OPS] as const;
 
@@ -27,7 +33,7 @@ export type StartMessage = ControlMessageBase & {
 };
 
 export type SessionScopedMessage = ControlMessageBase & {
-  op: "stop" | "failure" | "session-end";
+  op: "heartbeat" | "stop" | "failure" | "session-end";
   sessionId: string;
 };
 
@@ -172,6 +178,7 @@ function validateOp(
       }
       return msg;
     }
+    case "heartbeat":
     case "stop":
     case "failure":
     case "session-end": {
