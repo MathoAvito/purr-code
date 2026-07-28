@@ -9,7 +9,8 @@ describe("isHookEvent", () => {
   });
 
   it("rejects events PurrCode does not subscribe to", () => {
-    expect(isHookEvent("PreToolUse")).toBe(false);
+    expect(isHookEvent("Notification")).toBe(false);
+    expect(isHookEvent("PreCompact")).toBe(false);
     expect(isHookEvent("")).toBe(false);
   });
 });

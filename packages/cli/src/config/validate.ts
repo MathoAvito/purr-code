@@ -15,6 +15,8 @@ export function normalizeConfig(raw: unknown): PurrCodeConfig {
   const volume = asVolume(base.volume) ?? DEFAULT_CONFIG.volume;
   const fadeInMs = asNonNegInt(base.fadeInMs) ?? DEFAULT_CONFIG.fadeInMs;
   const fadeOutMs = asNonNegInt(base.fadeOutMs) ?? DEFAULT_CONFIG.fadeOutMs;
+  const abandonedTurnSeconds =
+    asAbandonedSeconds(base.abandonedTurnSeconds) ?? DEFAULT_CONFIG.abandonedTurnSeconds;
   const staleSessionMinutes =
     asPositiveInt(base.staleSessionMinutes) ?? DEFAULT_CONFIG.staleSessionMinutes;
   const schemaVersion =
@@ -31,6 +33,7 @@ export function normalizeConfig(raw: unknown): PurrCodeConfig {
     volume,
     fadeInMs,
     fadeOutMs,
+    abandonedTurnSeconds,
     staleSessionMinutes,
   };
   // Always stamp current schema version on normalize (migration stub).
@@ -72,5 +75,12 @@ function asNonNegInt(value: unknown): number | undefined {
 function asPositiveInt(value: unknown): number | undefined {
   if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
   if (!Number.isInteger(value) || value < 1 || value > 24 * 60) return undefined;
+  return value;
+}
+
+/** Abandoned-turn timeout in seconds: 5 s … 24 h. */
+function asAbandonedSeconds(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  if (!Number.isInteger(value) || value < 5 || value > 24 * 60 * 60) return undefined;
   return value;
 }

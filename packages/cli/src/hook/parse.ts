@@ -2,9 +2,15 @@ import { MAX_MESSAGE_BYTES } from "../control/protocol.js";
 
 export { readStarttimeToken } from "../process/liveness.js";
 
-export type HookEventName = "start" | "stop" | "failure" | "session-end";
+export type HookEventName = "start" | "heartbeat" | "stop" | "failure" | "session-end";
 
-export const EVENTS: ReadonlySet<string> = new Set(["start", "stop", "failure", "session-end"]);
+export const EVENTS: ReadonlySet<string> = new Set([
+  "start",
+  "heartbeat",
+  "stop",
+  "failure",
+  "session-end",
+]);
 
 export type HookPayload = {
   sessionId: string;

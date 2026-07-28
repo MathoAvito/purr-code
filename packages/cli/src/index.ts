@@ -6,8 +6,19 @@
  * PC-301+). This entry point only carries what already exists.
  */
 
-/** Hook events PurrCode reacts to, verified against Claude Code in ADR 0001. */
-export const HOOK_EVENTS = ["UserPromptSubmit", "Stop", "StopFailure", "SessionEnd"] as const;
+/**
+ * Hook events PurrCode reacts to, verified against Claude Code in ADR 0001.
+ * `PreToolUse`/`PostToolUse` are heartbeats for the abandoned-turn timeout
+ * (ADR 0008), not turn boundaries.
+ */
+export const HOOK_EVENTS = [
+  "UserPromptSubmit",
+  "Stop",
+  "StopFailure",
+  "SessionEnd",
+  "PreToolUse",
+  "PostToolUse",
+] as const;
 
 export type HookEvent = (typeof HOOK_EVENTS)[number];
 

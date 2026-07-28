@@ -57,6 +57,18 @@ describe("config store (PC-204)", () => {
     expect(cfg.schemaVersion).toBe(DEFAULT_CONFIG.schemaVersion);
   });
 
+  it("abandonedTurnSeconds defaults to 90 and validates its bounds (ADR 0008)", () => {
+    expect(DEFAULT_CONFIG.abandonedTurnSeconds).toBe(90);
+    // In range → kept.
+    expect(normalizeConfig({ abandonedTurnSeconds: 30 }).abandonedTurnSeconds).toBe(30);
+    // Out of range / wrong type → default.
+    expect(normalizeConfig({ abandonedTurnSeconds: 0 }).abandonedTurnSeconds).toBe(90);
+    expect(normalizeConfig({ abandonedTurnSeconds: 4 }).abandonedTurnSeconds).toBe(90);
+    expect(normalizeConfig({ abandonedTurnSeconds: 1.5 }).abandonedTurnSeconds).toBe(90);
+    expect(normalizeConfig({ abandonedTurnSeconds: 999_999 }).abandonedTurnSeconds).toBe(90);
+    expect(normalizeConfig({ abandonedTurnSeconds: "nope" }).abandonedTurnSeconds).toBe(90);
+  });
+
   it("atomic write + load round-trip; refuses symlink target", async () => {
     const home = await tempHome();
     const opts = { platform: "linux" as const, home, env: {} };
@@ -125,12 +137,13 @@ describe("config store (PC-204)", () => {
       v: PROTOCOL_VERSION,
       op: "set-config",
       id: "c1",
-      config: { volume: 40, enabled: false, staleSessionMinutes: 1 },
+      config: { volume: 40, enabled: false, staleSessionMinutes: 1, abandonedTurnSeconds: 30 },
     });
     expect(res.ok).toBe(true);
     expect(daemon.getConfig().volume).toBe(40);
     expect(daemon.getConfig().enabled).toBe(false);
     expect(daemon.getConfig().staleSessionMinutes).toBe(1);
+    expect(daemon.getConfig().abandonedTurnSeconds).toBe(30);
 
     // enabled:false → start must not leave phase playing
     await client.send({ v: PROTOCOL_VERSION, op: "start", sessionId: "s1" });

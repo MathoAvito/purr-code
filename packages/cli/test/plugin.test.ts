@@ -82,6 +82,39 @@ describe("hooks.json manifest (PC-401 / §15)", () => {
     expect(validateHooksManifest(raw)).toEqual([]);
   });
 
+  it("wires PreToolUse/PostToolUse as heartbeat hooks (ADR 0008)", async () => {
+    const raw = JSON.parse(await readFile(pluginHooksPath, "utf8")) as {
+      hooks: Record<string, Array<{ hooks: Array<{ args: string[] }> }>>;
+    };
+    for (const event of ["PreToolUse", "PostToolUse"]) {
+      const cmd = raw.hooks[event]?.[0]?.hooks?.[0];
+      expect(cmd?.args?.[1]).toBe("heartbeat");
+    }
+  });
+
+  it("rejects a manifest missing the heartbeat events", () => {
+    const noHeartbeat = {
+      description: "x",
+      hooks: {
+        UserPromptSubmit: [
+          { hooks: [{ type: "command", command: "node", args: ["h.js", "start"], async: true, timeout: 5 }] },
+        ],
+        Stop: [
+          { hooks: [{ type: "command", command: "node", args: ["h.js", "stop"], async: true, timeout: 5 }] },
+        ],
+        StopFailure: [
+          { hooks: [{ type: "command", command: "node", args: ["h.js", "failure"], async: true, timeout: 5 }] },
+        ],
+        SessionEnd: [
+          { hooks: [{ type: "command", command: "node", args: ["h.js", "session-end"], async: true, timeout: 5 }] },
+        ],
+      },
+    };
+    const issues = validateHooksManifest(noHeartbeat, { hookScriptArg: "h.js" });
+    expect(issues.some((i) => i.path === "hooks.PreToolUse")).toBe(true);
+    expect(issues.some((i) => i.path === "hooks.PostToolUse")).toBe(true);
+  });
+
   it("rejects string-form, matchers, missing events, and wrong args", () => {
     const bad = {
       description: "x",

@@ -9,6 +9,14 @@ export type SessionRecord = {
    * turn open, but does not contribute to playback refcount (PC-202).
    */
   paused?: boolean | undefined;
+  /**
+   * Turn looks abandoned: no hook event (not even a tool heartbeat) for
+   * `abandonedTurnSeconds`. Playback is released but the record is kept so a
+   * later event can resurrect it; the stale TTL is the eventual GC. Managed by
+   * reconciliation only; cleared by any incoming event via {@link touch}.
+   * Independent of `paused` (owned by the liveness watchdog) — ADR 0008.
+   */
+  idle?: boolean | undefined;
 };
 
 export type SessionStartInput = {
@@ -33,11 +41,11 @@ export class SessionRegistry {
     return this.sessions.size;
   }
 
-  /** Sessions that should drive purr playback (registered and not paused). */
+  /** Sessions that should drive purr playback (registered, not paused, not idle). */
   playbackCount(): number {
     let n = 0;
     for (const s of this.sessions.values()) {
-      if (!s.paused) n++;
+      if (!s.paused && !s.idle) n++;
     }
     return n;
   }
@@ -60,6 +68,7 @@ export class SessionRegistry {
       if (input.starttime !== undefined) existing.starttime = input.starttime;
       // A fresh start event implies the turn is active again.
       existing.paused = false;
+      delete existing.idle;
       return { created: false, activeCount: this.playbackCount() };
     }
     this.sessions.set(input.sessionId, {
@@ -72,10 +81,34 @@ export class SessionRegistry {
     return { created: true, activeCount: this.playbackCount() };
   }
 
-  /** Touch lastSeenAt for any known session. */
-  touch(sessionId: string): void {
+  /**
+   * Touch lastSeenAt for any known session and clear the abandoned-turn `idle`
+   * flag — any incoming event (including a tool heartbeat) means the turn is
+   * still live. Returns whether the session was resurrected from idle.
+   */
+  touch(sessionId: string): boolean {
     const existing = this.sessions.get(sessionId);
-    if (existing) existing.lastSeenAt = this.now();
+    if (!existing) return false;
+    existing.lastSeenAt = this.now();
+    if (existing.idle) {
+      delete existing.idle;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Mark a session idle / active for abandoned-turn playback release (ADR 0008).
+   * Returns whether the flag actually changed.
+   */
+  setIdle(sessionId: string, idle: boolean): boolean {
+    const existing = this.sessions.get(sessionId);
+    if (!existing) return false;
+    const was = Boolean(existing.idle);
+    if (was === idle) return false;
+    if (idle) existing.idle = true;
+    else delete existing.idle;
+    return true;
   }
 
   /**
